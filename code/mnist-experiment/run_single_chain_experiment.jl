@@ -32,7 +32,7 @@ function decode(s::Vector{<:Number}; number_of_rows::Int=28, number_of_columns::
     return replace(X, -1 => 0)
 end
 
-function build_grid(samples; nrows=2, ncols=2, gap=2)
+function build_grid(samples; nrows=6, ncols=6, gap=2)
     H, W = 28, 28
     canvas_h = nrows * H + (nrows - 1) * gap
     canvas_w = ncols * W + (ncols - 1) * gap
@@ -143,7 +143,7 @@ for β in β_values
 
     # save grid figure
     fname = "Fig_single_chain_grid_beta$(Int(β)).png"
-    canvas = build_grid(chain_samples[1:min(4, S)])
+    canvas = build_grid(chain_samples[1:min(36, S)])
     save(joinpath(figpath, fname), Gray.(canvas))
     @info "  Saved $fname"
 end

@@ -196,11 +196,11 @@ Figure~\ref{fig:phase-diagram} showed the full phase diagram of attention concen
 
 \section{Multi-Digit MNIST Generalization}\label{app:multidigit}
 
-To verify that the results reported for digit ``3'' in the main text are not specific to a single morphological class, we repeated the identical multi-chain protocol (30~chains, $T{=}5{,}000$, burn-in~$2{,}000$, thin every 600, $\beta{=}2000$, $\alpha{=}0.01$, $K{=}100$ stored patterns per digit) on two additional MNIST digits chosen for their distinct morphological properties: digit ``1'' (simple stroke, near-degenerate orientation) and digit ``8'' (complex topology with two enclosed loops and high intra-class variance). All six baselines and the MALA variant were run with the identical protocol; results appear in Tables~\ref{tab:mnist-digit1} and~\ref{tab:mnist-digit8}.
+To verify that the results reported for digit ``3'' in the main text are not specific to a single morphological class, we repeated the identical multi-chain protocol (30~chains, $T{=}5{,}000$, burn-in~$2{,}000$, thin every 600, $\beta{=}2000$, $\alpha{=}0.01$, $K{=}100$ stored patterns per digit) on two additional MNIST digits chosen for their distinct morphological properties: digit ``1'' (simple stroke, near-degenerate orientation) and digit ``8'' (complex topology with two enclosed loops and high intra-class variance). All seven baselines (including the VAE) and the MALA variant were run with the identical protocol; results appear in Tables~\ref{tab:mnist-digit1} and~\ref{tab:mnist-digit8}.
 
 \begin{table}[h]
 \centering
-\caption{Quantitative comparison on MNIST digit ``1'' ($K{=}100$, $d{=}784$, $\beta{=}2000$). Same protocol as Table~\ref{tab:mnist-baselines}. MALA acceptance rate: 99.2\%. Values are mean $\pm$ SE across 30 chains.}
+\caption{Quantitative comparison on MNIST digit ``1'' ($K{=}100$, $d{=}784$, $\beta{=}2000$). Same protocol as Table~\ref{tab:mnist-baselines}, including the VAE baseline (latent dim 8, same two-phase training). MALA acceptance rate: 99.2\%. Values are mean $\pm$ SE across 30 chains.}
 \label{tab:mnist-digit1}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -211,6 +211,7 @@ Bootstrap (replay)          & $0.000 \pm 0.000$ & $0.416 \pm 0.019$ & $-0.500 \p
 Gaussian perturbation       & $0.004 \pm 0.000$ & $0.422 \pm 0.017$ & $-0.496 \pm 0.000$ \\
 Random convex combination   & $0.097 \pm 0.001$ & $0.007 \pm 0.000$ & $-0.398 \pm 0.001$ \\
 GMM-PCA ($r{=}50$, $C{=}10$) & $0.130 \pm 0.005$ & $0.401 \pm 0.017$ & $-0.366 \pm 0.005$ \\
+VAE (latent${=}8$)          & $0.180 \pm 0.006$ & $0.408 \pm 0.008$ & $-0.320 \pm 0.006$ \\
 MALA                        & $0.151 \pm 0.001$ & $0.586 \pm 0.001$ & $-0.305 \pm 0.001$ \\
 \textbf{Stochastic attention} & $\mathbf{0.153 \pm 0.001}$ & $\mathbf{0.591 \pm 0.001}$ & $\mathbf{-0.303 \pm 0.001}$ \\
 \bottomrule
@@ -219,7 +220,7 @@ MALA                        & $0.151 \pm 0.001$ & $0.586 \pm 0.001$ & $-0.305 \p
 
 \begin{table}[h]
 \centering
-\caption{Quantitative comparison on MNIST digit ``8'' ($K{=}100$, $d{=}784$, $\beta{=}2000$). Same protocol as Table~\ref{tab:mnist-baselines}. MALA acceptance rate: 99.2\%. Values are mean $\pm$ SE across 30 chains.}
+\caption{Quantitative comparison on MNIST digit ``8'' ($K{=}100$, $d{=}784$, $\beta{=}2000$). Same protocol as Table~\ref{tab:mnist-baselines}, including the VAE baseline (latent dim 8, same two-phase training). MALA acceptance rate: 99.2\%. Values are mean $\pm$ SE across 30 chains.}
 \label{tab:mnist-digit8}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -230,13 +231,14 @@ Bootstrap (replay)          & $0.000 \pm 0.000$ & $0.421 \pm 0.012$ & $-0.500 \p
 Gaussian perturbation       & $0.004 \pm 0.000$ & $0.450 \pm 0.011$ & $-0.496 \pm 0.000$ \\
 Random convex combination   & $0.099 \pm 0.000$ & $0.007 \pm 0.000$ & $-0.395 \pm 0.000$ \\
 GMM-PCA ($r{=}50$, $C{=}10$) & $0.194 \pm 0.005$ & $0.420 \pm 0.011$ & $-0.305 \pm 0.005$ \\
+VAE (latent${=}8$)          & $0.209 \pm 0.005$ & $0.397 \pm 0.009$ & $-0.291 \pm 0.005$ \\
 MALA                        & $0.151 \pm 0.001$ & $0.554 \pm 0.002$ & $-0.305 \pm 0.001$ \\
 \textbf{Stochastic attention} & $\mathbf{0.152 \pm 0.001}$ & $\mathbf{0.557 \pm 0.001}$ & $\mathbf{-0.303 \pm 0.001}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Across all three digit classes, the stochastic attention sampler and MALA produced practically indistinguishable metrics, both dominating every baseline (including GMM-PCA) on diversity simultaneously. GMM-PCA achieved comparable or higher novelty but consistently lower diversity ($0.401$--$0.420$ vs.\ $0.557$--$0.600$ for SA) with $10{\times}$ larger SE, confirming that a static learned density cannot match the ergodic coverage of Langevin dynamics. The MALA acceptance rate was 99.2\% for all digits, confirming that ULA discretization bias remains negligible regardless of digit morphology.
+Across all three digit classes, the stochastic attention sampler and MALA produced practically indistinguishable metrics, both dominating every baseline on diversity simultaneously. The VAE (latent dim 8) was the strongest non-Langevin baseline on novelty ($0.180$--$0.209$ vs.\ $0.130$--$0.194$ for GMM-PCA), but both learned models were far below the Langevin methods on diversity ($0.397$--$0.408$ for VAE vs.\ $0.557$--$0.600$ for SA), confirming that a static learned density cannot match the ergodic coverage of Langevin dynamics. The MALA acceptance rate was 99.2\% for all digits, confirming that ULA discretization bias remains negligible regardless of digit morphology.
 
 Figure~\ref{fig:mnist-digit1-grids} and Figure~\ref{fig:mnist-digit8-grids} showed representative $4{\times}4$ sample grids for each method. The qualitative pattern was the same as for digit ``3'': bootstrap outputs were exact stored copies, Gaussian perturbation was visually indistinguishable from bootstrap, random convex combinations produced uniform blurry averages, and both Langevin methods generated diverse, structured digits.
 
@@ -369,18 +371,24 @@ Single-chain            & 50   & 0.018 & $0.756 \pm 0.002$ & $0.967 \pm 0.002$ &
 
 \begin{figure}[h]
 \centering
-\begin{minipage}[t]{0.47\textwidth}
+\begin{minipage}[t]{0.31\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figs/Fig_single_chain_grid_beta2000.png}\\[-2pt]
-\small (a) $\beta{=}2000$, SNR$=0.113$, structured retrieval ($\bar{\mathcal{D}}{=}0.282$)
+\small (a) $\beta{=}2000$, SNR$=0.113$\\structured retrieval ($\bar{\mathcal{D}}{=}0.282$)
 \end{minipage}
 \hfill
-\begin{minipage}[t]{0.47\textwidth}
+\begin{minipage}[t]{0.31\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figs/Fig_single_chain_grid_beta200.png}\\[-2pt]
-\small (b) $\beta{=}200$, SNR$=0.036$, genuine generation ($\bar{\mathcal{D}}{=}0.796$)
+\small (b) $\beta{=}200$, SNR$=0.036$\\genuine generation ($\bar{\mathcal{D}}{=}0.796$)
 \end{minipage}
-\caption{Single-chain samples ($2{\times}2$ grids, digit ``3'') from a fixed seed at two operating points. Left: at SNR$=0.113$ the chain stays near one stored pattern. Right: at SNR$=0.036$ the chain spontaneously crosses energy barriers; single-chain diversity ($0.796$) \emph{exceeds} the 30-chain $\beta{=}2000$ value ($0.600$), confirming genuine generation rather than structured retrieval.}
+\hfill
+\begin{minipage}[t]{0.31\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figs/Fig_single_chain_grid_beta50.png}\\[-2pt]
+\small (c) $\beta{=}50$, SNR$=0.018$\\diffuse ($\bar{\mathcal{D}}{=}0.967$)
+\end{minipage}
+\caption{Single-chain samples ($6{\times}6$ grids, digit ``3'') from a fixed seed at three operating points. \textbf{(a)}~At SNR$=0.113$ the chain stays near one stored pattern; diversity is low ($0.282$). \textbf{(b)}~At SNR$=0.036$ the chain spontaneously crosses energy barriers; single-chain diversity ($0.796$) \emph{exceeds} the 30-chain $\beta{=}2000$ value ($0.600$), confirming genuine generation. \textbf{(c)}~At SNR$=0.018$ the chain is fully diffuse; samples lose recognizable digit structure.}
 \label{fig:generation-regimes}
 \end{figure}
 
@@ -525,7 +533,7 @@ Table~\ref{tab:simpsons-baselines} reported metrics for all five methods at $\be
 
 \begin{table}[h]
 \centering
-\caption{Quantitative comparison on Simpsons character faces ($K{=}100$, $d{=}4{,}096$, $\beta{=}10{,}000$, $\mathrm{SNR}=0.110$). Same protocol as Table~\ref{tab:mnist-baselines} except GMM-PCA is omitted (fitting a GMM in $d{=}4{,}096$ dimensions on $K{=}100$ patterns is degenerate). MALA acceptance rate: $>99\%$. Values are mean $\pm$ SE across 30 chains. Lower diversity relative to MNIST reflects higher inter-pattern correlation of face images (bootstrap diversity $0.117$ vs.\ $0.459$ for digit~``3'').}
+\caption{Quantitative comparison on Simpsons character faces ($K{=}100$, $d{=}4{,}096$, $\beta{=}10{,}000$, $\mathrm{SNR}=0.110$). Same protocol as Table~\ref{tab:mnist-baselines} except GMM-PCA and VAE are omitted: at $d{=}4{,}096$ with only $K{=}100$ training patterns, both methods are degenerate (GMM covariance is rank-deficient; VAE encoder--decoder cannot generalize from 100 examples in 4,096 dimensions). MALA acceptance rate: $>99\%$. Values are mean $\pm$ SE across 30 chains. Lower diversity relative to MNIST reflects higher inter-pattern correlation of face images (bootstrap diversity $0.117$ vs.\ $0.459$ for digit~``3'').}
 \label{tab:simpsons-baselines}
 \small
 \begin{tabular}{@{}lccc@{}}

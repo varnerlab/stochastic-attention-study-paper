@@ -24,7 +24,7 @@ include(joinpath(@__DIR__, "..", "mnist-experiment", "Include-MNIST.jl"))
 using Flux, Statistics, Random, LinearAlgebra, Printf
 
 # ── Constants (match main MNIST experiment exactly) ───────────────────────────
-const DIGIT       = 3
+const DIGIT       = parse(Int, get(ENV, "VAE_DIGIT", "3"))
 const K           = 100
 const D           = 784
 const β_inv_temp  = 2000.0
