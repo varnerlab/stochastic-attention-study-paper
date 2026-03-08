@@ -8,7 +8,7 @@ Recall the setup from Section~3: the memory matrix $\mathbf{X}=[\mathbf{m}_1,\do
     p_\beta(\boldsymbol{\xi})
     \;\propto\; \exp\!\bigl(-\beta\, E(\boldsymbol{\xi})\bigr),
 \end{equation}
-where $\beta>0$ is the inverse temperature and $E$ is defined in~\eqref{eq:modern-hopfield-energy}. To apply the ULA~\eqref{eq:ula} we need $\nabla E$. The background already established the identity $\nabla E(\boldsymbol{\xi})=\boldsymbol{\xi}-\mathbf{T}(\boldsymbol{\xi})$, where $\mathbf{T}$ is the softmax attention map~\eqref{eq:hopfield-update}. Reparameterizing the ULA via $U=\beta E$ and rescaling time by $\beta$ (so the gradient of $E$, rather than $\beta E$, appears directly), we obtain
+where $\beta>0$ is the inverse temperature and $E$ is defined in~\eqref{eq:modern-hopfield-energy}. To apply the ULA~\eqref{eq:ula} we need $\nabla E$. The background already established the identity $\nabla E(\boldsymbol{\xi})=\boldsymbol{\xi}-\mathbf{T}(\boldsymbol{\xi})$, where $\mathbf{T}$ is the softmax attention map~\eqref{eq:hopfield-update}. Applying the ULA to the potential $U=\beta E$ with step size $\tilde\alpha$ gives $\boldsymbol{\xi}_{t+1}=\boldsymbol{\xi}_t-\tilde\alpha\beta\nabla E+\sqrt{2\tilde\alpha}\,\boldsymbol{\epsilon}_t$. Substituting $\tilde\alpha=\alpha/\beta$ (so the effective step for $\nabla E$ is $\alpha$ and the noise scale becomes $\sqrt{2\alpha/\beta}$), we obtain
 \begin{equation}\label{eq:stochastic-attention}
     \boldsymbol{\xi}_{t+1}
     = \boldsymbol{\xi}_t
