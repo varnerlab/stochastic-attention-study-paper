@@ -11,7 +11,9 @@
       "Bash(ls:*)",
       "Bash(grep:*)",
       "Bash(julia:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(/Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/paper/References_v1.bib:*)",
+      "Bash(bibtex Paper_v1:*)"
     ]
   }
 }

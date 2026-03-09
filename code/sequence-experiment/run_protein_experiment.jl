@@ -527,7 +527,29 @@ function run_protein_experiment(; pfam_id=PFAM_ID, figpath=_PATH_TO_FIG)
             push!(sa_samples, chain_pool[idx])
         end
     end
-    @info "  SA: $(length(sa_samples)) samples"
+    @info "  SA (retrieval): $(length(sa_samples)) samples"
+
+    # ── Step 7b: SA multi-chain (generation regime) ───────────────────────────
+    β_gen_temp = Float64(β_generation)
+    @info "Step 7b: Running SA multi-chain GENERATION (β=$β_generation) …"
+    sa_gen_samples = Vector{Vector{Float64}}()
+    Random.seed!(42)
+    pattern_indices_gen = StatsBase.sample(1:K, n_chains, replace=(n_chains > K))
+    for (c, k) in enumerate(pattern_indices_gen)
+        Random.seed!(12345 + c)
+        sₒ = X̂[:, k] .+ σ_init .* randn(d)
+        (_, Ξ) = sample(X̂, sₒ, T_per_chain; β=β_gen_temp, α=α_step, seed=12345+c)
+        chain_pool = Vector{Vector{Float64}}()
+        for tᵢ in (T_burnin+1):thin_interval:T_per_chain
+            push!(chain_pool, Ξ[tᵢ, :])
+        end
+        n_avail = length(chain_pool)
+        idxs = round.(Int, range(1, n_avail, length=min(samples_per_chain, n_avail)))
+        for idx in idxs
+            push!(sa_gen_samples, chain_pool[idx])
+        end
+    end
+    @info "  SA (generation): $(length(sa_gen_samples)) samples"
 
     # ── Step 8: MALA multi-chain ──────────────────────────────────────────────
     @info "Step 8: Running MALA multi-chain (β=$β_retrieval) …"
@@ -669,8 +691,9 @@ function run_protein_experiment(; pfam_id=PFAM_ID, figpath=_PATH_TO_FIG)
     # scale back, then inverse-PCA. We use the PCA reconstruction directly
     # on the PCA-space samples (SA/MALA/baselines operate in normalized PCA space).
 
-    sa_seqs   = [decode_sample(ξ) for ξ in sa_samples]
-    mala_seqs = [decode_sample(ξ) for ξ in mala_samples]
+    sa_seqs     = [decode_sample(ξ) for ξ in sa_samples]
+    sa_gen_seqs = [decode_sample(ξ) for ξ in sa_gen_samples]
+    mala_seqs   = [decode_sample(ξ) for ξ in mala_samples]
     bs_seqs   = [decode_sample(ξ) for ξ in bs_samples]
     gp_seqs   = [decode_sample(ξ) for ξ in gp_samples]
     rc_seqs   = [decode_sample(ξ) for ξ in rc_samples]
@@ -694,8 +717,9 @@ function run_protein_experiment(; pfam_id=PFAM_ID, figpath=_PATH_TO_FIG)
         "Random convex combination" => (rc_samples,   rc_seqs),
         "GMM-PCA"                   => (gmm_samples,  gmm_seqs),
         "VAE (latent=8)"            => (vae_samples,  vae_seqs),
-        "MALA"                      => (mala_samples, mala_seqs),
-        "Stochastic attention"      => (sa_samples,   sa_seqs),
+        "MALA (β=$β_retrieval)"     => (mala_samples, mala_seqs),
+        "SA (β=$β_retrieval, ret)"  => (sa_samples,   sa_seqs),
+        "SA (β=$β_generation, gen)" => (sa_gen_samples, sa_gen_seqs),
     ]
 
     rows = Vector{NamedTuple}()
@@ -730,7 +754,9 @@ function run_protein_experiment(; pfam_id=PFAM_ID, figpath=_PATH_TO_FIG)
     println("\n══════════════════════════════════════════════════════")
     println("PROTEIN EXPERIMENT RESULTS — $pfam_id")
     println("Memory: K=$K sequences, L=$L positions, d_PCA=$d")
-    println("β=$β_retrieval (SNR=$(round(sqrt(α_step*β_inv_temp/(2*d)), digits=4)))")
+    println("β_retrieval=$β_retrieval (SNR=$(round(sqrt(α_step*β_inv_temp/(2*d)), digits=4)))")
+    println("β_generation=$β_generation (SNR=$(round(sqrt(α_step*β_gen_temp/(2*d)), digits=4)))")
+    println("β* (entropy inflection) = $(round(pt.β_star, digits=2))")
     println("MALA acceptance rate: $mala_mean_ar")
     println("══════════════════════════════════════════════════════")
 

@@ -394,6 +394,77 @@ Single-chain            & 50   & 0.018 & $0.756 \pm 0.002$ & $0.967 \pm 0.002$ &
 
 At $\beta{=}2000$ the single-chain diversity of $0.282$ is not negligible: the chain samples a genuine distribution within its energy basin rather than collapsing to a point mass. As $\beta$ decreased the energy barriers shrank, chains escaped their initial basins, and single-chain diversity rose sharply, mirroring the temperature-spectrum results of Appendix~\ref{app:multidigit}. At $\beta{=}200$ single-chain diversity ($0.796$) exceeds the multi-chain value at $\beta{=}2000$, and at $\beta{=}50$ it approaches the isotropic limit ($0.967$, mean max-cos $0.244$). The multi-chain protocol at $\beta{=}2000$ is therefore best understood as a \emph{structured retrieval} strategy in which each chain contributes low-energy samples from a distinct basin, while single-chain operation at $\beta{=}200$ provides genuine generative diversity without requiring multiple initializations.
 
+\paragraph{Mixing time.}
+At $\beta{=}2000$ the single chain remained in the basin of its seed pattern for the entire $50{,}000$-step run (${\approx}12$\,s wall-clock on a laptop CPU): the max-cosine to the seed pattern stayed above $0.84$ at every thinned sample, and the chain never visited the basin of any other stored pattern. The \emph{inter-basin} mixing time at this temperature therefore exceeds $50{,}000$ steps, consistent with the exponential-barrier scaling discussed in Section~4. \emph{Intra-basin} mixing, by contrast, is fast: energy and max-cosine stabilize within the $2{,}000$-step burn-in, and consecutive thinned samples (every $100$ steps) have pairwise cosine distance $0.11\pm0.01$, indicating decorrelation within $O(100)$ steps. At $\beta{=}200$ the picture changes: the chain crosses into a different basin within the first ${\approx}5{,}000$ steps and visits multiple basins over the $50{,}000$-step run, yielding the observed single-chain diversity of $0.796$.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Protein Sequence Generation}\label{app:protein}
+% ─────────────────────────────────────────────────────────────────────────────
+
+To test stochastic attention on a non-image domain with discrete structure, we applied the full experimental pipeline to protein sequences from the Pfam RRM family (PF00076, RNA Recognition Motif)~\cite{mistryPfamProteinFamilies2021}.
+
+\paragraph{Data and encoding.}
+We downloaded the Pfam seed alignment (Stockholm format), removed columns with $>50\%$ gaps and sequences with $>30\%$ gaps, yielding $K{=}68$ aligned sequences of length $L{=}71$ positions over the 20 standard amino acids. Each sequence was one-hot encoded into $\mathbb{R}^{1420}$ ($20\times 71$), projected via PCA retaining 95\% of variance ($1420\to 59$ dimensions), and $\ell_2$-normalized to form the memory matrix $\hat{\mathbf{X}}\in\mathbb{R}^{59\times 68}$.
+
+\paragraph{Phase transition.}
+The entropy inflection analysis (Proposition~\ref{prop:entropy-derivative}) yielded $\beta^*\approx 3.85$ ($\mathrm{SNR}^*=0.018$), compared to the theoretical prediction $\beta^*=\sqrt{d}=7.68$ for random unit-norm patterns. The ratio of $0.50$ reflects the structured (non-random) geometry of the protein family: conserved positions reduce the effective variance of the similarities $e_k$, shifting the transition to lower $\beta$. We set $\beta_{\mathrm{ret}}=20\beta^*\approx 77$ ($\mathrm{SNR}=0.081$) for the structured-retrieval regime and $\beta_{\mathrm{gen}}=2\beta^*\approx 8$ ($\mathrm{SNR}=0.026$, just above the inflection) for the generation regime.
+
+\paragraph{Protocol.}
+We ran the identical multi-chain protocol used for MNIST: 30 chains, $T{=}5{,}000$ iterations, burn-in $2{,}000$, thinning every 100 steps, 5 samples per chain, yielding $S{=}150$ generated sequences. SA was run at both $\beta_{\mathrm{ret}}{=}77$ (retrieval) and $\beta_{\mathrm{gen}}{=}8$ (generation) to demonstrate the temperature knob on a non-image domain. All seven baselines (bootstrap, Gaussian perturbation, random convex combination, GMM-PCA, VAE with latent dim 8, MALA) were run with the same protocol. Generated PCA-space vectors were decoded back to amino acid sequences by inverse-PCA followed by per-position argmax over the 20 amino acid channels.
+
+\paragraph{Metrics.}
+In addition to the standard metrics (novelty~$\mathcal{N}$, diversity~$\bar{\mathcal{D}}$, energy~$\bar{E}$), we report two protein-specific measures: \emph{sequence identity} to the nearest stored member (max over stored sequences of the fraction of non-gap positions with matching amino acids) and \emph{amino acid composition KL divergence} ($D_{\mathrm{KL}}(p_{\mathrm{stored}}\|q_{\mathrm{gen}})$ over the 20 amino acid frequencies).
+
+\begin{table}[h]
+\centering
+\caption{Protein sequence generation on Pfam PF00076 (RRM family, $K{=}68$, $L{=}71$, $d{=}59$ after PCA). Two SA rows demonstrate the temperature knob: $\beta{=}77$ (retrieval, $20\beta^*$) and $\beta{=}8$ (generation, $2\beta^*$). SeqID: maximum sequence identity to any stored sequence. KL: amino acid composition divergence from stored sequences (lower is better). $^\dagger$Energy is positive at $\beta{=}8$ because samples explore off the attractor manifold. MALA acceptance rate: 99.8\%.}
+\label{tab:protein}
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Method & $\mathcal{N}$ $\uparrow$ & $\bar{\mathcal{D}}$ $\uparrow$ & $\bar{E}$ $\downarrow$ & SeqID & KL $\downarrow$ \\
+\midrule
+Bootstrap (replay)          & $0.000 \pm 0.000$ & $1.000 \pm 0.012$ & $-0.500 \pm 0.000$ & $0.645 \pm 0.004$ & 0.133 \\
+Gaussian perturbation       & $0.008 \pm 0.000$ & $1.002 \pm 0.007$ & $-0.492 \pm 0.000$ & $0.633 \pm 0.006$ & 0.132 \\
+Random convex combination   & $0.510 \pm 0.009$ & $0.994 \pm 0.009$ & $-0.068 \pm 0.001$ & $0.562 \pm 0.000$ & 2.091 \\
+GMM-PCA ($r{=}50$, $C{=}10$) & $0.606 \pm 0.009$ & $1.000 \pm 0.007$ & $+0.077 \pm 0.009$ & $0.540 \pm 0.003$ & 0.731 \\
+VAE (latent${=}8$)          & $0.621 \pm 0.007$ & $0.834 \pm 0.022$ & $+0.118 \pm 0.007$ & $0.532 \pm 0.003$ & 0.416 \\
+MALA ($\beta{=}77$)         & $0.249 \pm 0.004$ & $0.992 \pm 0.007$ & $-0.115 \pm 0.005$ & $0.609 \pm 0.012$ & 0.112 \\
+SA ($\beta{=}77$, retrieval) & $0.243 \pm 0.004$ & $0.991 \pm 0.007$ & $-0.120 \pm 0.006$ & $0.616 \pm 0.012$ & 0.107 \\
+\textbf{SA ($\beta{=}8$, generation)} & $\mathbf{0.623 \pm 0.006}$ & $\mathbf{1.001 \pm 0.006}$ & $3.08 \pm 0.06^\dagger$ & $\mathbf{0.538 \pm 0.006}$ & \textbf{0.060} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\IfFileExists{figs/Fig_protein_aa_frequencies.pdf}{%
+  \includegraphics[width=\linewidth]{figs/Fig_protein_aa_frequencies.pdf}%
+}{%
+  \framebox[\linewidth]{\rule{0pt}{4cm}\small [AA frequency heatmap]}%
+}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\IfFileExists{figs/Fig_protein_sequence_identity.pdf}{%
+  \includegraphics[width=\linewidth]{figs/Fig_protein_sequence_identity.pdf}%
+}{%
+  \framebox[\linewidth]{\rule{0pt}{4cm}\small [Sequence identity histogram]}%
+}
+\end{minipage}
+\caption{Protein sequence generation on PF00076. \textbf{Left:} Per-position amino acid frequencies for stored sequences (top) and SA-generated sequences (bottom). SA preserves the conserved positions of the RRM family while introducing variation at non-conserved sites. \textbf{Right:} Distribution of sequence identity to the nearest stored member for SA and GMM-PCA. SA generates sequences that are ${\approx}62\%$ identical to their nearest stored neighbor, while GMM-PCA produces more distant sequences (${\approx}54\%$) with much higher compositional divergence (KL$=0.731$ vs.\ $0.107$).}
+\label{fig:protein}
+\end{figure}
+
+Table~\ref{tab:protein} reveals the same two-regime structure observed on MNIST. At $\beta{=}77$ (retrieval), SA generates sequences ${\approx}62\%$ identical to their nearest stored member with the lowest KL divergence of any method at this temperature ($0.107$). SA and MALA are again indistinguishable (MALA acceptance $99.8\%$), consistent with the MNIST results. Random convex combinations catastrophically distort the composition (KL$=2.091$) because averaging one-hot vectors in PCA space does not preserve per-position amino acid structure.
+
+At $\beta{=}8$ (generation, $2\beta^*$), SA matches the VAE on novelty ($0.623$ vs.\ $0.621$) and exceeds it on diversity ($1.001$ vs.\ $0.834$), while achieving dramatically lower compositional divergence: KL$=0.060$ vs.\ $0.416$ for the VAE, a $6.9{\times}$ improvement. This means SA-generated sequences at generation temperature have the closest amino acid composition to the real RRM family of any method tested, including all baselines and SA at retrieval temperature. The temperature knob works as designed: lowering $\beta$ from retrieval to generation trades sequence identity ($0.616\to 0.538$) for novelty ($0.243\to 0.623$) while preserving family-level compositional fidelity. Energy rises above zero (samples leave the attractor manifold), but the Langevin gradient keeps the chain closer to the memory geometry than any learned baseline.
+
+The entropy inflection analysis validates at this new dimensionality: the empirical $\beta^*{=}3.85$ is approximately half the random-pattern prediction $\sqrt{d}{=}7.68$. This discrepancy is expected: RRM sequences share conserved residues at many positions, reducing the effective variance of the query-key similarities and shifting the phase transition to lower $\beta$. The inflection criterion (Eq.~\ref{eq:inflection}) automatically accounts for this structure, providing the correct operating point without manual tuning.
+
 \section{Financial Log-Return Generation}\label{app:finance}
 
 The synthetic experiments validated the sampler on controlled geometry; this section used real financial data to \emph{precisely characterize} what equilibrium Boltzmann sampling on the Hopfield energy captures and, equally importantly, what it cannot, and why each limitation is a principled theoretical consequence rather than a tuning failure.
@@ -708,6 +779,53 @@ Smaller latent dimensions or larger $\beta_{\mathrm{KL}}$ values degraded novelt
 diversity, while larger latent dimensions showed posterior collapse symptoms
 (diversity collapsing to $\bar{\mathcal{D}}{<}0.05$ at latent dim 32 with $\beta_{\mathrm{KL}}{=}0.01$).
 
+% ── DDPM ────────────────────────────────────────────────────────────────────
+\subsection{Denoising Diffusion Probabilistic Model (DDPM)}\label{app:ddpm}
+
+We implement a standard DDPM~\cite{hoDenoisingDiffusionProbabilistic2020} operating on the
+same flattened, unit-norm MNIST vectors used by all other methods.
+
+\paragraph{Architecture.}
+Since the data are flattened 784-dimensional vectors (not 2D images), we use an MLP denoiser
+rather than a convolutional U-Net. The input at each timestep~$t$ is the concatenation of the
+noisy vector $\mathbf{x}_t\in\mathbb{R}^{784}$ and a sinusoidal timestep embedding
+$\mathbf{e}_t\in\mathbb{R}^{64}$, giving an 848-dimensional input. The network is
+$848\to512~(\mathrm{ReLU})\to256~(\mathrm{ReLU})\to512~(\mathrm{ReLU})\to784$,
+predicting the noise $\boldsymbol{\epsilon}$.
+
+\paragraph{Diffusion schedule.}
+We use $T{=}200$ diffusion steps with a linear variance schedule
+$\beta_1{=}10^{-4},\;\beta_T{=}0.02$, following Ho et al.~\cite{hoDenoisingDiffusionProbabilistic2020}.
+The forward process is $q(\mathbf{x}_t|\mathbf{x}_0)=\mathcal{N}(\sqrt{\bar\alpha_t}\,\mathbf{x}_0,\;(1{-}\bar\alpha_t)\mathbf{I})$
+where $\bar\alpha_t=\prod_{s=1}^{t}(1-\beta_s)$.
+
+\paragraph{Training.}
+We train for $5{,}000$ epochs using Adam~\cite{kingmaAdamMethodStochastic2014}
+(learning rate $10^{-3}$) with full-batch updates ($K{=}100$).
+At each epoch, we sample random timesteps $t\sim\mathrm{Uniform}\{1,\dots,T\}$ for each training
+image, draw noise $\boldsymbol{\epsilon}\sim\mathcal{N}(\mathbf{0},\mathbf{I})$, compute
+$\mathbf{x}_t=\sqrt{\bar\alpha_t}\,\mathbf{x}_0+\sqrt{1{-}\bar\alpha_t}\,\boldsymbol{\epsilon}$,
+and minimize the MSE loss $\lVert\boldsymbol{\epsilon}-\hat{\boldsymbol{\epsilon}}_\theta(\mathbf{x}_t,t)\rVert_2^2$.
+
+\paragraph{Sampling.}
+We generate 150 samples via the standard reverse process starting from
+$\mathbf{x}_T\sim\mathcal{N}(\mathbf{0},\mathbf{I})$ and iterating
+$\mathbf{x}_{t-1}=\frac{1}{\sqrt{\alpha_t}}\bigl(\mathbf{x}_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\hat{\boldsymbol{\epsilon}}_\theta(\mathbf{x}_t,t)\bigr)+\sqrt{\beta_t}\,\mathbf{z}$
+for $t=T,\dots,1$. Each output is $\ell_2$-normalized to match the convention of all other methods.
+
+\paragraph{Result.}
+The DDPM produced samples with $\mathcal{N}{=}0.938$, $\bar{\mathcal{D}}{=}0.991$, and
+max-cosine similarity to the nearest stored pattern of $0.062$, indistinguishable from
+isotropic Gaussian noise ($0.057$; Appendix~\ref{app:noise-control}).
+The training loss plateaued at ${\approx}0.855$ (close to the expected MSE for predicting
+random noise), indicating that the denoiser failed to learn the data distribution.
+This is the expected behavior: DDPM requires thousands to millions of training images to
+estimate a score function across $T{=}200$ noise levels; with only $K{=}100$ images in
+$\mathbb{R}^{784}$, the model is severely underspecified.
+Stochastic attention avoids this failure mode entirely because its score function is available
+in closed form from the Hopfield energy, requiring no training data beyond the stored patterns
+themselves.
+
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Step-Size Sweep: ULA vs.\ MALA}\label{app:stepsize-sweep}
 % ─────────────────────────────────────────────────────────────────────────────
@@ -718,7 +836,7 @@ Table~\ref{tab:stepsize-sweep} and Figure~\ref{fig:stepsize-sweep} reveal three 
 \begin{enumerate}
   \item \textbf{Equivalent regime} ($\alpha\leq 0.02$): MALA acceptance $>97\%$; ULA and MALA metrics are indistinguishable ($\Delta E < 0.003$).
   \item \textbf{Divergence regime} ($\alpha\in[0.05,0.1]$): acceptance drops to $75$--$91\%$; ULA bias becomes detectable but small ($\Delta\mathcal{N}\approx 0.007$, $\Delta E \approx 0.011$).
-  \item \textbf{MALA-frozen regime} ($\alpha\geq 0.2$): MALA acceptance collapses to $0\%$ — the chain freezes at its initialization — while ULA continues to produce samples with gracefully degrading quality (rising energy, increasing novelty as the noise term dominates).
+  \item \textbf{MALA-frozen regime} ($\alpha\geq 0.2$): MALA acceptance collapses to $0\%$ (the chain freezes at its initialization) while ULA continues to produce samples with gracefully degrading quality (rising energy, increasing novelty as the noise term dominates).
 \end{enumerate}
 The practical divergence threshold is $\alpha\approx 0.1$ ($75\%$ acceptance, $\Delta E = 0.011$). At the paper's operating point ($\alpha{=}0.01$), ULA bias is negligible ($\Delta E = 0.0018$). At large step sizes, ULA is \emph{preferable} to MALA: MALA freezes entirely because the large Langevin proposals are almost always rejected, while ULA, which unconditionally accepts every proposal, continues to explore the energy landscape.
 
@@ -763,7 +881,7 @@ $\alpha$ & Accept & \multicolumn{2}{c}{Novelty} & \multicolumn{2}{c}{Diversity} 
 At $\beta{=}200$ (SNR$=0.036$, the generation regime), SA achieves high novelty ($0.547$) and diversity ($0.885$) but the mean Hopfield energy is positive ($+1.47$), meaning samples lie outside the attractor manifold. A natural concern is that these metrics could be achieved trivially by high-temperature noise that bears no structural relationship to the stored patterns. We test this by comparing SA against two Gaussian noise controls on MNIST digit~``3'' ($K{=}100$, $d{=}784$).
 
 \paragraph{Controls.}
-\emph{Matched Gaussian}: for each pixel $j$, we estimate the mean $\mu_j$ and variance $\sigma_j^2$ of the 150 SA samples and draw i.i.d.\ $\mathcal{N}(\mu_j, \sigma_j^2)$ — this is the strongest possible Gaussian that matches SA's marginal pixel statistics. \emph{Isotropic Gaussian}: we draw $\mathbf{g}\sim\mathcal{N}(\mathbf{0},\mathbf{I}_d)$ and rescale to match the mean norm of SA samples ($\lVert\boldsymbol{\xi}\rVert\approx 2.22$). Both controls produce 150 samples.
+\emph{Matched Gaussian}: for each pixel $j$, we estimate the mean $\mu_j$ and variance $\sigma_j^2$ of the 150 SA samples and draw i.i.d.\ $\mathcal{N}(\mu_j, \sigma_j^2)$; this is the strongest possible Gaussian that matches SA's marginal pixel statistics. \emph{Isotropic Gaussian}: we draw $\mathbf{g}\sim\mathcal{N}(\mathbf{0},\mathbf{I}_d)$ and rescale to match the mean norm of SA samples ($\lVert\boldsymbol{\xi}\rVert\approx 2.22$). Both controls produce 150 samples.
 
 \paragraph{Results.}
 Table~\ref{tab:noise-control} and Figure~\ref{fig:noise-control} present the comparison. The key separating metric is \emph{maximum cosine similarity} to the nearest stored pattern (Max-$\cos$): SA retains $0.453$, meaning each sample sits roughly halfway between the stored-pattern manifold ($1.0$) and random directions (${\approx}0.06$ in $\mathbb{R}^{784}$). The matched Gaussian achieves only $0.328$ despite sharing SA's per-pixel moments, and isotropic noise achieves $0.057$ (the random-direction baseline). Hopfield energy separates the methods in the same order: SA ($1.47$) $<$ matched Gaussian ($1.78$) $<$ isotropic ($2.34$).
@@ -820,3 +938,53 @@ Gaussian (isotropic)              & 0.943 & 1.000 & $+2.34$ & 0.057 & 3.91 \\
 \caption{Gaussian noise control. \textbf{(a)}~Stored digit ``3'' patterns. \textbf{(b)}~SA at $\beta{=}200$: noisy but spatially structured (curved strokes visible). \textbf{(c)}~Matched Gaussian (same per-pixel $\mu$ and $\sigma^2$ as SA): uniform static, no digit structure. \textbf{(d)}~Isotropic Gaussian (matched norm): pure noise. \textbf{(e)}~Distribution of max cosine similarity to nearest stored pattern: SA (blue) is clearly shifted right of both Gaussian controls, confirming that the Hopfield energy gradient preserves structural similarity that noise cannot replicate.}
 \label{fig:noise-control}
 \end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Scaling Experiment: SA vs.\ DDPM}\label{app:scaling}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The $K{=}100$ MNIST experiment (Table~\ref{tab:mnist-baselines}) showed that DDPM fails entirely when training data are scarce, but this comparison is arguably unfair to DDPM: diffusion models are designed for large-data regimes. We therefore ran a scaling study at $K\in\{100,\,500,\,1{,}000,\,2{,}000,\,3{,}500\}$ digit-3 images (the maximum available in MNIST) to test whether DDPM catches up as $K$ grows and to characterize how SA behaves under a principled, data-dependent $\beta$ selection.
+
+\paragraph{$\beta$ selection via entropy inflection.}
+At each~$K$, we set $\beta$ using the entropy inflection criterion of Proposition~\ref{prop:entropy-derivative}: we sweep $\beta$ over a grid, compute the attention entropy $H(\beta)=-\sum_k p_k\log p_k$ where $\mathbf{p}=\mathrm{softmax}(\beta\mathbf{X}^\top\boldsymbol{\xi})$ averaged over a probe set, and identify $\beta^*$ at the inflection point (maximum $|dH/d\beta|$). This gives a principled, data-dependent operating point for each $K$ without manual tuning. For each $K$ we also report SA at $5\beta^*$ (the retrieval regime) to illustrate the temperature knob.
+
+\paragraph{DDPM configuration.}
+We use the same MLP architecture (Appendix~\ref{app:ddpm}) with $T{=}200$ diffusion steps at every~$K$. Training epochs are scaled inversely with $K$ to keep total gradient steps comparable: $5{,}000$ epochs at $K{=}100$ down to $1{,}000$ epochs at $K{=}3{,}500$.
+
+\paragraph{Results.}
+Table~\ref{tab:scaling} and Figure~\ref{fig:scaling} present the results. The key metric is max-cosine similarity to the nearest stored pattern, which distinguishes structured generation from noise.
+
+\begin{table}[h]
+\centering
+\caption{Scaling experiment on MNIST digit ``3''. $\beta^*$ is set via entropy inflection at each $K$. SA operates at $\beta^*$ (generation) and $5\beta^*$ (retrieval). Max-$\cos$ measures structural similarity to stored patterns (isotropic noise baseline: ${\approx}0.06$).}
+\label{tab:scaling}
+\small
+\begin{tabular}{@{}rrccccccccc@{}}
+\toprule
+$K$ & $K/d$ & $\beta^*$ & \multicolumn{3}{c}{SA (generation, $\beta{=}\beta^*$)} & \multicolumn{3}{c}{SA (retrieval, $\beta{=}5\beta^*$)} & \multicolumn{2}{c}{DDPM ($T{=}200$)} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}\cmidrule(lr){10-11}
+ & & & $\mathcal{N}$ & $\bar{\mathcal{D}}$ & max-$\cos$ & $\mathcal{N}$ & $\bar{\mathcal{D}}$ & max-$\cos$ & max-$\cos$ & train (s) \\
+\midrule
+100  & 0.13 & 9   & 0.874 & 0.993 & 0.126 & 0.763 & 0.969 & 0.237 & 0.061 & 34 \\
+500  & 0.64 & 13  & 0.851 & 0.991 & 0.149 & 0.722 & 0.955 & 0.278 & 0.073 & 37 \\
+1000 & 1.28 & 15  & 0.839 & 0.989 & 0.161 & 0.697 & 0.949 & 0.303 & 0.078 & 46 \\
+2000 & 2.55 & 18  & 0.827 & 0.987 & 0.173 & 0.673 & 0.940 & 0.327 & 0.086 & 66 \\
+3500 & 4.46 & 18  & 0.825 & 0.987 & 0.175 & 0.673 & 0.944 & 0.327 & 0.090 & 75 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\IfFileExists{figs/Fig_scaling_sa_vs_ddpm.pdf}{%
+  \includegraphics[width=0.95\textwidth]{figs/Fig_scaling_sa_vs_ddpm.pdf}%
+}{%
+  \framebox[0.95\textwidth]{\rule{0pt}{4cm}\texttt{[Figure will be generated by run\_scaling\_experiment.jl]}}%
+}
+\caption{Scaling experiment: SA vs.\ DDPM on MNIST digit ``3'' as the number of stored patterns $K$ increases from 100 to 3{,}500. \textbf{(a)}~Max-cosine similarity: SA at both $\beta^*$ (generation) and $5\beta^*$ (retrieval) produces samples with meaningful structural similarity to stored patterns that increases with $K$; DDPM remains near the isotropic noise floor (${\approx}0.06$) at all $K$ tested. \textbf{(b)}~Novelty. \textbf{(c)}~Diversity. \textbf{(d)}~Entropy-inflection $\beta^*$ as a function of $K$.}
+\label{fig:scaling}
+\end{figure}
+
+Three findings emerge. First, DDPM's max-cosine similarity never exceeds $0.09$ across the entire range $K\in[100,\,3{,}500]$, remaining close to the isotropic noise baseline of ${\approx}0.06$. The MLP denoiser cannot learn the data distribution even with $3{,}500$ training images in $\mathbb{R}^{784}$. Second, SA's max-cosine similarity grows monotonically with $K$: from $0.126$ at $K{=}100$ to $0.175$ at $K{=}3{,}500$ in the generation regime, and from $0.237$ to $0.327$ in the retrieval regime. More stored patterns provide denser coverage of the data manifold, enabling SA to generate samples that are structurally closer to the training distribution. Third, the entropy-inflection $\beta^*$ increases with $K$ (from $9$ to $18$), consistent with the theoretical prediction that the transition temperature shifts as memory load grows. SA requires no retuning: the entropy inflection provides a principled, automatic $\beta$ at each $K$.
+
+We acknowledge that a convolutional U-Net DDPM operating on 2D images (rather than flattened vectors) would likely perform better, particularly at larger $K$. The comparison here is deliberately controlled: both methods operate on the same flattened, unit-norm representation. The point is not that SA is universally superior to diffusion models, but that SA's training-free score function provides a structural advantage in the low-data regime ($K\lesssim 10^3$) and that this advantage persists as $K$ grows within the range tested.
