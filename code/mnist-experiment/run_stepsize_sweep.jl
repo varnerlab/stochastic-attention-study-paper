@@ -73,7 +73,7 @@ function run_multichain(X̂, α; method=:sa)
         n_avail = length(chain_pool)
         idxs = round.(Int, range(1, n_avail, length=min(samples_per_chain, n_avail)))
         for idx in idxs
-            push!(chain_pool[idx] |> copy |> x -> push!(all_samples, x))
+            push!(all_samples, copy(chain_pool[idx]))
         end
     end
 
@@ -105,7 +105,13 @@ for α in α_values
     # MALA
     @info "  Running MALA …"
     mala_samples, mala_ar = run_multichain(X̂, α; method=:mala)
-    mala_metrics = compute_metrics(mala_samples, X̂, β_inv_temp)
+
+    # If acceptance is essentially zero, MALA chain is frozen; metrics are meaningless
+    if mala_ar < 1e-6
+        mala_metrics = (novelty = NaN, diversity = NaN, energy = NaN)
+    else
+        mala_metrics = compute_metrics(mala_samples, X̂, β_inv_temp)
+    end
 
     push!(results, (
         α = α,
@@ -120,7 +126,11 @@ for α in α_values
 
     @info "  MALA accept = $(round(mala_ar, digits=4))"
     @info "  SA:   N=$(round(sa_metrics.novelty, digits=4))  D=$(round(sa_metrics.diversity, digits=4))  E=$(round(sa_metrics.energy, digits=4))"
-    @info "  MALA: N=$(round(mala_metrics.novelty, digits=4))  D=$(round(mala_metrics.diversity, digits=4))  E=$(round(mala_metrics.energy, digits=4))"
+    if !isnan(mala_metrics.novelty)
+        @info "  MALA: N=$(round(mala_metrics.novelty, digits=4))  D=$(round(mala_metrics.diversity, digits=4))  E=$(round(mala_metrics.energy, digits=4))"
+    else
+        @info "  MALA: chain frozen (acceptance ≈ 0)"
+    end
 end
 
 # ── Print results table ──────────────────────────────────────────────────────
@@ -139,11 +149,16 @@ println("\$\\alpha\$ & Accept & \\multicolumn{2}{c}{Novelty} & \\multicolumn{2}{
 println(" & rate & ULA & MALA & ULA & MALA & (ULA\$-\$MALA) \\\\")
 println("\\midrule")
 for r in results
-    ΔE = r.sa_energy - r.mala_energy
-    println("$(r.α) & $(round(r.mala_accept, digits=3)) & " *
-            "$(round(r.sa_novelty, digits=3)) & $(round(r.mala_novelty, digits=3)) & " *
-            "$(round(r.sa_diversity, digits=3)) & $(round(r.mala_diversity, digits=3)) & " *
-            "$(round(ΔE, digits=4)) \\\\")
+    ar_str = r.mala_accept > 0.99 ? "\$>\$0.99" : string(round(r.mala_accept, digits=3))
+    if isnan(r.mala_novelty)
+        println("$(r.α) & $(ar_str) & $(round(r.sa_novelty, digits=3)) & 0.000 & " *
+                "$(round(r.sa_diversity, digits=3)) & 0.000 & --- \\\\")
+    else
+        ΔE = abs(r.sa_energy - r.mala_energy)
+        ΔE_str = ΔE < 0.001 ? "\$<\$0.001" : string(round(ΔE, digits=3))
+        println("$(r.α) & $(ar_str) & $(round(r.sa_novelty, digits=3)) & $(round(r.mala_novelty, digits=3)) & " *
+                "$(round(r.sa_diversity, digits=3)) & $(round(r.mala_diversity, digits=3)) & $(ΔE_str) \\\\")
+    end
 end
 println("\\bottomrule")
 println("\\end{tabular}")
@@ -155,29 +170,36 @@ mkpath(figpath)
 
 αs = [r.α for r in results]
 accept_rates = [r.mala_accept for r in results]
-Δnovelty  = [abs(r.sa_novelty - r.mala_novelty) for r in results]
-Δdiversity = [abs(r.sa_diversity - r.mala_diversity) for r in results]
-Δenergy   = [abs(r.sa_energy - r.mala_energy) for r in results]
+
+# Filter to non-frozen entries for panel (b)
+valid = [!isnan(r.mala_novelty) for r in results]
+αs_valid = αs[valid]
+Δnovelty   = [abs(r.sa_novelty - r.mala_novelty) for r in results[valid]]
+Δdiversity = [abs(r.sa_diversity - r.mala_diversity) for r in results[valid]]
+Δenergy    = [abs(r.sa_energy - r.mala_energy) for r in results[valid]]
 
 # Panel (a): MALA acceptance rate
 p1 = plot(αs, accept_rates .* 100,
     xlabel="Step size α", ylabel="MALA acceptance rate (%)",
     xscale=:log10, label=nothing, lw=2, marker=:circle, color=:steelblue,
-    title="(a) Acceptance rate", ylims=(0, 105),
+    title="(a) Acceptance rate", ylims=(-5, 105),
     size=(400, 300))
 hline!([95], ls=:dash, color=:gray, label="95%")
-hline!([50], ls=:dot, color=:coral, label="50%")
 
-# Panel (b): |ULA − MALA| metric divergence
-p2 = plot(αs, Δnovelty, label="ΔNovelty", lw=2, marker=:circle,
+# Panel (b): |ULA − MALA| metric divergence (only where MALA is not frozen)
+p2 = plot(αs_valid, Δnovelty, label="Novelty", lw=2, marker=:circle,
     xlabel="Step size α", ylabel="|ULA − MALA|",
-    xscale=:log10, yscale=:log10, title="(b) ULA–MALA divergence",
+    xscale=:log10, title="(b) ULA–MALA divergence",
     legend=:topleft, size=(400, 300))
-plot!(αs, Δdiversity, label="ΔDiversity", lw=2, marker=:square)
-plot!(αs, Δenergy, label="ΔEnergy", lw=2, marker=:diamond)
+plot!(αs_valid, Δdiversity, label="Diversity", lw=2, marker=:square)
+plot!(αs_valid, Δenergy, label="Energy", lw=2, marker=:diamond)
 
 p_combined = plot(p1, p2, layout=(1, 2), size=(850, 350), margin=5Plots.mm)
 savefig(p_combined, joinpath(figpath, "Fig_stepsize_sweep_ula_vs_mala.pdf"))
 @info "Saved step-size sweep figure"
+
+# Also save PNG for quick inspection
+savefig(p_combined, joinpath(figpath, "Fig_stepsize_sweep_ula_vs_mala.png"))
+@info "Saved PNG version"
 
 println("\nDone.")

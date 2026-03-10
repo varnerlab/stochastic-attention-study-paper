@@ -22,7 +22,8 @@
       "Bash(wc -l /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/paper/*.tex /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/paper/sections/*.tex)",
       "Bash(kill 10005 2>/dev/null; echo \"killed\")",
       "Bash(which hmmsearch:*)",
-      "Bash(brew install:*)"
+      "Bash(brew install:*)",
+      "Bash(tar tzf:*)"
     ]
   }
 }
