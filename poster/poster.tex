@@ -91,7 +91,7 @@
     \includegraphics[width=0.88\linewidth]{logo/cornell_logo.pdf}
   \end{column}
 
-  \begin{column}{0.88\linewidth}
+  \begin{column}{0.78\linewidth}
     \raggedright
     {\color{black}\bfseries\fontsize{56}{64}\selectfont
       Stochastic Attention via Langevin Dynamics on the Modern Hopfield Energy}\\[8pt]
@@ -100,6 +100,12 @@
     {\fontsize{26}{32}\selectfont\color{black}
       R.F.\ Smith School of Chemical and Biomolecular Engineering, Cornell University
       \quad \texttt{\{aa2725, jdv27\}@cornell.edu}}
+  \end{column}
+
+  \begin{column}{0.10\linewidth}
+    \centering
+    \qrcode[height=3.5cm]{https://varnerlab.org}\\[4pt]
+    {\fontsize{18}{22}\selectfont\color{black} varnerlab.org}
   \end{column}
 
 \end{columns}
@@ -170,7 +176,7 @@ Substituting $\nabla E$ into the ULA (with $U = \beta E$, $\tilde\alpha = \alpha
 
 \vspace{2pt}
 \begin{itemize}[leftmargin=1.2em, itemsep=1pt]
-  \item \textbf{Step cost:} $\mathcal{O}(NK)$:same as one attention head; no training required.
+  \item \textbf{Step cost:} $\mathcal{O}(dK)$: same as one attention head; no training required.
   \item \textbf{Convergence:} $W_2$-geometric in the convex regime ($\beta\sigma_{\max}^2 < 2$); MALA acceptance $= 99.2\%$ at $\alpha\!=\!0.01$ confirms negligible discretization bias.
   \item \textbf{Temperature selection:} $\beta^*$ via entropy inflection $d^2H/d\beta^2\!=\!0$; scales as $\beta^*\!\sim\!\sqrt{d}$.
 \end{itemize}
@@ -179,7 +185,7 @@ Substituting $\nabla E$ into the ULA (with $U = \beta E$, $\tilde\alpha = \alpha
 % -----------------------------------------------------------
 \begin{block}{Experiment 1:Phase Behavior \& Convergence (Synthetic)}
 % -----------------------------------------------------------
-Does $\beta$ really act as a continuous order parameter between generation and retrieval, and does the sampler converge to the correct Boltzmann target? If the theory is right, we should see a smooth sigmoidal transition in both cosine similarity and attention entropy, with the inflection landing near the predicted $\beta^*\!\sim\!\sqrt{N}$.
+Does $\beta$ really act as a continuous order parameter between generation and retrieval, and does the sampler converge to the correct Boltzmann target? If the theory is right, we should see a smooth sigmoidal transition in both cosine similarity and attention entropy, with the inflection landing near the predicted $\beta^*\!\sim\!\sqrt{d}$.
 
 \vspace{4pt}
 \begin{center}
@@ -333,7 +339,8 @@ Does SA still work when we scale to high-dimensional image data, and does the $\
 \vfill
 \textcolor{CornellMidGray}{\rule{\linewidth}{2pt}}
 \vspace{4pt}
-\qrcode[height=6cm]{https://github.com/varnerlab/stochastic-attention-study-paper}
+\qrcode[height=6cm]{https://github.com/varnerlab/stochastic-attention-study-paper}\\[4pt]
+{\fontsize{18}{22}\selectfont\color{black} github.com/varnerlab/stochastic-attention-study-paper}
 
 \end{frame}
 \end{document}
