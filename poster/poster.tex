@@ -1,5 +1,5 @@
 % ============================================================
-% poster.tex — Academic Recruiting Poster
+% poster.tex:Academic Recruiting Poster
 % "Stochastic Attention via Langevin Dynamics on the Modern Hopfield Energy"
 % Alswaidan & Varner, Cornell University
 %
@@ -26,6 +26,7 @@
 \usepackage{array}
 \usepackage{ragged2e}
 \usepackage{enumitem}
+\usepackage[nolinks]{qrcode}
 
 % ============================================================
 % Cornell color palette
@@ -43,14 +44,14 @@
 
 \setbeamercolor{background canvas}{bg=white}
 \setbeamercolor{block title}{fg=white, bg=black}
-\setbeamercolor{block body}{fg=black, bg=CornellLightGray}
+\setbeamercolor{block body}{fg=black, bg=white}
 \setbeamercolor{block alerted title}{fg=white, bg=CornellDarkGray}
 \setbeamercolor{block alerted body}{fg=black, bg=white}
 
 \setbeamerfont{block title}{size=\Large, series=\bfseries}
 \setbeamerfont{block body}{size=\large}
 
-% Compact block templates — no box on title, just bold black text
+% Compact block templates:no box on title, just bold black text
 \setbeamertemplate{block begin}{%
   \vskip6pt
   {\usebeamerfont{block title}\color{black}\insertblocktitle}\\[-2pt]
@@ -108,7 +109,7 @@
 \vspace{2pt}
 
 % ============================================================
-% BODY — two equal columns
+% BODY:two equal columns
 % ============================================================
 \begin{columns}[t, totalwidth=\linewidth]
 
@@ -133,7 +134,7 @@ We show that the gradient of the \textbf{modern Hopfield energy} is exactly the 
 
 \vspace{2pt}
 The critical temperature $\beta^{\star}$ marks the retrieval--generation boundary, identified analytically via an entropy inflection condition: $\beta^{\star}\!\sim\!\sqrt{N}$ for random unit-norm memories.
-\textbf{No score network, no training loop, no contrastive objective} — the score is the attention map itself.
+\textbf{No score network, no training loop, no contrastive objective}:the score is the attention map itself.
 \end{block}
 
 % -----------------------------------------------------------
@@ -169,15 +170,18 @@ Substituting $\nabla E$ into the ULA (with $U = \beta E$, $\tilde\alpha = \alpha
 
 \vspace{2pt}
 \begin{itemize}[leftmargin=1.2em, itemsep=1pt]
-  \item \textbf{Step cost:} $\mathcal{O}(NK)$ — same as one attention head; no training required.
+  \item \textbf{Step cost:} $\mathcal{O}(NK)$:same as one attention head; no training required.
   \item \textbf{Convergence:} $W_2$-geometric in the convex regime ($\beta\sigma_{\max}^2 < 2$); MALA acceptance $= 99.2\%$ at $\alpha\!=\!0.01$ confirms negligible discretization bias.
   \item \textbf{Temperature selection:} $\beta^*$ via entropy inflection $d^2H/d\beta^2\!=\!0$; scales as $\beta^*\!\sim\!\sqrt{N}$.
 \end{itemize}
 \end{block}
 
 % -----------------------------------------------------------
-\begin{block}{Experiment 1 — Phase Behavior \& Convergence (Synthetic)}
+\begin{block}{Experiment 1:Phase Behavior \& Convergence (Synthetic)}
 % -----------------------------------------------------------
+Does $\beta$ really act as a continuous order parameter between generation and retrieval, and does the sampler converge to the correct Boltzmann target? If the theory is right, we should see a smooth sigmoidal transition in both cosine similarity and attention entropy, with the inflection landing near the predicted $\beta^*\!\sim\!\sqrt{N}$.
+
+\vspace{4pt}
 \begin{center}
   \includegraphics[width=0.96\linewidth]{../paper/figs/Fig_experiment-combined.pdf}
 \end{center}
@@ -198,8 +202,11 @@ Eight independent chains (gray) converge to a long-run reference (coral); KS sta
 \begin{column}{0.475\linewidth}
 
 % -----------------------------------------------------------
-\begin{block}{Experiment 2 — MNIST Image Generation ($K=100$, $d=784$)}
+\begin{block}{Experiment 2:MNIST Image Generation ($K=100$, $d=784$)}
 % -----------------------------------------------------------
+Can stochastic attention generate structured, recognizable images from a small memory, and how does it compare to learned generative models on the same data?
+
+\vspace{4pt}
 $K\!=\!100$ images of digit ``3''; 30 independent chains; 150 generated samples.
 $\beta\!=\!2000$ (retrieval) and $\beta\!=\!200$ (generation, near $\beta^*$).
 
@@ -208,20 +215,20 @@ $\beta\!=\!2000$ (retrieval) and $\beta\!=\!200$ (generation, near $\beta^*$).
   \begin{column}{0.48\linewidth}
     \centering
     {\small
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabular}{@{}lcc@{}}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{@{}lccc@{}}
     \toprule
-    \textbf{Method} & \textbf{Nov.}$\uparrow$ & \textbf{Div.}$\uparrow$ \\
+    \textbf{Method} & \textbf{Nov.}$\uparrow$ & \textbf{Div.}$\uparrow$ & \textbf{Energy}$\downarrow$ \\
     \midrule
-    Bootstrap            & $0.000$ & $0.459$ \\
-    Gaussian perturb.    & $0.004$ & $0.450$ \\
-    Convex combo         & $0.092$ & $0.008$ \\
-    GMM-PCA              & $0.198$ & $0.419$ \\
-    VAE (latent $=8$)    & $0.214$ & $0.441$ \\
-    DDPM\textsuperscript{\dag} & $0.938$ & $0.991$ \\
-    MALA ($\beta\!=\!2000$)   & $0.151$ & $0.598$ \\
-    SA ($\beta\!=\!2000$) & $0.152$ & $0.600$ \\
-    \textbf{SA ($\beta\!=\!200$)} & $\mathbf{0.548}$ & $\mathbf{0.885}$ \\
+    Bootstrap            & $0.000$ & $0.459$ & $-0.500$ \\
+    Gaussian perturb.    & $0.004$ & $0.450$ & $-0.496$ \\
+    Convex combo         & $0.092$ & $0.008$ & $-0.399$ \\
+    GMM-PCA              & $0.198$ & $0.419$ & $-0.303$ \\
+    VAE (latent $=8$)    & $0.214$ & $0.441$ & $-0.286$ \\
+    DDPM\textsuperscript{\dag} & $0.938$ & $0.991$ & $+0.44$ \\
+    MALA ($\beta\!=\!2000$)   & $0.151$ & $0.598$ & $-0.305$ \\
+    SA ($\beta\!=\!2000$) & $0.152$ & $0.600$ & $-0.303$ \\
+    \textbf{SA ($\beta\!=\!200$)} & $\mathbf{0.548}$ & $\mathbf{0.885}$ & $+1.467$ \\
     \bottomrule
     \end{tabular}
     }
@@ -231,41 +238,76 @@ $\beta\!=\!2000$ (retrieval) and $\beta\!=\!200$ (generation, near $\beta^*$).
   \end{column}
   \begin{column}{0.50\linewidth}
     \centering
-    \includegraphics[width=\linewidth]{../code/figs/Fig_mnist_grid_sa_ddpm_comparison_digit3.png}
-    {\small \textit{Top}: SA samples. \textit{Bottom}: DDPM samples.}
+    \begin{tabular}{@{}cc@{}}
+      \includegraphics[width=0.47\linewidth]{../code/figs/Fig_mnist_grid_sa_digit3.png} &
+      \includegraphics[width=0.47\linewidth]{../code/figs/Fig_mnist_grid_ddpm_digit3.png} \\[2pt]
+      {\small \textbf{SA} ($\beta\!=\!2000$)} & {\small \textbf{DDPM}}
+    \end{tabular}
   \end{column}
 \end{columns}
 
 \vspace{4pt}
-SA at $\beta\!=\!200$ achieves $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the VAE, while matching the Metropolis-corrected MALA gold standard.
+SA at $\beta\!=\!200$ achieves $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the VAE, while matching the Metropolis-corrected MALA gold standard. Crucially, DDPM fails entirely despite 5,000 training epochs — the training-free score function provides a structural advantage that a learned model cannot recover from only 100 examples.
 \end{block}
 
 % -----------------------------------------------------------
-\begin{block}{Experiment 3 — Protein Sequence Generation (Pfam RRM, $K=68$, $d=59$)}
+\begin{block}{Experiment 3:Protein Sequence Generation (Pfam RRM, $K=68$, $d=59$)}
 % -----------------------------------------------------------
-\textbf{Setup.} 68 aligned RRM sequences; one-hot encoded, PCA-reduced (95\% variance).
+Does the training-free score function preserve domain-level biological fidelity when generating novel sequences, something learned models struggle with at small $K$?
+
+\vspace{4pt}
+68 aligned RRM sequences; one-hot encoded, PCA-reduced (95\% variance).
 Entropy inflection gives $\beta^*\!=\!3.85$ (half the random-pattern prediction $\sqrt{d}\!=\!7.68$; conserved residues increase effective similarity variance).
 
 \vspace{4pt}
-\begin{center}
-{\small
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-\textbf{Method} & \textbf{Novelty}$\uparrow$ & \textbf{Diversity}$\uparrow$ & \textbf{SeqID} & \textbf{KL}$\downarrow$ \\
-\midrule
-Bootstrap          & $0.000$ & $1.000$ & $0.645$ & $0.133$ \\
-VAE (latent $=8$)  & $0.621$ & $0.834$ & $0.532$ & $0.416$ \\
-SA ($\beta\!=\!77$, retrieval)  & $0.243$ & $0.991$ & $0.616$ & $0.107$ \\
-\textbf{SA ($\beta\!=\!8$, generation)} & $\mathbf{0.623}$ & $\mathbf{1.001}$ & $0.538$ & $\mathbf{0.060}$ \\
-\bottomrule
-\end{tabular}
-}
-\end{center}
+\begin{columns}[c, totalwidth=\linewidth]
+  \begin{column}{0.50\linewidth}
+    \centering
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    \textbf{Method} & \textbf{Nov.}$\uparrow$ & \textbf{Div.}$\uparrow$ & \textbf{SeqID} & \textbf{KL}$\downarrow$ \\
+    \midrule
+    Bootstrap         & $0.000$ & $1.000$ & $0.645$ & $0.133$ \\
+    VAE               & $0.621$ & $0.834$ & $0.532$ & $0.416$ \\
+    SA (retrieval)    & $0.243$ & $0.991$ & $0.616$ & $0.107$ \\
+    \textbf{SA (gen.)}& $\mathbf{0.623}$ & $\mathbf{1.001}$ & $0.538$ & $\mathbf{0.060}$ \\
+    \bottomrule
+    \end{tabular}
+  \end{column}
+  \begin{column}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../paper/figs/Fig_protein_aa_frequencies.pdf}
+    {\small Stored (top) vs.\ SA-generated (bottom) amino acid frequencies.}
+  \end{column}
+\end{columns}
 
 \vspace{4pt}
-SA matches the VAE on novelty while achieving $\mathbf{6.9\times}$ lower amino acid composition divergence (KL $= 0.060$ vs.\ $0.416$).
-The training-free Langevin score preserves family-level fidelity that learned models cannot maintain at small $K$.
+SA matches the VAE on novelty while achieving $\mathbf{6.9\times}$ lower amino acid composition divergence (KL $= 0.060$ vs.\ $0.416$). Because the Langevin gradient is recomputed from the stored sequences at every step, it continuously steers samples back toward the family's compositional profile — fidelity the VAE loses when trained on only 68 sequences.
+\end{block}
+
+% -----------------------------------------------------------
+\begin{block}{Experiment 4:Scaling to Face Images --- Simpsons ($d=4{,}096$)}
+% -----------------------------------------------------------
+Does SA still work when we scale to high-dimensional image data, and does the $\beta^*\!\sim\!\sqrt{N}$ rule remain a reliable guide for temperature selection?
+
+\vspace{4pt}
+\begin{columns}[c, totalwidth=\linewidth]
+  \begin{column}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../code/figs/Fig_simpsons_grid_sa.png}
+    {\small SA-generated faces ($\beta\!=\!10{,}000$, retrieval regime).}
+  \end{column}
+  \begin{column}{0.50\linewidth}
+    \justifying
+    $64\!\times\!64$ grayscale Simpsons character images ($d\!=\!4{,}096$).
+    The SNR rule prescribes $\beta^*\!\sim\!\sqrt{4096}\!=\!64$; we run at $\beta\!=\!10{,}000$ (well inside retrieval).
+
+    \vspace{8pt}
+    SA achieves novelty $0.159\!\pm\!0.000$ and diversity $0.293\!\pm\!0.001$, with \textbf{identical method ranking to MNIST} across a $\mathbf{5.2\times}$ increase in dimension.
+    The SNR selection rule transfers directly from 784 to 4,096 dimensions with no tuning.
+  \end{column}
+\end{columns}
 \end{block}
 
 % -----------------------------------------------------------
@@ -290,20 +332,8 @@ The training-free Langevin score preserves family-level fidelity that learned mo
 % ============================================================
 \vfill
 \textcolor{CornellMidGray}{\rule{\linewidth}{2pt}}
-\vspace{2pt}
-\begin{columns}[c, totalwidth=\linewidth]
-  \begin{column}{0.55\linewidth}
-    {\footnotesize\color{CornellDarkGray}
-      This work grew out of CHEME-5820: Machine Learning \& AI Methods for Engineers, Cornell University.
-    }
-  \end{column}
-  \begin{column}{0.44\linewidth}
-    \raggedleft
-    {\footnotesize\color{CornellDarkGray}
-      \texttt{github.com/varnerlab/stochastic-attention-study-paper}
-    }
-  \end{column}
-\end{columns}
+\vspace{4pt}
+\qrcode[height=6cm]{https://github.com/varnerlab/stochastic-attention-study-paper}
 
 \end{frame}
 \end{document}
