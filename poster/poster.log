@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.15)  10 MAR 2026 07:58
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.15)  10 MAR 2026 08:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1007,8 +1007,8 @@ Package: enumitem 2019/06/20 v3.9 Customized lists
 \enit@count@id=\count364
 \enitdp@description=\count365
 )
-LaTeX Font Info:    Trying to load font information for T1+lmss on input line 8
-3.
+LaTeX Font Info:    Trying to load font information for T1+lmss on input line 7
+9.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/t1lmss.fd
 File: t1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -1021,24 +1021,24 @@ File: l3backend-pdftex.def 2024-02-20 L3 backend support: PDF output (pdfTeX)
 (./poster.aux)
 \openout1 = `poster.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 83.
-LaTeX Font Info:    ... okay on input line 83.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1096,58 +1096,58 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Link coloring OFF on input line 83.
+Package hyperref Info: Link coloring OFF on input line 79.
 
 (./poster.out) (./poster.out)
 \@outlinefile=\write5
 \openout5 = `poster.out'.
 
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/lmr/m/n --> OT1/cmss/m/n on input line 83.
+(Font)                  OT1/lmr/m/n --> OT1/cmss/m/n on input line 79.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/lmr/bx/n --> OT1/cmss/b/n on input line 83.
+(Font)                  OT1/lmr/bx/n --> OT1/cmss/b/n on input line 79.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/lmss/m/n on input line 83.
+(Font)                  OT1/cmss/m/n --> OT1/lmss/m/n on input line 79.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmss/b/n --> OT1/lmss/b/n on input line 83.
+(Font)                  OT1/cmss/b/n --> OT1/lmss/b/n on input line 79.
 \symnumbers=\mathgroup6
 \sympureletters=\mathgroup7
 LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `normal'
-(Font)                  OT1/lmss/m/n --> T1/lmr/m/n on input line 83.
-LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 83.
+(Font)                  OT1/lmss/m/n --> T1/lmr/m/n on input line 79.
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/lmr/bx/n --> T1/lmss/b/n on input line 83.
+(Font)                  OT1/lmr/bx/n --> T1/lmss/b/n on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  OT1/lmr/bx/n --> T1/lmss/b/n on input line 83.
-LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 83.
+(Font)                  OT1/lmr/bx/n --> T1/lmss/b/n on input line 79.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
-(Font)                  OT1/lmss/m/n --> T1/lmss/m/n on input line 83.
+(Font)                  OT1/lmss/m/n --> T1/lmss/m/n on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/lmss/bx/n --> T1/lmss/m/n on input line 83.
-LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 83.
+(Font)                  OT1/lmss/bx/n --> T1/lmss/m/n on input line 79.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/lmr/m/it --> T1/lmss/m/it on input line 83.
+(Font)                  OT1/lmr/m/it --> T1/lmss/m/it on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/lmr/bx/it --> T1/lmss/m/it on input line 83.
-LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 83.
+(Font)                  OT1/lmr/bx/it --> T1/lmss/m/it on input line 79.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
-(Font)                  OT1/lmtt/m/n --> T1/lmtt/m/n on input line 83.
+(Font)                  OT1/lmtt/m/n --> T1/lmtt/m/n on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/lmtt/m/n --> T1/lmtt/m/n on input line 83.
+(Font)                  OT1/lmtt/m/n --> T1/lmtt/m/n on input line 79.
 LaTeX Font Info:    Overwriting symbol font `numbers' in version `bold'
-(Font)                  T1/lmss/m/n --> T1/lmss/b/n on input line 83.
+(Font)                  T1/lmss/m/n --> T1/lmss/b/n on input line 79.
 LaTeX Font Info:    Overwriting symbol font `pureletters' in version `bold'
-(Font)                  T1/lmss/m/it --> T1/lmss/b/it on input line 83.
+(Font)                  T1/lmss/m/it --> T1/lmss/b/it on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `bold'
-(Font)                  OT1/lmss/b/n --> T1/lmr/b/n on input line 83.
+(Font)                  OT1/lmss/b/n --> T1/lmr/b/n on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  T1/lmss/b/n --> T1/lmss/b/n on input line 83.
+(Font)                  T1/lmss/b/n --> T1/lmss/b/n on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  T1/lmss/m/n --> T1/lmss/b/n on input line 83.
+(Font)                  T1/lmss/m/n --> T1/lmss/b/n on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  T1/lmss/m/it --> T1/lmss/b/it on input line 83.
+(Font)                  T1/lmss/m/it --> T1/lmss/b/it on input line 79.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  T1/lmtt/m/n --> T1/lmtt/b/n on input line 83.
+(Font)                  T1/lmtt/m/n --> T1/lmtt/b/n on input line 79.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/translator/translator-basic-dicti
 onary-English.dict
@@ -1173,19 +1173,19 @@ Dictionary: translator-numbers-dictionary, Language: English
 tionary-English.dict
 Dictionary: translator-theorem-dictionary, Language: English 
 )
-LaTeX Info: Redefining \microtypecontext on input line 83.
-Package microtype Info: Applying patch `item' on input line 83.
-Package microtype Info: Applying patch `toc' on input line 83.
-Package microtype Info: Applying patch `eqnum' on input line 83.
-Package microtype Info: Applying patch `footnote' on input line 83.
-Package microtype Info: Applying patch `verbatim' on input line 83.
+LaTeX Info: Redefining \microtypecontext on input line 79.
+Package microtype Info: Applying patch `item' on input line 79.
+Package microtype Info: Applying patch `toc' on input line 79.
+Package microtype Info: Applying patch `eqnum' on input line 79.
+Package microtype Info: Applying patch `footnote' on input line 79.
+Package microtype Info: Applying patch `verbatim' on input line 79.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
 Package microtype Info: Automatic font expansion enabled (level 2),
 (microtype)             stretch: 20, shrink: 20, step: 1, non-selected.
 Package microtype Info: Using default expansion set `alltext-nott'.
-LaTeX Info: Redefining \showhyphens on input line 83.
+LaTeX Info: Redefining \showhyphens on input line 79.
 Package microtype Info: No adjustment of tracking.
 Package microtype Info: No adjustment of interword spacing.
 Package microtype Info: No adjustment of character kerning.
@@ -1197,10 +1197,10 @@ Package microtype Info: Loading generic protrusion settings for font family
 <logo/cornell_logo.pdf, id=13, 90.3375pt x 90.3375pt>
 File: logo/cornell_logo.pdf Graphic file (type pdf)
 <use logo/cornell_logo.pdf>
-Package pdftex.def Info: logo/cornell_logo.pdf  used on input line 327.
+Package pdftex.def Info: logo/cornell_logo.pdf  used on input line 308.
 (pdftex.def)             Requested size: 223.95857pt x 223.98088pt.
 LaTeX Font Info:    Trying to load font information for OT1+lmss on input line 
-327.
+308.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/ot1lmss.fd
 File: ot1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -1210,29 +1210,29 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 3
-27.
+08.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-327.
+308.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-327.
+308.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <24.88> on input line 327.
+(Font)              <24.88> on input line 308.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <20.74> on input line 327.
+(Font)              <20.74> on input line 308.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <17.28> on input line 327.
+(Font)              <17.28> on input line 308.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
@@ -1241,13 +1241,13 @@ File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <24.88> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 327.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <20.74> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 327.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <17.28> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 327.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 3
-27.
+08.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -1256,49 +1256,59 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `lmtt' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <29.86> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
+LaTeX Font Info:    Calculating math sizes for size <29.86> on input line 308.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <14.4> on input line 327.
+(Font)              <29.86> on input line 308.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.4> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <12> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <24.88> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <20.74> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <17.28> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 327.
-LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <24.88> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 327.
+(Font)              <20.9019> on input line 308.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <14.93> on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <20.9019> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.93> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
+<figs/Fig-Beta-Spectrum.pdf, id=14, 476.84349pt x 224.21768pt>
+File: figs/Fig-Beta-Spectrum.pdf Graphic file (type pdf)
+<use figs/Fig-Beta-Spectrum.pdf>
+Package pdftex.def Info: figs/Fig-Beta-Spectrum.pdf  used on input line 308.
+(pdftex.def)             Requested size: 1160.45845pt x 545.76627pt.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <29.86> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <20.9019> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <14.93> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
+LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <29.86> not available
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 308.
 
-LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <20.74> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 327.
+LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <20.9019> not available
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 308.
 
-LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <17.28> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 327.
+LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <14.93> not available
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 308.
 
-LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <24.88> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 327.
+LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <29.86> not available
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 308.
 
-LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <24.88> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 327.
+LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <29.86> not available
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 308.
 
-LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <20.74> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 327.
+LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <20.9019> not available
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 308.
 
-LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <20.74> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 327.
+LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <20.9019> not available
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 308.
 
-LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <17.28> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 327.
+LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <14.93> not available
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 308.
 
-LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <17.28> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 327.
+LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <14.93> not available
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 308.
 
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 32
-7.
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 30
+8.
 
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -1307,44 +1317,56 @@ File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
 )
-<../paper/figs/Fig_experiment-combined.pdf, id=14, 561.09625pt x 170.6375pt>
+
+pdfTeX warning: pdflatex (file ./figs/Fig-Stochastic-Attention-Update.pdf): PDF
+ inclusion: found PDF version <1.7>, but at most version <1.5> allowed
+<figs/Fig-Stochastic-Attention-Update.pdf, id=15, 571.13779pt x 261.33536pt>
+File: figs/Fig-Stochastic-Attention-Update.pdf Graphic file (type pdf)
+<use figs/Fig-Stochastic-Attention-Update.pdf>
+Package pdftex.def Info: figs/Fig-Stochastic-Attention-Update.pdf  used on inpu
+t line 308.
+(pdftex.def)             Requested size: 1160.45845pt x 530.9996pt.
+<../paper/figs/Fig_experiment-combined.pdf, id=16, 561.09625pt x 170.6375pt>
 File: ../paper/figs/Fig_experiment-combined.pdf Graphic file (type pdf)
 <use ../paper/figs/Fig_experiment-combined.pdf>
 Package pdftex.def Info: ../paper/figs/Fig_experiment-combined.pdf  used on inp
-ut line 327.
+ut line 308.
 (pdftex.def)             Requested size: 1160.45845pt x 352.97002pt.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <14.4> on input line 308.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <12> on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <20.74> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <14.4> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 327.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <12> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 327.
-<../paper/figs/Fig_experiment-3-load-ratio.pdf, id=15, 803.0pt x 501.875pt>
-File: ../paper/figs/Fig_experiment-3-load-ratio.pdf Graphic file (type pdf)
-<use ../paper/figs/Fig_experiment-3-load-ratio.pdf>
-Package pdftex.def Info: ../paper/figs/Fig_experiment-3-load-ratio.pdf  used on
- input line 327.
-(pdftex.def)             Requested size: 967.04564pt x 604.44482pt.
-LaTeX Font Info:    Calculating math sizes for size <29.86> on input line 327.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.4> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <12> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
+LaTeX Font Info:    Calculating math sizes for size <35.83> on input line 308.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <29.86> on input line 327.
+(Font)              <35.83> on input line 308.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <20.9019> on input line 327.
+(Font)              <25.08089> on input line 308.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <14.93> on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <29.86> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <20.9019> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <14.93> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <29.86> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <20.9019> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 327.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.93> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 327.
+(Font)              <17.915> on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <35.83> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <25.08089> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <17.915> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <35.83> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <25.08089> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <17.915> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 308.
 LaTeX Font Info:    Trying to load font information for TS1+lmss on input line 
-327.
-
+308.
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/ts1lmss.fd
 File: ts1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -1352,6 +1374,18 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `lmss' (encoding: TS1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
+<../code/figs/Fig_mnist_grid_sa_ddpm_comparison_digit3.png, id=17, 118.4425pt x
+ 118.4425pt>
+File: ../code/figs/Fig_mnist_grid_sa_ddpm_comparison_digit3.png Graphic file (t
+ype png)
+<use ../code/figs/Fig_mnist_grid_sa_ddpm_comparison_digit3.png>
+Package pdftex.def Info: ../code/figs/Fig_mnist_grid_sa_ddpm_comparison_digit3.
+png  used on input line 308.
+(pdftex.def)             Requested size: 604.40121pt x 604.42462pt.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <24.88> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <17.28> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 308.
  [1
 
 {/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/loc
@@ -1360,8 +1394,9 @@ al/texlive/2024/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/texlive/202
 st/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/2024/texmf-dist/fonts/e
 nc/dvips/lm/lm-rm.enc}{/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/lm/lm
 -mathex.enc}{/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc} 
-<./logo/cornell_logo.pdf> <../paper/figs/Fig_experiment-combined.pdf> <../paper
-/figs/Fig_experiment-3-load-ratio.pdf>]
+<./logo/cornell_logo.pdf> <./figs/Fig-Beta-Spectrum.pdf> <./figs/Fig-Stochastic
+-Attention-Update.pdf> <../paper/figs/Fig_experiment-combined.pdf> <../code/fig
+s/Fig_mnist_grid_sa_ddpm_comparison_digit3.png>]
 \tf@nav=\write6
 \openout6 = `poster.nav'.
 
@@ -1380,27 +1415,47 @@ Package rerunfilecheck Info: File `poster.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 28809 strings out of 474116
- 558141 string characters out of 5743682
- 2009187 words of memory out of 5000000
- 50329 multiletter control sequences out of 15000+600000
- 736570 words of font info for 254 fonts, out of 8000000 for 9000
+ 28907 strings out of 474116
+ 560131 string characters out of 5743682
+ 1995187 words of memory out of 5000000
+ 50373 multiletter control sequences out of 15000+600000
+ 788034 words of font info for 309 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 128i,19n,123p,1003b,1360s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/lo
-cal/texlive/2024/texmf-dist/fonts/type1/public/lm/lmmi12.pfb></usr/local/texliv
-e/2024/texmf-dist/fonts/type1/public/lm/lmmib10.pfb></usr/local/texlive/2024/te
-xmf-dist/fonts/type1/public/lm/lmr17.pfb></usr/local/texlive/2024/texmf-dist/fo
-nts/type1/public/lm/lmss12.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/
-public/lm/lmss17.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/
-lmssbx10.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmsso17.
-pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/
-local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmtt12.pfb></usr/local/texl
-ive/2024/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on poster.pdf (1 page, 318053 bytes).
+ 128i,18n,123p,1003b,1254s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></
+usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></us
+r/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb><
+/usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></
+usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></u
+sr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr
+/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/l
+ocal/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/loc
+al/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local
+/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib9.pfb></usr/l
+ocal/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loc
+al/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/
+texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/tex
+live/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texliv
+e/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive
+/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2
+024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/202
+4/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2024/
+texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/local/texlive/2024/texmf-dist
+/fonts/type1/public/lm/lmmi12.pfb></usr/local/texlive/2024/texmf-dist/fonts/typ
+e1/public/lm/lmmib10.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public
+/lm/lmr17.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmss12.
+pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmss17.pfb></usr/
+local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb></usr/local/te
+xlive/2024/texmf-dist/fonts/type1/public/lm/lmsso17.pfb></usr/local/texlive/202
+4/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2024/texmf-di
+st/fonts/type1/public/lm/lmtt12.pfb></usr/local/texlive/2024/texmf-dist/fonts/t
+ype1/public/amsfonts/symbols/msbm10.pfb>
+Output written on poster.pdf (1 page, 453290 bytes).
 PDF statistics:
- 114 PDF objects out of 1000 (max. 8388607)
- 69 compressed objects within 1 object stream
+ 276 PDF objects out of 1000 (max. 8388607)
+ 184 compressed objects within 2 object streams
  3 named destinations out of 1000 (max. 500000)
- 111674 words of extra memory for PDF output out of 128383 (max. 10000000)
+ 144452 words of extra memory for PDF output out of 154059 (max. 10000000)
 

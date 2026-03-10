@@ -1,0 +1,78 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,decorations.pathmorphing,calc}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+\begin{tikzpicture}
+
+% Main spectrum bar
+\def\barlen{16}
+\def\barht{1.2}
+\def\trans{0.50}   % fraction along bar where beta* sits
+
+% Gradient fill: teal (low beta) -> red (high beta)
+\shade[left color=teal!70, right color=red!70, rounded corners=4pt]
+    (0,0) rectangle (\barlen,\barht);
+\draw[thick, rounded corners=4pt] (0,0) rectangle (\barlen,\barht);
+
+% Beta* marker — bold vertical line
+\draw[ultra thick, white] (\barlen*\trans, 0) -- (\barlen*\trans, \barht);
+
+% Beta* label above bar
+\node[font=\large\bfseries, black, anchor=south, align=center]
+    at (\barlen*\trans, \barht+0.15) {$\beta^{\star}$};
+
+% Scaling law annotation
+\node[font=\normalsize, black!75, anchor=south, align=center]
+    at (\barlen*\trans, \barht+0.85) {$\beta^{\star} \sim \sqrt{N}$};
+
+% Arrow pointing to marker
+\draw[thick, -{Stealth[length=3mm]}, black!60]
+    (\barlen*\trans, \barht+0.82) -- (\barlen*\trans, \barht+0.18);
+
+% Beta arrow underneath
+\draw[ultra thick, -{Stealth[length=5mm]}] (0,-0.5) -- (\barlen,-0.5);
+\node[font=\large, anchor=north] at (\barlen/2, -0.72)
+    {Inverse temperature $\beta$};
+
+% Low beta label (left)
+\node[font=\Large\bfseries, teal!70!black, anchor=south] at (1.2, \barht+0.15)
+    {Low $\beta$};
+\node[font=\normalsize, teal!70!black, align=center, anchor=north]
+    at (1.8, -1.4) {
+    \textbf{Generation}\\[2pt]
+    {\footnotesize Broad exploration}\\[-1pt]
+    {\footnotesize $\mathrm{SNR} \ll \mathrm{SNR}^{\star}$}
+};
+
+% High beta label (right)
+\node[font=\Large\bfseries, red!70!black, anchor=south]
+    at (\barlen-1.2, \barht+0.15) {High $\beta$};
+\node[font=\normalsize, red!70!black, align=center, anchor=north]
+    at (\barlen-1.8, -1.4) {
+    \textbf{Retrieval}\\[2pt]
+    {\footnotesize Sharp convergence}\\[-1pt]
+    {\footnotesize $\mathrm{SNR} \gg \mathrm{SNR}^{\star}$}
+};
+
+% Center bar label
+\node[font=\large\bfseries, white] at (\barlen/2, \barht/2)
+    {Retrieval--Generation Spectrum};
+
+% Example icons — left (generation = diverse question marks)
+\foreach \i in {0,1,2} {
+    \node[draw, thick, teal!50!black, rounded corners=2pt, minimum size=0.6cm,
+          fill=teal!10] at (1.0+\i*0.9, -3.5) {\footnotesize ?};
+}
+\node[font=\footnotesize, teal!60!black] at (1.9, -4.25) {novel samples};
+
+% Example icons — right (retrieval = stored memories)
+\foreach \i in {0,1,2} {
+    \node[draw, thick, red!50!black, rounded corners=2pt, minimum size=0.6cm,
+          fill=red!10] at (\barlen-2.6+\i*0.9, -3.5) {\footnotesize $\mathbf{x}$};
+}
+\node[font=\footnotesize, red!60!black] at (\barlen-1.7, -4.25) {exact memories};
+
+\end{tikzpicture}
+\end{document}
