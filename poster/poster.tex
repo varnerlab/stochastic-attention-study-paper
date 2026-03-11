@@ -89,7 +89,7 @@
 
   \begin{column}{0.10\linewidth}
     \centering
-    \includegraphics[width=0.88\linewidth]{logo/cornell_logo.pdf}
+    \includegraphics[width=0.90\linewidth]{logo/cornell_logo.pdf}
   \end{column}
 
   \begin{column}{0.78\linewidth}
@@ -127,9 +127,9 @@
 \begin{block}{Motivation}
 % -----------------------------------------------------------
 \justifying
-Attention heads are deterministic: the same query always returns the same softmax-weighted memory average. Yet many tasks require \emph{generating} novel, plausible patterns from structured memory. Score-based diffusion models solve this for large datasets by learning a neural score function, but they require thousands of training examples and expensive optimization. When data is scarce, there is nothing to train on.
+Attention heads are deterministic: the same query always returns the same softmax-weighted memory average. Yet many tasks require \emph{generating} novel, plausible patterns from structured memory. Score-based diffusion models solve this for large datasets by learning a neural score function, but they require thousands of training examples and expensive optimization. When data is scarce, there is nothing to train on. We've explored a different approach: instead of learning a score, we can \textbf{derive} the exact score function from the modern Hopfield energy landscape. We observe that the gradient of the \textbf{modern Hopfield energy} is exactly the identity minus the attention map. Applying \textbf{Langevin dynamics} to this energy yields \emph{stochastic attention}: a \textbf{training-free sampler} controlled by a single inverse temperature $\beta$ (Figure 1). 
 
-We observe that the gradient of the \textbf{modern Hopfield energy} is exactly the identity minus the attention map. Applying \textbf{Langevin dynamics} to this energy yields \emph{stochastic attention}: a \textbf{training-free sampler} controlled by a single inverse temperature $\beta$. The score function is the attention map itself -- no score network, no training loop, no contrastive objective.
+% The score function is the attention map itself, no score network, no training loop, no contrastive objective, just the training data.
 
 \vspace{4pt}
 \begin{center}
@@ -147,8 +147,7 @@ A single parameter $\beta$ interpolates continuously between open-ended generati
 % -----------------------------------------------------------
 \begin{block}{Method: Stochastic Attention Update}
 % -----------------------------------------------------------
-$\mathbf{X} = [\mathbf{m}_1,\dots,\mathbf{m}_K]\!\in\!\mathbb{R}^{N\times K}$ stores $K$ patterns.
-To generate, we sample from $p_\beta(\boldsymbol{\xi})\!\propto\!\exp(-\beta E(\boldsymbol{\xi}))$.
+Suppose you have a memory (pattern) matrix $\mathbf{X} = [\mathbf{m}_1,\dots,\mathbf{m}_K]\!\in\!\mathbb{R}^{d\times K}$ that stores $K$ patterns where each each pattern is given by $\mathbf{m}_k \in \mathbb{R}^d$. To generate a new pattern or retrieve an existing one, we sample from $p_\beta(\boldsymbol{\xi})\!\propto\!\exp(-\beta E(\boldsymbol{\xi}))$.
 
 \vspace{6pt}
 The ULA turns any smooth energy $U$ into a sampler:

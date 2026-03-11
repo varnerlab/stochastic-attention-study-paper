@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  11 MAR 2026 13:01
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  11 MAR 2026 15:40
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1235,10 +1235,10 @@ Package microtype Info: Loading generic protrusion settings for font family
 <logo/cornell_logo.pdf, id=13, 90.3375pt x 90.3375pt>
 File: logo/cornell_logo.pdf Graphic file (type pdf)
 <use logo/cornell_logo.pdf>
-Package pdftex.def Info: logo/cornell_logo.pdf  used on input line 339.
-(pdftex.def)             Requested size: 216.24626pt x 216.26715pt.
+Package pdftex.def Info: logo/cornell_logo.pdf  used on input line 338.
+(pdftex.def)             Requested size: 221.15822pt x 221.1799pt.
 LaTeX Font Info:    Trying to load font information for OT1+lmss on input line 
-339.
+338.
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/ot1lmss.fd
 File: ot1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -1248,29 +1248,29 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 3
-39.
+38.
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-339.
+338.
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-339.
+338.
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <24.88> on input line 339.
+(Font)              <24.88> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <20.74> on input line 339.
+(Font)              <20.74> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <17.28> on input line 339.
+(Font)              <17.28> on input line 338.
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
@@ -1279,13 +1279,13 @@ File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <24.88> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <20.74> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <17.28> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 3
-39.
+38.
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -1302,66 +1302,66 @@ Package microtype Info: Loading generic protrusion settings for font family
 <Copying the QR code for "https://varnerlab.org" in version 2-M as previously c
 alculated.>
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <29.86> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
-LaTeX Font Info:    Calculating math sizes for size <29.86> on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
+LaTeX Font Info:    Calculating math sizes for size <29.86> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <29.86> on input line 339.
+(Font)              <29.86> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <20.9019> on input line 339.
+(Font)              <20.9019> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <14.93> on input line 339.
+(Font)              <14.93> on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <20.9019> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.93> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 <figs/Fig-Beta-Spectrum.pdf, id=14, 476.84349pt x 134.47942pt>
 File: figs/Fig-Beta-Spectrum.pdf Graphic file (type pdf)
 <use figs/Fig-Beta-Spectrum.pdf>
-Package pdftex.def Info: figs/Fig-Beta-Spectrum.pdf  used on input line 339.
+Package pdftex.def Info: figs/Fig-Beta-Spectrum.pdf  used on input line 338.
 (pdftex.def)             Requested size: 1120.4965pt x 316.06358pt.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <14.4> on input line 339.
+(Font)              <14.4> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 339.
+(Font)              <12> on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.4> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <12> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <29.86> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <20.9019> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <14.93> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <29.86> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 338.
 
 LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <20.9019> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 338.
 
 LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <14.93> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 338.
 
 LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <29.86> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 338.
 
 LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <29.86> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 338.
 
 LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <20.9019> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 338.
 
 LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <20.9019> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 338.
 
 LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <14.93> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 338.
 
 LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <14.93> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 338.
 
 LaTeX Font Info:    Trying to load font information for T1+lmr on input line 33
-9.
+8.
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -1373,41 +1373,41 @@ File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman
 File: figs/Fig-Stochastic-Attention-Update.pdf Graphic file (type pdf)
 <use figs/Fig-Stochastic-Attention-Update.pdf>
 Package pdftex.def Info: figs/Fig-Stochastic-Attention-Update.pdf  used on inpu
-t line 339.
+t line 338.
 (pdftex.def)             Requested size: 1120.4965pt x 512.71223pt.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <20.74> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <14.4> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <12> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 <../paper/figs/Fig_experiment-combined.pdf, id=16, 561.09625pt x 170.6375pt>
 File: ../paper/figs/Fig_experiment-combined.pdf Graphic file (type pdf)
 <use ../paper/figs/Fig_experiment-combined.pdf>
 Package pdftex.def Info: ../paper/figs/Fig_experiment-combined.pdf  used on inp
-ut line 339.
+ut line 338.
 (pdftex.def)             Requested size: 1120.4965pt x 340.81587pt.
-LaTeX Font Info:    Calculating math sizes for size <35.83> on input line 339.
+LaTeX Font Info:    Calculating math sizes for size <35.83> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <35.83> on input line 339.
+(Font)              <35.83> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <25.08089> on input line 339.
+(Font)              <25.08089> on input line 338.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <17.915> on input line 339.
+(Font)              <17.915> on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <35.83> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <25.08089> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <17.915> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <35.83> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <25.08089> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <17.915> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 338.
 LaTeX Font Info:    Trying to load font information for TS1+lmss on input line 
-339.
+338.
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/ts1lmss.fd
 File: ts1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -1420,40 +1420,40 @@ Package microtype Info: Loading generic protrusion settings for font family
 File: ../code/figs/Fig_mnist_grid_sa_digit3.png Graphic file (type png)
 <use ../code/figs/Fig_mnist_grid_sa_digit3.png>
 Package pdftex.def Info: ../code/figs/Fig_mnist_grid_sa_digit3.png  used on inp
-ut line 339.
+ut line 338.
 (pdftex.def)             Requested size: 274.28699pt x 274.29698pt.
 <../code/figs/Fig_mnist_grid_ddpm_digit3.png, id=18, 118.4425pt x 118.4425pt>
 File: ../code/figs/Fig_mnist_grid_ddpm_digit3.png Graphic file (type png)
 <use ../code/figs/Fig_mnist_grid_ddpm_digit3.png>
 Package pdftex.def Info: ../code/figs/Fig_mnist_grid_ddpm_digit3.png  used on i
-nput line 339.
+nput line 338.
 (pdftex.def)             Requested size: 274.28699pt x 274.29698pt.
 <figs/Fig-Protein-Barchart.pdf, id=19, 379.62628pt x 206.70425pt>
 File: figs/Fig-Protein-Barchart.pdf Graphic file (type pdf)
 <use figs/Fig-Protein-Barchart.pdf>
-Package pdftex.def Info: figs/Fig-Protein-Barchart.pdf  used on input line 339.
+Package pdftex.def Info: figs/Fig-Protein-Barchart.pdf  used on input line 338.
 
 (pdftex.def)             Requested size: 1120.4965pt x 610.10341pt.
 <../paper/figs/Fig_protein_aa_frequencies.pdf, id=20, 803.0pt x 602.25pt>
 File: ../paper/figs/Fig_protein_aa_frequencies.pdf Graphic file (type pdf)
 <use ../paper/figs/Fig_protein_aa_frequencies.pdf>
 Package pdftex.def Info: ../paper/figs/Fig_protein_aa_frequencies.pdf  used on 
-input line 339.
+input line 338.
 (pdftex.def)             Requested size: 560.23935pt x 420.20287pt.
 <../paper/figs/Fig_protein_entropy_curve.pdf, id=21, 602.25pt x 401.5pt>
 File: ../paper/figs/Fig_protein_entropy_curve.pdf Graphic file (type pdf)
 <use ../paper/figs/Fig_protein_entropy_curve.pdf>
 Package pdftex.def Info: ../paper/figs/Fig_protein_entropy_curve.pdf  used on i
-nput line 339.
+nput line 338.
 (pdftex.def)             Requested size: 560.23935pt x 373.52591pt.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <24.88> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <17.28> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 339.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 338.
 <logo/github-mark.pdf, id=22, 562.1pt x 562.1pt>
 File: logo/github-mark.pdf Graphic file (type pdf)
 <use logo/github-mark.pdf>
-Package pdftex.def Info: logo/github-mark.pdf  used on input line 339.
+Package pdftex.def Info: logo/github-mark.pdf  used on input line 338.
 (pdftex.def)             Requested size: 42.67886pt x 42.67912pt.
 
 
@@ -1463,6 +1463,10 @@ Package pdftex.def Info: logo/github-mark.pdf  used on input line 339.
 
 <Copying the QR code for "https://github.com/varnerlab/stochastic-attention-stu
 dy-paper" in version 4-M as previously calculated.>
+
+Overfull \vbox (47.45946pt too high) detected at line 338
+ []
+
 
 
 [1
@@ -1502,11 +1506,11 @@ Package rerunfilecheck Info: File `poster.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 30608 strings out of 473190
- 585045 string characters out of 5715801
- 1240016 words of memory out of 5000000
+ 30600 strings out of 473190
+ 584951 string characters out of 5715801
+ 1242661 words of memory out of 5000000
  52917 multiletter control sequences out of 15000+600000
- 794145 words of font info for 332 fonts, out of 8000000 for 9000
+ 793663 words of font info for 328 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,21n,123p,1291b,1270s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
@@ -1539,7 +1543,7 @@ xlive/2025/texmf-dist/fonts/type1/public/lm/lmsso17.pfb></usr/local/texlive/202
 5/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2025/texmf-di
 st/fonts/type1/public/lm/lmtt12.pfb></usr/local/texlive/2025/texmf-dist/fonts/t
 ype1/public/amsfonts/symbols/msbm10.pfb>
-Output written on poster.pdf (1 page, 562025 bytes).
+Output written on poster.pdf (1 page, 562263 bytes).
 PDF statistics:
  306 PDF objects out of 1000 (max. 8388607)
  199 compressed objects within 2 object streams
