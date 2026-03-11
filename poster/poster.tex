@@ -100,7 +100,7 @@
       Abdulrahman Alswaidan \& Jeffrey D.\ Varner}\\[6pt]
     {\fontsize{26}{32}\selectfont\color{black}
       R.F.\ Smith School of Chemical and Biomolecular Engineering, Cornell University
-      \quad \texttt{\{aa2725, jdv27\}@cornell.edu}}
+      \quad \texttt{aa2725, jdv27@cornell.edu}}
   \end{column}
 
   \begin{column}{0.10\linewidth}
@@ -192,7 +192,7 @@ Substituting $\nabla E$ into the ULA (with $U = \beta E$, $\tilde\alpha = \alpha
 % -----------------------------------------------------------
 \begin{block}{Experiment 1:Phase Behavior \& Convergence (Synthetic)}
 % -----------------------------------------------------------
-The theory predicts that $\beta$ acts as a continuous order parameter, with a smooth transition between generation and retrieval centered near $\beta^*\!\sim\!\sqrt{d}$. We test this on synthetic random unit-norm patterns and verify convergence to the correct Boltzmann target.
+The theory predicts that $\beta$ acts as a continuous order parameter, with a smooth transition between generation and retrieval centered near $\beta^*\!\sim\!\sqrt{d}$. We tested this on synthetic random unit-norm patterns and verified convergence to the correct Boltzmann target.
 
 \vspace{4pt}
 \begin{center}
@@ -200,8 +200,8 @@ The theory predicts that $\beta$ acts as a continuous order parameter, with a sm
 \end{center}
 \vspace{2pt}
 {\small
-\textbf{Figure 3.} \textbf{(a)} $d\!=\!64$, $K\!=\!16$. Both cosine similarity to the nearest pattern (blue) and attention entropy (coral) undergo a smooth sigmoidal transition centered at $\beta\!\approx\!5$--$10$ (gold band), consistent with the predicted $\beta^*\!\sim\!\sqrt{d}\!\approx\!8$.
-\textbf{(b)} $d\!=\!8$, $K\!=\!4$, $\beta\!=\!5$. Eight independent chains (gray) converge to a long-run reference distribution (coral); KS testing confirms the sampler reaches the correct Boltzmann target.
+\textbf{Figure 3.} \textbf{(a)} $d\!=\!64$, $K\!=\!16$. Both cosine similarity to the nearest pattern (blue) and attention entropy (coral) underwent a smooth sigmoidal transition centered at $\beta\!\approx\!5$--$10$ (gold band), consistent with the predicted $\beta^*\!\sim\!\sqrt{d}\!\approx\!8$.
+\textbf{(b)} $d\!=\!8$, $K\!=\!4$, $\beta\!=\!5$. Eight independent chains (gray) converged to a long-run reference distribution (coral); KS testing confirmed the sampler reached the correct Boltzmann target.
 }
 \end{block}
 
@@ -227,10 +227,10 @@ The theory predicts that $\beta$ acts as a continuous order parameter, with a sm
 % -----------------------------------------------------------
 \begin{block}{Experiment 2:MNIST Image Generation ($K=100$, $d=784$)}
 % -----------------------------------------------------------
-With the phase behavior confirmed, we move to structured data. We store $K\!=\!100$ images of digit ``3'' and compare stochastic attention against both synthetic baselines (bootstrap, Gaussian perturbation, convex combinations, GMM-PCA) and learned generative models (VAE, DDPM). We run 30 independent chains at $\beta\!=\!2000$ (retrieval) and $\beta\!=\!200$ (generation, near $\beta^*$), collecting 150 samples per regime.
+With the phase behavior confirmed, we moved to structured data. We stored $K\!=\!100$ images of digit ``3'' and compared stochastic attention against both synthetic baselines (bootstrap, Gaussian perturbation, convex combinations, GMM-PCA) and learned generative models (VAE, DDPM). We ran 30 independent chains at $\beta\!=\!2000$ (retrieval) and $\beta\!=\!200$ (generation, near $\beta^*$), collecting 150 samples per regime.
 
 \vspace{6pt}
-\begin{columns}[t, totalwidth=\linewidth]
+\begin{columns}[c, totalwidth=\linewidth]
   \begin{column}{0.48\linewidth}
     \centering
     {\small
@@ -253,7 +253,7 @@ With the phase behavior confirmed, we move to structured data. We store $K\!=\!1
     }
     \vspace{4pt}
 
-    {\small\textsuperscript{\dag}DDPM generates isotropic noise\\despite 5,000 training epochs.}
+    {\small\textsuperscript{\dag}DDPM generated isotropic noise\\despite 5,000 training epochs.}
   \end{column}
   \begin{column}{0.50\linewidth}
     \centering
@@ -267,17 +267,17 @@ With the phase behavior confirmed, we move to structured data. We store $K\!=\!1
 
 \vspace{2pt}
 {\small
-\textbf{Figure 4.} \textbf{(Left)} Novelty, diversity, and energy scores for all methods on MNIST digit ``3'' ($K\!=\!100$, $d\!=\!784$). SA at generation temperature ($\beta\!=\!200$) achieves the highest novelty and diversity among energy-based methods. \textbf{(Right)} Sample grids from SA ($\beta\!=\!2000$, retrieval regime) and DDPM (5,000 training epochs). DDPM produces isotropic noise on this small dataset.
+\textbf{Figure 4.} \textbf{(Left)} Novelty, diversity, and energy scores for all methods on MNIST digit ``3'' ($K\!=\!100$, $d\!=\!784$). SA at generation temperature ($\beta\!=\!200$) achieved the highest novelty and diversity among energy-based methods. \textbf{(Right)} Sample grids from SA ($\beta\!=\!2000$, retrieval regime) and DDPM (5,000 training epochs). DDPM produced isotropic noise on this small dataset.
 }
 
 \vspace{10pt}
-In the generation regime, SA achieves $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the best learned baseline (VAE), while matching the Metropolis-corrected MALA gold standard. DDPM fails entirely on this small dataset, producing isotropic noise despite 5,000 training epochs. This illustrates the core advantage of a training-free score: when data is scarce, there is no distribution to learn, but the exact Hopfield gradient is always available.
+In the generation regime, SA achieved $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the best learned baseline (VAE), while matching the Metropolis-corrected MALA gold standard. DDPM failed entirely on this small dataset, producing isotropic noise despite 5,000 training epochs. This illustrates the core advantage of a training-free score: when data is scarce, there is no distribution to learn, but the exact Hopfield gradient is always available.
 \end{block}
 
 % -----------------------------------------------------------
 \begin{block}{Experiment 3:Protein Sequence Generation (Pfam RRM, $K=68$, $d=59$)}
 % -----------------------------------------------------------
-Protein sequences pose a harder test than images: generated samples must preserve not just global amino acid composition but position-specific conservation and pairwise co-evolutionary couplings that define family membership. We store 68 aligned RRM (RNA Recognition Motif) sequences from Pfam, one-hot encoded and PCA-reduced to $d\!=\!59$ (95\% variance retained). The entropy inflection gives $\beta^*\!=\!3.85$, half the random-pattern prediction $\sqrt{d}\!=\!7.68$, because conserved residues concentrate the similarity spectrum.
+Protein sequences posed a harder test than images: generated samples must preserve not just global amino acid composition but position-specific conservation and pairwise co-evolutionary couplings that define family membership. We stored 68 aligned RRM (RNA Recognition Motif) sequences from Pfam, one-hot encoded and PCA-reduced to $d\!=\!59$ (95\% variance retained). The entropy inflection gave $\beta^*\!=\!3.85$, half the random-pattern prediction $\sqrt{d}\!=\!7.68$, because conserved residues concentrate the similarity spectrum.
 
 \vspace{4pt}
 \begin{center}
@@ -298,11 +298,11 @@ Protein sequences pose a harder test than images: generated samples must preserv
 
 \vspace{2pt}
 {\small
-\textbf{Figure 5.} \textbf{(Top)} Composition divergence (KL), per-position divergence, and coupling fidelity for SA vs.\ VAE on the Pfam RRM family ($K\!=\!68$, $d\!=\!59$). \textbf{(Bottom-left)} Stored (top) vs.\ SA-generated (bottom) amino acid frequencies. \textbf{(Bottom-right)} Entropy inflection identifies $\beta^*\!=\!3.85$, the retrieval--generation boundary.
+\textbf{Figure 5.} \textbf{(Top)} Composition divergence (KL), per-position divergence, and coupling fidelity for SA vs.\ VAE on the Pfam RRM family ($K\!=\!68$, $d\!=\!59$). \textbf{(Bottom-left)} Stored (top) vs.\ SA-generated (bottom) amino acid frequencies. \textbf{(Bottom-right)} Entropy inflection identified $\beta^*\!=\!3.85$, the retrieval--generation boundary.
 }
 
 \vspace{10pt}
-At generation temperature, SA matches the VAE on novelty while achieving $\mathbf{6.9\times}$ lower composition divergence, $\mathbf{3.4\times}$ lower per-position divergence, and $\mathbf{66\%}$ higher coupling fidelity. Every generated sequence passes the Pfam HMM filter (median $E$-value $8.1\!\times\!10^{-34}$). Because the Langevin gradient is recomputed from stored sequences at every step, it continuously steers samples toward the family's structural profile -- fidelity that the VAE, trained on only 68 examples, cannot maintain.
+At generation temperature, SA matched the VAE on novelty while achieving $\mathbf{6.9\times}$ lower composition divergence, $\mathbf{3.4\times}$ lower per-position divergence, and $\mathbf{66\%}$ higher coupling fidelity. Every generated sequence passed the Pfam HMM filter (median $E$-value $8.1\!\times\!10^{-34}$). Because the Langevin gradient was recomputed from stored sequences at every step, it continuously steered samples toward the family's structural profile -- fidelity that the VAE, trained on only 68 examples, could not maintain.
 \end{block}
 
 % -----------------------------------------------------------
@@ -315,11 +315,11 @@ At generation temperature, SA matches the VAE on novelty while achieving $\mathb
 \colorbox{CornellLightGray}{%
 \begin{minipage}{\dimexpr\linewidth-2\fboxsep}
 \vspace{8pt}
-\usebeamerfont{block body}\justifying
+\usebeamerfont{block body}\raggedright
 Stochastic attention is a \textbf{training-free} generative sampler whose score function is the attention map itself. Each step costs $\mathcal{O}(dK)$ -- the same as one attention head -- with no learned parameters, no training loop, and no dataset size requirement. A single analytically identified parameter $\beta^*$ controls the generation--retrieval tradeoff.
 
 \vspace{6pt}
-On \textbf{MNIST} ($K\!=\!100$), SA achieves $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the best learned baseline (VAE), while DDPM fails entirely. On \textbf{protein sequences} ($K\!=\!68$), SA achieves $\mathbf{6.9\times}$ lower composition divergence and $\mathbf{66\%}$ higher coupling fidelity than the VAE, with 100\% Pfam HMM pass rate.
+On \textbf{MNIST} ($K\!=\!100$), SA achieved $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the best learned baseline (VAE), while DDPM failed entirely. On \textbf{protein sequences} ($K\!=\!68$), SA achieved $\mathbf{6.9\times}$ lower composition divergence and $\mathbf{66\%}$ higher coupling fidelity than the VAE, with 100\% Pfam HMM pass rate.
 \vspace{8pt}
 \end{minipage}%
 }

@@ -1,6 +1,6 @@
 \documentclass[border=6pt]{standalone}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning}
+\usetikzlibrary{arrows.meta,positioning,decorations.pathreplacing}
 \usepackage{amsmath,amssymb}
 
 \definecolor{CornellRed}{RGB}{179,27,27}
@@ -13,6 +13,7 @@
 \def\barh{0.20}
 \def\gap{0.05}
 \def\maxbar{8.0}
+\def\labelx{10.6}  % right-aligned edge for all annotations
 
 % Title
 \node[font=\normalsize\bfseries, anchor=south west] at (\chartx, \charty+0.5) {SA ($\beta{=}8$, generation) vs.\ VAE (latent${=}8$)};
@@ -20,19 +21,21 @@
 % --- Metric 1: Global KL ---
 \def\mone{\charty-0.2}
 \node[font=\small, anchor=east] at (\chartx-0.2, \mone) {\textbf{Comp.\ KL}$\downarrow$};
-% SA bar (top) - Cornell Red
+% SA bar (top)
 \fill[CornellRed!70] (\chartx, \mone+\gap) rectangle (\chartx+0.96, \mone+\gap+2*\barh);
 \draw[thick, CornellRed!90!black] (\chartx, \mone+\gap) rectangle (\chartx+0.96, \mone+\gap+2*\barh);
 \node[font=\scriptsize\bfseries, CornellRed!90!black, anchor=west] at (\chartx+0.96+0.08, \mone+\gap+\barh) {0.060};
-% VAE bar (bottom) - White with gray outline
+% VAE bar (bottom)
 \fill[white] (\chartx, \mone-\gap-2*\barh) rectangle (\chartx+6.656, \mone-\gap);
 \draw[thick, black!40] (\chartx, \mone-\gap-2*\barh) rectangle (\chartx+6.656, \mone-\gap);
 \node[font=\scriptsize\bfseries, black!50, anchor=west] at (\chartx+6.656+0.08, \mone-\gap-\barh) {0.416};
-% Improvement
-\node[font=\small\bfseries, CornellRed!90!black, anchor=west] at (\chartx+\maxbar+0.6, \mone) {$6.9\times$};
+% Brace and improvement
+\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, CornellRed!80!black]
+    (\maxbar+0.3, \mone+\gap+2*\barh) -- (\maxbar+0.3, \mone-\gap-2*\barh);
+\node[font=\small\bfseries, CornellRed!90!black, anchor=east] at (\labelx, \mone) {$6.9\times$};
 
 % --- Metric 2: Per-position KL ---
-\def\mtwo{\charty-1.1}
+\def\mtwo{\charty-1.3}
 \node[font=\small, anchor=east] at (\chartx-0.2, \mtwo) {\textbf{Pos-KL}$\downarrow$};
 \fill[CornellRed!70] (\chartx, \mtwo+\gap) rectangle (\chartx+2.336, \mtwo+\gap+2*\barh);
 \draw[thick, CornellRed!90!black] (\chartx, \mtwo+\gap) rectangle (\chartx+2.336, \mtwo+\gap+2*\barh);
@@ -40,10 +43,13 @@
 \fill[white] (\chartx, \mtwo-\gap-2*\barh) rectangle (\chartx+7.992, \mtwo-\gap);
 \draw[thick, black!40] (\chartx, \mtwo-\gap-2*\barh) rectangle (\chartx+7.992, \mtwo-\gap);
 \node[font=\scriptsize\bfseries, black!50, anchor=west] at (\chartx+7.992+0.08, \mtwo-\gap-\barh) {9.99};
-\node[font=\small\bfseries, CornellRed!90!black, anchor=west] at (\chartx+\maxbar+0.6, \mtwo) {$3.4\times$};
+% Brace and improvement
+\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, CornellRed!80!black]
+    (\maxbar+0.3, \mtwo+\gap+2*\barh) -- (\maxbar+0.3, \mtwo-\gap-2*\barh);
+\node[font=\small\bfseries, CornellRed!90!black, anchor=east] at (\labelx, \mtwo) {$3.4\times$};
 
 % --- Metric 3: MI correlation ---
-\def\mthree{\charty-2.0}
+\def\mthree{\charty-2.4}
 \node[font=\small, anchor=east] at (\chartx-0.2, \mthree) {\textbf{MI}~$r$$\uparrow$};
 \fill[CornellRed!70] (\chartx, \mthree+\gap) rectangle (\chartx+6.968, \mthree+\gap+2*\barh);
 \draw[thick, CornellRed!90!black] (\chartx, \mthree+\gap) rectangle (\chartx+6.968, \mthree+\gap+2*\barh);
@@ -51,10 +57,13 @@
 \fill[white] (\chartx, \mthree-\gap-2*\barh) rectangle (\chartx+4.2, \mthree-\gap);
 \draw[thick, black!40] (\chartx, \mthree-\gap-2*\barh) rectangle (\chartx+4.2, \mthree-\gap);
 \node[font=\scriptsize\bfseries, black!50, anchor=west] at (\chartx+4.2+0.08, \mthree-\gap-\barh) {0.525};
-\node[font=\small\bfseries, CornellRed!90!black, anchor=west] at (\chartx+\maxbar+0.6, \mthree) {$+66\%$};
+% Brace and improvement
+\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, CornellRed!80!black]
+    (\maxbar+0.3, \mthree+\gap+2*\barh) -- (\maxbar+0.3, \mthree-\gap-2*\barh);
+\node[font=\small\bfseries, CornellRed!90!black, anchor=east] at (\labelx, \mthree) {$+66\%$};
 
 % --- Metric 4: Novelty ---
-\def\mfour{\charty-2.9}
+\def\mfour{\charty-3.5}
 \node[font=\small, anchor=east] at (\chartx-0.2, \mfour) {\textbf{Novelty}$\uparrow$};
 \fill[CornellRed!70] (\chartx, \mfour+\gap) rectangle (\chartx+4.984, \mfour+\gap+2*\barh);
 \draw[thick, CornellRed!90!black] (\chartx, \mfour+\gap) rectangle (\chartx+4.984, \mfour+\gap+2*\barh);
@@ -62,10 +71,10 @@
 \fill[white] (\chartx, \mfour-\gap-2*\barh) rectangle (\chartx+4.968, \mfour-\gap);
 \draw[thick, black!40] (\chartx, \mfour-\gap-2*\barh) rectangle (\chartx+4.968, \mfour-\gap);
 \node[font=\scriptsize\bfseries, black!50, anchor=west] at (\chartx+4.968+0.08, \mfour-\gap-\barh) {0.621};
-\node[font=\small, black!40, anchor=west] at (\chartx+\maxbar+0.6, \mfour) {matched};
+\node[font=\small, black!40, anchor=east] at (\labelx, \mfour) {matched};
 
 % --- Metric 5: HMM pass ---
-\def\mfive{\charty-3.8}
+\def\mfive{\charty-4.6}
 \node[font=\small, anchor=east] at (\chartx-0.2, \mfive) {\textbf{HMM}$\uparrow$};
 \fill[CornellRed!70] (\chartx, \mfive+\gap) rectangle (\chartx+\maxbar, \mfive+\gap+2*\barh);
 \draw[thick, CornellRed!90!black] (\chartx, \mfive+\gap) rectangle (\chartx+\maxbar, \mfive+\gap+2*\barh);
@@ -73,16 +82,16 @@
 \fill[white] (\chartx, \mfive-\gap-2*\barh) rectangle (\chartx+\maxbar, \mfive-\gap);
 \draw[thick, black!40] (\chartx, \mfive-\gap-2*\barh) rectangle (\chartx+\maxbar, \mfive-\gap);
 \node[font=\scriptsize\bfseries, black!50, anchor=east] at (\chartx+\maxbar-0.08, \mfive-\gap-\barh) {100\%};
-\node[font=\small, black!40, anchor=west] at (\chartx+\maxbar+0.6, \mfive) {matched};
+\node[font=\small, black!40, anchor=east] at (\labelx, \mfive) {matched};
 
 % Legend
-\fill[CornellRed!70] (\chartx+0.5, \charty-4.6) rectangle (\chartx+1.0, \charty-4.35);
-\draw[thick, CornellRed!90!black] (\chartx+0.5, \charty-4.6) rectangle (\chartx+1.0, \charty-4.35);
-\node[font=\small\bfseries, anchor=west] at (\chartx+1.1, \charty-4.475) {SA ($\beta{=}8$, ours)};
+\fill[CornellRed!70] (\chartx+0.5, \charty-5.6) rectangle (\chartx+1.0, \charty-5.35);
+\draw[thick, CornellRed!90!black] (\chartx+0.5, \charty-5.6) rectangle (\chartx+1.0, \charty-5.35);
+\node[font=\small\bfseries, anchor=west] at (\chartx+1.1, \charty-5.475) {SA ($\beta{=}8$, ours)};
 
-\fill[white] (\chartx+4.3, \charty-4.6) rectangle (\chartx+4.8, \charty-4.35);
-\draw[thick, black!40] (\chartx+4.3, \charty-4.6) rectangle (\chartx+4.8, \charty-4.35);
-\node[font=\small, black!60, anchor=west] at (\chartx+4.9, \charty-4.475) {VAE (latent${=}8$)};
+\fill[white] (\chartx+4.3, \charty-5.6) rectangle (\chartx+4.8, \charty-5.35);
+\draw[thick, black!40] (\chartx+4.3, \charty-5.6) rectangle (\chartx+4.8, \charty-5.35);
+\node[font=\small, black!60, anchor=west] at (\chartx+4.9, \charty-5.475) {VAE (latent${=}8$)};
 
 \end{tikzpicture}
 \end{document}
