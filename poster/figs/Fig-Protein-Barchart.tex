@@ -16,7 +16,7 @@
 \def\labelx{10.6}  % right-aligned edge for all annotations
 
 % Title
-\node[font=\normalsize\bfseries, anchor=south west] at (\chartx, \charty+0.5) {SA ($\beta{=}8$, generation) vs.\ VAE (latent${=}8$)};
+\node[font=\normalsize\bfseries, anchor=south west] at (\chartx, \charty+0.5) {SA ($\beta=8$, generation) vs.\ VAE (latent${}=8$)};
 
 % --- Metric 1: Global KL ---
 \def\mone{\charty-0.2}
@@ -29,9 +29,6 @@
 \fill[white] (\chartx, \mone-\gap-2*\barh) rectangle (\chartx+6.656, \mone-\gap);
 \draw[thick, black!40] (\chartx, \mone-\gap-2*\barh) rectangle (\chartx+6.656, \mone-\gap);
 \node[font=\scriptsize\bfseries, black!50, anchor=west] at (\chartx+6.656+0.08, \mone-\gap-\barh) {0.416};
-% Brace and improvement
-\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, CornellRed!80!black]
-    (\maxbar+0.3, \mone+\gap+2*\barh) -- (\maxbar+0.3, \mone-\gap-2*\barh);
 \node[font=\small\bfseries, CornellRed!90!black, anchor=east] at (\labelx, \mone) {$6.9\times$};
 
 % --- Metric 2: Per-position KL ---
@@ -43,9 +40,6 @@
 \fill[white] (\chartx, \mtwo-\gap-2*\barh) rectangle (\chartx+7.992, \mtwo-\gap);
 \draw[thick, black!40] (\chartx, \mtwo-\gap-2*\barh) rectangle (\chartx+7.992, \mtwo-\gap);
 \node[font=\scriptsize\bfseries, black!50, anchor=west] at (\chartx+7.992+0.08, \mtwo-\gap-\barh) {9.99};
-% Brace and improvement
-\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, CornellRed!80!black]
-    (\maxbar+0.3, \mtwo+\gap+2*\barh) -- (\maxbar+0.3, \mtwo-\gap-2*\barh);
 \node[font=\small\bfseries, CornellRed!90!black, anchor=east] at (\labelx, \mtwo) {$3.4\times$};
 
 % --- Metric 3: MI correlation ---
@@ -57,9 +51,6 @@
 \fill[white] (\chartx, \mthree-\gap-2*\barh) rectangle (\chartx+4.2, \mthree-\gap);
 \draw[thick, black!40] (\chartx, \mthree-\gap-2*\barh) rectangle (\chartx+4.2, \mthree-\gap);
 \node[font=\scriptsize\bfseries, black!50, anchor=west] at (\chartx+4.2+0.08, \mthree-\gap-\barh) {0.525};
-% Brace and improvement
-\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, CornellRed!80!black]
-    (\maxbar+0.3, \mthree+\gap+2*\barh) -- (\maxbar+0.3, \mthree-\gap-2*\barh);
 \node[font=\small\bfseries, CornellRed!90!black, anchor=east] at (\labelx, \mthree) {$+66\%$};
 
 % --- Metric 4: Novelty ---
@@ -87,11 +78,11 @@
 % Legend
 \fill[CornellRed!70] (\chartx+0.5, \charty-5.6) rectangle (\chartx+1.0, \charty-5.35);
 \draw[thick, CornellRed!90!black] (\chartx+0.5, \charty-5.6) rectangle (\chartx+1.0, \charty-5.35);
-\node[font=\small\bfseries, anchor=west] at (\chartx+1.1, \charty-5.475) {SA ($\beta{=}8$, ours)};
+\node[font=\small\bfseries, anchor=west] at (\chartx+1.1, \charty-5.475) {SA ($\beta=8$, ours)};
 
 \fill[white] (\chartx+4.3, \charty-5.6) rectangle (\chartx+4.8, \charty-5.35);
 \draw[thick, black!40] (\chartx+4.3, \charty-5.6) rectangle (\chartx+4.8, \charty-5.35);
-\node[font=\small, black!60, anchor=west] at (\chartx+4.9, \charty-5.475) {VAE (latent${=}8$)};
+\node[font=\small, black!60, anchor=west] at (\chartx+4.9, \charty-5.475) {VAE (latent${}=8$)};
 
 \end{tikzpicture}
 \end{document}
