@@ -174,7 +174,7 @@ Substituting $\nabla E$ into the ULA (with $U = \beta E$, $\tilde\alpha = \alpha
 
 \vspace{4pt}
 \begin{center}
-  \includegraphics[width=0.80\linewidth]{figs/Fig-Stochastic-Attention-Update.pdf}
+  \includegraphics[width=0.90\linewidth]{figs/Fig-Stochastic-Attention-Update.pdf}
 \end{center}
 \vspace{2pt}
 {\small\linespread{1.0}\selectfont
@@ -220,9 +220,9 @@ The theory predicts that $\beta$ acts as a continuous order parameter, with a sm
 % -----------------------------------------------------------
 \begin{block}{Experiment 2: MNIST Image Generation ($K=100$, $d=784$)}
 % -----------------------------------------------------------
-With the phase behavior confirmed, we moved to structured data. We stored $K\!=\!100$ images of digit ``3'' and compared stochastic attention against both synthetic baselines (bootstrap, Gaussian perturbation, convex combinations, Gaussian Mixture Model with Principal Component Analysis (GMM-PCA)) and learned generative models (Variational Autoencoder (VAE), Denoising Diffusion Probabilistic Model (DDPM)). We ran 30 independent chains at $\beta\!=\!2000$ (retrieval) and $\beta\!=\!200$ (generation, near $\beta^*$), collecting 150 samples per regime (Figure 4).
+We stored $K\!=\!100$ images of digit ``3'' and compared stochastic attention against both synthetic baselines (bootstrap, Gaussian perturbation, convex combinations, Gaussian Mixture Model with Principal Component Analysis (GMM-PCA)) and learned generative models (Variational Autoencoder (VAE), Denoising Diffusion Probabilistic Model (DDPM)). We ran 30 independent chains at $\beta\!=\!2000$ (retrieval) and $\beta\!=\!200$ (generation, near $\beta^*$), collecting 150 samples per regime (Figure 4).
 
-\vspace{6pt}
+\vspace{20pt}
 \begin{columns}[c, totalwidth=\linewidth]
   \begin{column}{0.48\linewidth}
     \centering
@@ -246,7 +246,7 @@ With the phase behavior confirmed, we moved to structured data. We stored $K\!=\
     }
     \vspace{4pt}
 
-    {\small\textsuperscript{\dag}DDPM generated isotropic noise\\despite 5,000 training epochs.}
+    {\small\textsuperscript{\dag}DDPM generated isotropic noise.}
   \end{column}
   \begin{column}{0.50\linewidth}
     \centering
@@ -258,23 +258,20 @@ With the phase behavior confirmed, we moved to structured data. We stored $K\!=\
   \end{column}
 \end{columns}
 
-\vspace{2pt}
-{\small
-\textbf{Figure 4.} \textbf{(Left)} Novelty, diversity, and energy scores for all methods on MNIST digit ``3'' ($K\!=\!100$, $d\!=\!784$). SA at generation temperature ($\beta\!=\!200$) achieved the highest novelty and diversity among energy-based methods. \textbf{(Right)} Sample grids from SA ($\beta\!=\!2000$, retrieval regime) and DDPM (5,000 training epochs). DDPM produced isotropic noise on this small dataset.
-}
-
 \vspace{10pt}
-In the generation regime, SA achieved $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the best learned baseline (VAE), while matching the Metropolis-corrected MALA gold standard. DDPM failed entirely on this small dataset, producing isotropic noise despite 5,000 training epochs. This illustrates the core advantage of a training-free score: when data is scarce, there is no distribution to learn, but the exact Hopfield gradient is always available.
+{\small
+\textbf{Figure 4.} \textbf{(Left)} Novelty, diversity, and energy scores for all methods on MNIST digit ``3'' ($K\!=\!100$, $d\!=\!784$). SA at generation temperature ($\beta\!=\!200$) achieved the highest novelty and diversity among energy-based methods. \textbf{(Right)} Sample grids from SA ($\beta\!=\!2000$, retrieval regime) and DDPM (5,000 training epochs). DDPM produced isotropic noise on this small dataset. In the generation regime, SA achieved $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the best learned baseline (VAE), while matching the Metropolis-corrected MALA gold standard. DDPM failed, producing isotropic noise despite 5,000 training epochs. 
+}
 \end{block}
 
 % -----------------------------------------------------------
-\begin{block}{Experiment 3: Protein Sequence Generation (Pfam RRM, $K=68$, $d=59$)}
+\begin{block}{Experiment 3: Sequence Generation (Pfam RRM, $K=68$, $d=59$)}
 % -----------------------------------------------------------
-Protein sequences posed a harder test than images: generated samples must preserve not just global amino acid composition but position-specific conservation and pairwise co-evolutionary couplings that define family membership. We stored 68 aligned RRM (RNA Recognition Motif) sequences from Pfam, one-hot encoded and PCA-reduced to $d\!=\!59$ (95\% variance retained). The entropy inflection gave $\beta^*\!=\!3.85$, half the random-pattern prediction $\sqrt{d}\!=\!7.68$, because conserved residues concentrate the similarity spectrum.
+Protein sequences posed a harder test than images: generated samples must preserve global amino acid composition, position-specific conservation and pairwise co-evolutionary couplings that define family membership. We stored 68 aligned RRM (RNA Recognition Motif) sequences from Pfam, one-hot encoded and PCA-reduced to $d\!=\!59$ (95\% variance retained). The entropy inflection gave $\beta^*\!=\!3.85$, half the random-pattern prediction $\sqrt{d}\!=\!7.68$, because conserved residues concentrate the similarity spectrum (Figure 5).
 
 \vspace{4pt}
 \begin{center}
-  \includegraphics[width=0.96\linewidth]{figs/Fig-Protein-Barchart.pdf}
+  \includegraphics[width=0.90\linewidth]{figs/Fig-Protein-Barchart.pdf}
 \end{center}
 
 \vspace{4pt}
@@ -291,11 +288,11 @@ Protein sequences posed a harder test than images: generated samples must preser
 
 \vspace{2pt}
 {\small
-\textbf{Figure 5.} \textbf{(Top)} Composition divergence (Kullback--Leibler, KL), per-position divergence, and coupling fidelity for SA vs.\ VAE on the Pfam RRM family ($K\!=\!68$, $d\!=\!59$). \textbf{(Bottom-left)} Stored (top) vs.\ SA-generated (bottom) amino acid frequencies. \textbf{(Bottom-right)} Entropy inflection identified $\beta^*\!=\!3.85$, the retrieval--generation boundary.
+\textbf{Figure 5.} Protein sequence generation on the Pfam RRM family. \textbf{(Top)} Composition divergence (Kullback--Leibler, KL), per-position divergence, and coupling fidelity for SA vs.\ VAE. \textbf{(Bottom-left)} Stored (top) vs.\ SA-generated (bottom) amino acid frequencies. \textbf{(Bottom-right)} Entropy inflection identified $\beta^*\!=\!3.85$, the retrieval--generation boundary.
 }
 
 \vspace{10pt}
-At generation temperature, SA matched the VAE on novelty while achieving $\mathbf{6.9\times}$ lower composition divergence, $\mathbf{3.4\times}$ lower per-position divergence, and $\mathbf{66\%}$ higher coupling fidelity. Every generated sequence passed the Pfam Hidden Markov Model (HMM) filter (median $E$-value $8.1\!\times\!10^{-34}$). Because the Langevin gradient was recomputed from stored sequences at every step, it continuously steered samples toward the family's structural profile -- fidelity that the VAE, trained on only 68 examples, could not maintain.
+At generation temperature, SA matched the VAE on novelty while achieving $\mathbf{6.9\times}$ lower composition divergence, $\mathbf{3.4\times}$ lower per-position divergence, and $\mathbf{66\%}$ higher coupling fidelity. Every generated sequence passed the Pfam Hidden Markov Model (HMM) filter (median $E$-value $8.1\!\times\!10^{-34}$). Because the Langevin gradient was recomputed from stored sequences at every step, it continuously steered samples toward the family's structural profile, fidelity that the VAE, trained on only 68 examples, could not maintain.
 \end{block}
 
 % -----------------------------------------------------------
@@ -309,10 +306,10 @@ At generation temperature, SA matched the VAE on novelty while achieving $\mathb
 \begin{minipage}{\dimexpr\linewidth-2\fboxsep}
 \vspace{8pt}
 \usebeamerfont{block body}\raggedright
-Stochastic attention is a \textbf{training-free} generative sampler whose score function is the attention map itself. Each step costs $\mathcal{O}(dK)$ -- the same as one attention head -- with no learned parameters, no training loop, and no dataset size requirement. A single analytically identified parameter $\beta^*$ controls the generation--retrieval tradeoff.
+Stochastic attention is a \textbf{training-free} generative sampler whose score function is the attention map itself. Each step costs $\mathcal{O}(dK)$, the same as one attention head, with no learned parameters, no training loop, and no dataset size requirement. A single analytically identified parameter $\beta^*$ controls the generation--retrieval tradeoff.
 
-\vspace{6pt}
-On \textbf{MNIST} ($K\!=\!100$), SA achieved $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the best learned baseline (VAE), while DDPM failed entirely. On \textbf{protein sequences} ($K\!=\!68$), SA achieved $\mathbf{6.9\times}$ lower composition divergence and $\mathbf{66\%}$ higher coupling fidelity than the VAE, with 100\% Pfam HMM pass rate.
+\vspace{12pt}
+On \textbf{MNIST} ($K\!=\!100$), SA achieved $\mathbf{2.6\times}$ the novelty and $\mathbf{2.0\times}$ the diversity of the best learned baseline (VAE), while DDPM failed. On \textbf{protein sequences} ($K\!=\!68$), SA achieved $\mathbf{6.9\times}$ lower composition divergence and $\mathbf{66\%}$ higher coupling fidelity than the VAE, with 100\% Pfam HMM pass rate.
 \vspace{8pt}
 \end{minipage}%
 }
