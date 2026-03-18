@@ -27,7 +27,12 @@
       "Bash(curl -sL \"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png\" -o /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/poster/logo/github-mark.png && file /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/poster/logo/github-mark.png)",
       "Bash(pdfinfo Fig-Protein-Schematic.pdf | grep \"Page size\")",
       "WebSearch",
-      "WebFetch(domain:arxiv.org)"
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:pmc.ncbi.nlm.nih.gov)",
+      "WebFetch(domain:www.researchgate.net)",
+      "WebFetch(domain:www.ebi.ac.uk)",
+      "WebFetch(domain:pfam.xfam.org)",
+      "WebFetch(domain:academic.oup.com)"
     ]
   }
 }
