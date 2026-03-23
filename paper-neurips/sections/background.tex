@@ -1,31 +1,15 @@
 % background.tex -- Background / Preliminaries
-% Narrative arc: attention is deterministic retrieval → Hopfield reveals the
-% energy landscape underneath it → Langevin dynamics turns that same energy
-% into a sampler, opening the door from retrieval to generation.
 
-We build our approach on three ideas that, taken separately, are well understood but whose intersection has not been explored. We review them here in the order that motivates our construction: attention as a computational primitive, its reinterpretation as energy minimization via modern Hopfield networks, and Langevin dynamics as the tool that converts any energy landscape into a sampler.
+We build on three ideas whose intersection has not been explored: attention as a computational primitive, its reinterpretation as energy minimization, and Langevin dynamics as the tool that converts any energy landscape into a sampler.
 
-\paragraph{Attention as deterministic retrieval.}
-The transformer architecture~\cite{vaswaniAttentionAllYou2017} computes attention via queries $\mathbf{Q}$, keys $\mathbf{K}$, and values $\mathbf{V}$:
+The transformer~\cite{vaswaniAttentionAllYou2017} computes attention via queries $\mathbf{Q}$, keys $\mathbf{K}$, and values $\mathbf{V}$:
 \begin{equation}\label{eq:sdp-attention}
     \mathrm{Attention}(\mathbf{Q},\mathbf{K},\mathbf{V})
     = \operatorname{softmax}\!\left(\frac{\mathbf{Q}\mathbf{K}^{\top}}{\sqrt{d}}\right)\mathbf{V},
 \end{equation}
-where $d$ is the key dimension and the softmax is applied row-wise. Each output row is a convex combination of value vectors, with weights determined by query-key similarity.
-Crucially, this operation is \emph{deterministic}: given the same query, it always returns the same weighted average. Attention retrieves information from a fixed store; it does not generate anything new. Our goal is to relax this limitation, but to do so we first need to understand what energy landscape attention is implicitly descending.
+where $d$ is the key dimension and the softmax is applied row-wise. Each output row is a convex combination of value vectors, with weights determined by query-key similarity. This operation is \emph{deterministic}: given the same query, it always returns the same weighted average. Our goal is to relax this limitation, but to do so we first need the energy landscape that attention is implicitly descending.
 
-\paragraph{The energy landscape beneath attention.}
-The classical Hopfield network~\cite{hopfieldNeuralNetworksPhysical1982} stores $K$ binary patterns $\mathbf{m}_1,\dots,\mathbf{m}_K\in\{-1,+1\}^d$ via the quadratic energy
-\begin{equation}\label{eq:classical-hopfield}
-    E_{\mathrm{classical}}(\mathbf{s})
-    = -\tfrac{1}{2}\,\mathbf{s}^{\top}\mathbf{W}\mathbf{s}
-      - \mathbf{b}^{\top}\mathbf{s},
-    \qquad
-    \mathbf{W} = \frac{1}{d}\sum_{i=1}^{K}\mathbf{m}_i\mathbf{m}_i^{\top},
-\end{equation}
-where $\mathbf{b}\in\mathbb{R}^d$ is an external bias (typically set to zero). Retrieval proceeds by coordinate-wise sign updates that descend $E_{\mathrm{classical}}$. The storage capacity of this network scales as $\mathcal{O}(d)$~\cite{amitStoringInfiniteNumbers1985}, severely limiting the number of patterns.
-
-\textit{Modern} (continuous) Hopfield networks~\cite{ramsauerHopfieldNetworksAll2021} overcome this bottleneck by replacing the quadratic energy with a log-sum-exp (lse) form. Let $\mathbf{X}=[\mathbf{m}_1,\dots,\mathbf{m}_K]\in\mathbb{R}^{d\times K}$ be the memory matrix, $\beta>0$ an inverse temperature, and $M:=\max_i\|\mathbf{m}_i\|_2$. The energy is
+The classical Hopfield network~\cite{hopfieldNeuralNetworksPhysical1982} stores $K$ binary patterns $\mathbf{m}_1,\dots,\mathbf{m}_K\in\{-1,+1\}^d$ via the quadratic energy $E_{\mathrm{classical}}(\mathbf{s})=-\tfrac{1}{2}\,\mathbf{s}^{\top}\mathbf{W}\mathbf{s}-\mathbf{b}^{\top}\mathbf{s}$ with $\mathbf{W}=d^{-1}\sum_{i}\mathbf{m}_i\mathbf{m}_i^{\top}$. Retrieval proceeds by coordinate-wise sign updates that descend this energy, but the storage capacity scales only as $\mathcal{O}(d)$~\cite{amitStoringInfiniteNumbers1985}. \textit{Modern} Hopfield networks~\cite{ramsauerHopfieldNetworksAll2021} overcome this bottleneck by replacing the quadratic energy with a log-sum-exp form. Let $\mathbf{X}=[\mathbf{m}_1,\dots,\mathbf{m}_K]\in\mathbb{R}^{d\times K}$ be the memory matrix, $\beta>0$ an inverse temperature, and $M:=\max_i\|\mathbf{m}_i\|_2$. The energy is
 \begin{equation}\label{eq:modern-hopfield-energy}
     E(\boldsymbol{\xi})
     = -\operatorname{lse}_\beta\!\bigl(\mathbf{X}^{\top}\boldsymbol{\xi}\bigr)
@@ -33,34 +17,27 @@ where $\mathbf{b}\in\mathbb{R}^d$ is an external bias (typically set to zero). R
       + \tfrac{1}{\beta}\log K
       + \tfrac{1}{2}M^2,
 \end{equation}
-where $\operatorname{lse}_\beta(\mathbf{z}):=\beta^{-1}\log\bigl(\sum_{i=1}^{K}e^{\beta z_i}\bigr)$ is the scaled log-sum-exp. The associated retrieval (update) map is
+where $\operatorname{lse}_\beta(\mathbf{z}):=\beta^{-1}\log\bigl(\sum_{i=1}^{K}e^{\beta z_i}\bigr)$. The retrieval map is
 \begin{equation}\label{eq:hopfield-update}
     \mathbf{T}(\boldsymbol{\xi})
     := \mathbf{X}\,\operatorname{softmax}\!\bigl(\beta\,\mathbf{X}^{\top}\boldsymbol{\xi}\bigr),
 \end{equation}
-and one can show that $\nabla E(\boldsymbol{\xi})=\boldsymbol{\xi}-\mathbf{T}(\boldsymbol{\xi})$~\cite{ramsauerHopfieldNetworksAll2021}. Hence the deterministic iteration $\boldsymbol{\xi}^{t+1}=\mathbf{T}(\boldsymbol{\xi}^t)$ is gradient descent on $E$ with unit step size, converging to a fixed point $\boldsymbol{\xi}^{\star}$ satisfying $\mathbf{T}(\boldsymbol{\xi}^{\star})=\boldsymbol{\xi}^{\star}$.
+and $\nabla E(\boldsymbol{\xi})=\boldsymbol{\xi}-\mathbf{T}(\boldsymbol{\xi})$~\cite{ramsauerHopfieldNetworksAll2021}, so the deterministic iteration $\boldsymbol{\xi}^{t+1}=\mathbf{T}(\boldsymbol{\xi}^t)$ is gradient descent on $E$ with unit step size. Ramsauer et al.~\cite{ramsauerHopfieldNetworksAll2021} observed that single-head attention~\eqref{eq:sdp-attention} with $\mathbf{Q}=\boldsymbol{\xi}^{\top}$, $\mathbf{K}=\mathbf{V}=\mathbf{X}^{\top}$, and $\beta=1/\sqrt{d}$ is \emph{exactly one step} of~\eqref{eq:hopfield-update}: every attention head implicitly minimizes~\eqref{eq:modern-hopfield-energy}.
 
-Two properties of this energy are essential for what follows. First, $E$ is $C^{\infty}$ (the lse is infinitely differentiable), so standard gradient-based convergence theory applies. Second, $E$ is \emph{confining}: it admits the lower bound~\cite{ramsauerHopfieldNetworksAll2021}
+Two properties of this energy are essential. First, $E$ is $C^{\infty}$ with Lipschitz gradient, so standard convergence theory applies. Second, $E$ is \emph{confining}:
 \begin{equation}\label{eq:energy-lower-bound}
     E(\boldsymbol{\xi}) \;\ge\; \tfrac{1}{2}\bigl(\|\boldsymbol{\xi}\|_2 - M\bigr)^2 \;\ge\; 0,
 \end{equation}
-so $E$ grows at least quadratically as $\|\boldsymbol{\xi}\|\to\infty$. Iterates cannot escape to infinity.
+so $E$ grows at least quadratically as $\|\boldsymbol{\xi}\|\to\infty$ and iterates cannot escape.
 
-\paragraph{The bridge.}
-Ramsauer et al.~\cite{ramsauerHopfieldNetworksAll2021} observed that single-head attention~\eqref{eq:sdp-attention} with $\mathbf{Q}=\boldsymbol{\xi}^{\top}$, $\mathbf{K}=\mathbf{X}^{\top}$, $\mathbf{V}=\mathbf{X}^{\top}$, and inverse temperature $\beta=1/\sqrt{d}$ is \emph{exactly one step} of the retrieval map~\eqref{eq:hopfield-update}. In other words, every attention head is implicitly performing energy minimization on~\eqref{eq:modern-hopfield-energy}, revealing a hidden energy landscape whose minima are the stored memories.
-
-\paragraph{From minimization to sampling.}
-Given a smooth potential $U:\mathbb{R}^d\to\mathbb{R}$ with target density $p(\mathbf{x})\propto\exp(-U(\mathbf{x}))$, the (overdamped) Langevin stochastic differential equation is
+Given a smooth potential $U:\mathbb{R}^d\to\mathbb{R}$ with target density $p(\mathbf{x})\propto\exp(-U(\mathbf{x}))$, the overdamped Langevin SDE is
 \begin{equation}\label{eq:langevin-sde}
     d\mathbf{x}_t = -\nabla U(\mathbf{x}_t)\,dt + \sqrt{2}\,d\mathbf{B}_t,
 \end{equation}
-where $\mathbf{B}_t$ is standard $d$-dimensional Brownian motion. The process~\eqref{eq:langevin-sde} has $p$ as its unique stationary distribution provided two regularity conditions hold~\cite{robertsTweedieExponentialConvergence1996}: \textbf{(R1)}~$\nabla U$ is $L$-Lipschitz, i.e.\ $\|\nabla U(\mathbf{x})-\nabla U(\mathbf{y})\|_2\le L\|\mathbf{x}-\mathbf{y}\|_2$; and \textbf{(R2)}~$U$ is dissipative, i.e.\ $\langle \nabla U(\mathbf{x}),\mathbf{x}\rangle \ge a\|\mathbf{x}\|_2^2 - b$ for constants $a>0$, $b\ge 0$.
-The modern Hopfield energy~\eqref{eq:modern-hopfield-energy} satisfies both: it is $C^{\infty}$ with Lipschitz gradient~(\textbf{R1}), and its quadratic lower bound~\eqref{eq:energy-lower-bound} implies dissipativity~(\textbf{R2}).
-
-In practice, we discretize~\eqref{eq:langevin-sde} with step size $\alpha>0$ to obtain the \emph{unadjusted Langevin algorithm} (ULA)~\cite{robertsTweedieExponentialConvergence1996}:
+where $\mathbf{B}_t$ is standard $d$-dimensional Brownian motion. This process has $p$ as its unique stationary distribution provided \textbf{(R1)}~$\nabla U$ is Lipschitz and \textbf{(R2)}~$U$ is dissipative, i.e.\ $\langle \nabla U(\mathbf{x}),\mathbf{x}\rangle \ge a\|\mathbf{x}\|_2^2 - b$ for $a>0$, $b\ge 0$~\cite{robertsTweedieExponentialConvergence1996}. The modern Hopfield energy satisfies both conditions. Discretizing~\eqref{eq:langevin-sde} with step size $\alpha>0$ gives the \emph{unadjusted Langevin algorithm} (ULA):
 \begin{equation}\label{eq:ula}
     \mathbf{x}_{t+1}
     = \mathbf{x}_t - \alpha\,\nabla U(\mathbf{x}_t) + \sqrt{2\alpha}\;\boldsymbol{\epsilon}_t,
     \quad \boldsymbol{\epsilon}_t\sim\mathcal{N}(\mathbf{0},\mathbf{I}).
 \end{equation}
-The noise scale $\sqrt{2\alpha}$ maintains the \emph{fluctuation-dissipation relation} so that, in the limit $\alpha\to 0$, iterates sample exactly from $p$~\cite{wellingBayesianLearningStochastic2011}. For finite $\alpha$ the stationary distribution is biased, but the bias vanishes as $\alpha\to 0$ and can be bounded when $U$ is smooth and strongly convex outside a ball~\cite{durmusNonasymptoticAnalysisUnadjusted2017}. Introducing an inverse temperature $\beta>0$ via $U=\beta E$ yields a Boltzmann target $p_\beta\propto\exp(-\beta E)$; the temperature $1/\beta$ controls the trade-off between exploitation (retrieval) and exploration (generation). Section~4 makes this connection explicit.
+The noise scale $\sqrt{2\alpha}$ maintains the fluctuation-dissipation relation; for finite $\alpha$ the stationary distribution is biased, but the bias vanishes as $\alpha\to 0$~\cite{durmusNonasymptoticAnalysisUnadjusted2017}. Setting $U=\beta E$ yields a Boltzmann target $p_\beta\propto\exp(-\beta E)$ where the temperature $1/\beta$ controls the trade-off between retrieval and generation.
