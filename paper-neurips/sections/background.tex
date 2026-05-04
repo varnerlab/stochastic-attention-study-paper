@@ -1,0 +1,49 @@
+% background.tex -- Background / Preliminaries
+
+We build on three ideas whose intersection has not been explored: attention as a computational primitive, its reinterpretation as energy minimization, and Langevin dynamics as the tool that converts any energy landscape into a sampler. The transformer~\cite{vaswaniAttentionAllYou2017} computes attention via queries $\mathbf{Q}$, keys $\mathbf{K}$, and values $\mathbf{V}$:
+\begin{equation}\label{eq:sdp-attention}
+    \mathrm{Attention}(\mathbf{Q},\mathbf{K},\mathbf{V})
+    = \operatorname{softmax}\!\left(\frac{\mathbf{Q}\mathbf{K}^{\top}}{\sqrt{d}}\right)\mathbf{V},
+\end{equation}
+where $d$ is the key dimension and the softmax is applied row-wise. Each output row is a convex combination of value vectors, with weights determined by query-key similarity. This operation is \emph{deterministic}: given the same query, it always returns the same weighted average. The deterministic input-output map is exactly what limits attention to retrieval; introducing stochasticity in a principled way requires identifying the energy landscape that attention is implicitly descending so that calibrated noise can be added to the gradient. We first identify that landscape, then convert it into a sampler.
+
+The classical Hopfield network~\cite{hopfieldNeuralNetworksPhysical1982} stores $K$ binary patterns $\mathbf{m}_1,\dots,\mathbf{m}_K\in\{-1,+1\}^d$ via the quadratic energy
+\begin{equation}\label{eq:classical-hopfield}
+    E_{\mathrm{classical}}(\mathbf{s})
+    = -\tfrac{1}{2}\,\mathbf{s}^{\top}\mathbf{W}\mathbf{s}
+      - \mathbf{b}^{\top}\mathbf{s},
+    \qquad
+    \mathbf{W} = \frac{1}{d}\sum_{i=1}^{K}\mathbf{m}_i\mathbf{m}_i^{\top},
+\end{equation}
+where $\mathbf{b}\in\mathbb{R}^d$ is an external bias (typically zero). Retrieval proceeds by coordinate-wise sign updates that descend $E_{\mathrm{classical}}$, but the storage capacity scales only as $\mathcal{O}(d)$~\cite{amitStoringInfiniteNumbers1985}. \textit{Modern} Hopfield networks~\cite{ramsauerHopfieldNetworksAll2021} overcome this bottleneck by replacing the quadratic energy with a log-sum-exp form. Let $\mathbf{X}=[\mathbf{m}_1,\dots,\mathbf{m}_K]\in\mathbb{R}^{d\times K}$ be the memory matrix, $\beta>0$ an inverse temperature, and $M:=\max_i\|\mathbf{m}_i\|_2$. The energy is
+\begin{equation}\label{eq:modern-hopfield-energy}
+    E(\boldsymbol{\xi})
+    = -\operatorname{lse}_\beta\!\bigl(\mathbf{X}^{\top}\boldsymbol{\xi}\bigr)
+      + \tfrac{1}{2}\|\boldsymbol{\xi}\|_2^2
+      + \tfrac{1}{\beta}\log K
+      + \tfrac{1}{2}M^2,
+\end{equation}
+where $\operatorname{lse}_\beta(\mathbf{z}):=\beta^{-1}\log\bigl(\sum_{i=1}^{K}e^{\beta z_i}\bigr)$. The retrieval map is
+\begin{equation}\label{eq:hopfield-update}
+    \mathbf{T}(\boldsymbol{\xi})
+    := \mathbf{X}\,\operatorname{softmax}\!\bigl(\beta\,\mathbf{X}^{\top}\boldsymbol{\xi}\bigr),
+\end{equation}
+and $\nabla E(\boldsymbol{\xi})=\boldsymbol{\xi}-\mathbf{T}(\boldsymbol{\xi})$~\cite{ramsauerHopfieldNetworksAll2021}, so the deterministic iteration $\boldsymbol{\xi}^{t+1}=\mathbf{T}(\boldsymbol{\xi}^t)$ is gradient descent on $E$ with unit step size. Ramsauer et al.~\cite{ramsauerHopfieldNetworksAll2021} observed that single-head attention~\eqref{eq:sdp-attention} with $\mathbf{Q}=\boldsymbol{\xi}^{\top}$, $\mathbf{K}=\mathbf{V}=\mathbf{X}^{\top}$, and $\beta=1/\sqrt{d}$ is \emph{exactly one step} of~\eqref{eq:hopfield-update}: every attention head implicitly minimizes~\eqref{eq:modern-hopfield-energy}.
+
+Two properties of this energy are essential and together unlock Langevin sampling. First, $E$ is $C^{\infty}$ with Lipschitz gradient, so standard convergence theory for the unadjusted Langevin algorithm applies and the discretization bias is bounded by an $O(\alpha)$ term controllable through the step size. Second, $E$ is \emph{confining}:
+\begin{equation}\label{eq:energy-lower-bound}
+    E(\boldsymbol{\xi}) \;\ge\; \tfrac{1}{2}\bigl(\|\boldsymbol{\xi}\|_2 - M\bigr)^2 \;\ge\; 0,
+\end{equation}
+so $E$ grows at least quadratically as $\|\boldsymbol{\xi}\|_{2}\to\infty$ and iterates cannot escape; the corresponding Boltzmann measure $p_\beta\propto\exp(-\beta E)$ has finite normalization and concentrates near the convex hull of the stored patterns. These two properties together place the Hopfield energy squarely in the regime where well-developed sampling theory delivers convergence guarantees, in contrast to generic energy-based models whose energies are learned and may violate either condition.
+
+Given a smooth potential $U:\mathbb{R}^d\to\mathbb{R}$ with target density $p(\mathbf{x})\propto\exp(-U(\mathbf{x}))$, the overdamped Langevin SDE is
+\begin{equation}\label{eq:langevin-sde}
+    d\mathbf{x}_t = -\nabla U(\mathbf{x}_t)\,dt + \sqrt{2}\,d\mathbf{B}_t,
+\end{equation}
+where $\mathbf{B}_t$ is standard $d$-dimensional Brownian motion. This process has $p$ as its unique stationary distribution provided \textbf{(R1)}~$\nabla U$ is Lipschitz and \textbf{(R2)}~$U$ is dissipative, i.e.\ $\langle \nabla U(\mathbf{x}),\mathbf{x}\rangle \ge a\|\mathbf{x}\|_2^2 - b$ for $a>0$, $b\ge 0$~\cite{robertsTweedieExponentialConvergence1996}. The modern Hopfield energy satisfies both conditions. Discretizing~\eqref{eq:langevin-sde} with step size $\alpha>0$ gives the \emph{unadjusted Langevin algorithm} (ULA):
+\begin{equation}\label{eq:ula}
+    \mathbf{x}_{t+1}
+    = \mathbf{x}_t - \alpha\,\nabla U(\mathbf{x}_t) + \sqrt{2\alpha}\;\boldsymbol{\epsilon}_t,
+    \quad \boldsymbol{\epsilon}_t\sim\mathcal{N}(\mathbf{0},\mathbf{I}).
+\end{equation}
+The noise scale $\sqrt{2\alpha}$ maintains the fluctuation-dissipation relation; for finite $\alpha$ the stationary distribution is biased, but the bias vanishes as $\alpha\to 0$~\cite{durmusNonasymptoticAnalysisUnadjusted2017}. Setting $U=\beta E$ yields a Boltzmann target $p_\beta\propto\exp(-\beta E)$ where the temperature $1/\beta$ controls the trade-off between retrieval and generation.
