@@ -33,7 +33,9 @@
       "WebFetch(domain:www.ebi.ac.uk)",
       "WebFetch(domain:pfam.xfam.org)",
       "WebFetch(domain:academic.oup.com)",
-      "Skill(review-abstract)"
+      "Skill(review-abstract)",
+      "Skill(style-check)",
+      "Skill(audit-magic-numbers)"
     ]
   }
 }

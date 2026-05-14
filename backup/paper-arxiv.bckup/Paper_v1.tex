@@ -1,0 +1,139 @@
+\documentclass{article}
+
+% Pass numbered, compressed citations to natbib
+\PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2026
+
+% The authors should use one of these tracks.
+% Before accepting by the NeurIPS conference, select one of the options below.
+% 0. "default" for submission
+%  \usepackage{neurips_2026}
+\usepackage[preprint]{neurips_2026}
+% the "default" option is equal to the "main" option, which is used for the Main Track with double-blind reviewing.
+% 1. "main" option is used for the Main Track
+%  \usepackage[main]{neurips_2026}
+% 2. "position" option is used for the Position Paper Track
+%  \usepackage[position]{neurips_2026}
+% 3. "dandb" option is used for the Datasets & Benchmarks Track
+ % \usepackage[dandb]{neurips_2026}
+% 4. "creativeai" option is used for the Creative AI Track
+%  \usepackage[creativeai]{neurips_2026}
+% 5. "sglblindworkshop" option is used for the Workshop with single-blind reviewing
+ % \usepackage[sglblindworkshop]{neurips_2026}
+% 6. "dblblindworkshop" option is used for the Workshop with double-blind reviewing
+%  \usepackage[dblblindworkshop]{neurips_2026}
+
+% After being accepted, the authors should add "final" behind the track to compile a camera-ready version.
+% 1. Main Track
+ % \usepackage[main, final]{neurips_2026}
+% 2. Position Paper Track
+%  \usepackage[position, final]{neurips_2026}
+% 3. Datasets & Benchmarks Track
+ % \usepackage[dandb, final]{neurips_2026}
+% 4. Creative AI Track
+%  \usepackage[creativeai, final]{neurips_2026}
+% 5. Workshop with single-blind reviewing
+%  \usepackage[sglblindworkshop, final]{neurips_2026}
+% 6. Workshop with double-blind reviewing
+%  \usepackage[dblblindworkshop, final]{neurips_2026}
+% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote.
+% For workshops (5., 6.), the authors should add the name of the workshop, "\workshoptitle" command is used to set the workshop title.
+% \workshoptitle{WORKSHOP TITLE}
+
+% "preprint" option is used for arXiv or other preprint submissions
+ % \usepackage[preprint]{neurips_2026}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2026}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage[colorlinks=true,linkcolor={blue!70!black},citecolor={blue!70!black},urlcolor={blue!70!black},hypertexnames=false]{hyperref}
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{graphicx}       % includegraphics
+\usepackage{subcaption}     % subfigures with (a), (b) labels
+\usepackage{amsmath,amssymb,amsthm} % math
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\setcounter{topnumber}{1}        % at most 1 float at the top of each page
+\setcounter{bottomnumber}{1}     % at most 1 float at the bottom of each page
+\renewcommand{\topfraction}{0.5}  % a top float may occupy at most 50% of the page
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
+\title{Stochastic Attention via Langevin Dynamics on the Modern Hopfield Energy\thanks{Repository: \url{https://github.com/varnerlab/stochastic-attention-study-paper.git}.}}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+  Abdulrahman Alswaidan and Jeffrey D. Varner \\
+  R.F. Smith School of Chemical and Biomolecular Engineering\\
+  Cornell University, Ithaca, NY 14850 \\
+  \texttt{\{aa2725, jdv27\}@cornell.edu} \\
+}
+
+
+\begin{document}
+
+\maketitle
+
+% \begin{abstract}
+% Attention heads retrieve: given a query, they return a softmax-weighted average of stored values. We showed that this computation is one step of gradient descent on a classical energy function, and that Langevin sampling from the corresponding Boltzmann distribution yielded \emph{stochastic attention}, a training-free sampler controlled by a single temperature. Lowering the temperature gave exact retrieval; raising it gave open-ended generation. Because the energy gradient equals the attention map, no score network, training loop, or learned model was required, making the method especially suited to the low-data regime in which learned generative models are starved of training signal. We derived a closed-form entropy inflection condition that identifies the retrieval-to-generation transition temperature for any memory geometry, with a $\beta^{*}\!\sim\!\sqrt{d}$ scaling law for random patterns that yielded a dimension-dependent signal-to-noise criterion for temperature selection. We validated the sampler on five domains spanning two orders of magnitude in dimension, including MNIST digit images, protein sequences from the Pfam RRM family, S\&P~500 daily returns, and high-resolution face images. On every domain the sampler produced substantially more novel and more diverse outputs than a variational autoencoder trained on the same memories, while matching a Metropolis-corrected gold standard at the operating step size. A denoising diffusion baseline failed across the full range of memory sizes tested, producing samples indistinguishable from isotropic noise. The protein result was the clearest demonstration of the structural advantage: in the generation regime the sampler preserved position-specific conservation patterns and pairwise co-evolutionary couplings that the learned baseline lost, despite generating sequences as novel as the baseline's. The approach requires no architectural changes to the underlying attention mechanism and converts any pretrained attention head into a sampler at no additional training cost.
+% \end{abstract}
+
+\begin{abstract}
+  Attention heads retrieve: given a query, they return a weighted average of stored values. We show that this computation is one step of gradient descent on the modern Hopfield energy, and that Langevin sampling from the corresponding Boltzmann distribution yields \emph{stochastic attention}: a training-free sampler controlled by a single temperature parameter. Lowering the temperature gives exact retrieval; raising it gives open-ended generation. Because the energy gradient equals the attention map, no score network, training loop, or learned model is required, making the method especially suited to the low-data regime where learned generative models are starved of training signal. We derive an entropy inflection condition that identifies the retrieval-to-generation transition temperature for any memory geometry and validate on five domains spanning two orders of magnitude in dimension. On MNIST digit images, stochastic attention produces samples that are more than twice as novel and twice as diverse as the best learned baseline while matching a Metropolis-corrected standard. On protein sequences from a small Pfam family, the generation regime achieves nearly seven-fold lower amino acid composition divergence than a variational autoencoder at matched novelty, demonstrating that the training-free score function preserves family-level fidelity that learned models lose. A denoising diffusion baseline fails across all memory sizes tested, producing samples indistinguishable from isotropic noise. The approach requires no architectural changes to the underlying attention mechanism.
+\end{abstract}
+
+
+\section{Introduction}
+\input{sections/introduction.tex}
+
+\section{Related Work}
+\input{sections/relatedwork.tex}
+
+\section{Background}
+\input{sections/background.tex}
+
+\section{Method}
+\input{sections/method.tex}
+
+\section{Experiments}
+\input{sections/experiments.tex}
+
+\section{Discussion and Conclusion}
+\input{sections/discussion.tex}
+
+\section*{Acknowledgments}
+This work grew out of the CHEME-5820 Machine Learning and Artificial Intelligence Methods for Engineers course at Cornell University; the central idea arose while preparing a lecture on Boltzmann machines immediately after covering modern Hopfield networks. Financial market data used in Appendix~\ref{app:finance} were obtained from Polygon.io.
+
+\bibliographystyle{unsrtnat}
+\bibliography{References_v1}
+
+\newpage
+\appendix
+\input{sections/appendix.tex}
+
+\end{document}
