@@ -32,7 +32,8 @@
       "WebFetch(domain:www.researchgate.net)",
       "WebFetch(domain:www.ebi.ac.uk)",
       "WebFetch(domain:pfam.xfam.org)",
-      "WebFetch(domain:academic.oup.com)"
+      "WebFetch(domain:academic.oup.com)",
+      "Skill(review-abstract)"
     ]
   }
 }
