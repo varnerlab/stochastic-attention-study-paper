@@ -86,7 +86,7 @@ Since $\mathrm{Var}_{\mathbf{p}}(e)\ge 0$, entropy decreases monotonically. The 
 \begin{equation}\label{eq:inflection}
 \mathrm{Var}_{\mathbf{p}}(e)\big|_{\beta^{*}} \;=\; -\beta^{*}\;\mu_{3}\big|_{\beta^{*}},
 \end{equation}
-where $\mu_3 = \langle(e - \langle e\rangle_{\mathbf{p}})^3\rangle_{\mathbf{p}}$ is the third central moment. This inflection marks the retrieval--generation phase boundary: below $\beta^{*}$, attention remains diffuse (generation); above it, attention concentrates on individual memories (retrieval).
+where $\mu_3 = \langle(e - \langle e\rangle_{\mathbf{p}})^3\rangle_{\mathbf{p}}$ is the third central moment. This inflection marks the retrieval-to-generation phase boundary: below $\beta^{*}$, attention remains diffuse (generation); above it, attention concentrates on individual memories (retrieval).
 
 For random memories on $\mathbb{S}^{d-1}$, the similarities $e_k$ have $\mathrm{Var}(e_k)=1/d$, so the softmax logits have standard deviation $\beta/\sqrt{d}$; the transition occurs when this reaches order unity, giving $\beta^{*}\sim\sqrt{d}$. Substituting into the per-step signal-to-noise ratio (Eq.~\ref{eq:snr}) yields
 \begin{equation}\label{eq:snr-star}
