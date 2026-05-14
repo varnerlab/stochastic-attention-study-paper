@@ -1,23 +1,5 @@
 % discussion.tex -- Discussion and Conclusion (merged to save space)
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.21\textwidth]{figs/Fig_mnist_pairs_warmstart.png}%
-\hspace{0.02\textwidth}%
-\includegraphics[width=0.21\textwidth]{figs/Fig_mnist_pairs_sa.png}%
-\hspace{0.02\textwidth}%
-\includegraphics[width=0.21\textwidth]{figs/Fig_mnist_pairs_mala.png}
-
-\small
-\makebox[0.21\textwidth]{\centering (a) Warm-start (stored ``3'')}%
-\hspace{0.02\textwidth}%
-\makebox[0.21\textwidth]{\centering (b) SA endpoint}%
-\hspace{0.02\textwidth}%
-\makebox[0.21\textwidth]{\centering (c) MALA endpoint}
-\caption{Paired before/after grids on MNIST digit ``3'' at $\beta{=}2000$. \textbf{Each cell is one independent chain; cell $(i,j)$ in panels (a, b, c) all share the same warm-start and the same seed.} Compare cell-by-cell \emph{across} panels, not within a row. (a) Stored ``3'' used as the warm-start. (b) SA chain endpoint after $T{=}5{,}000$ Langevin steps from that warm-start; digit identity is preserved while the textured background is the diffusive perturbation producing novelty (cf.\ Table~\ref{tab:mnist-baselines}). (c) MALA endpoint from the same warm-start and seed; visually identical to (b), so the Metropolis correction is unnecessary at $\alpha{=}0.01$. Bootstrap/Gaussian/Convex have no warm-start interpretation; see Table~\ref{tab:mnist-baselines} for numerical comparison.}
-\label{fig:mnist-baselines}
-\end{figure}
-
 The experiments validated the core claim: Langevin dynamics on the modern Hopfield energy converts deterministic attention into a principled stochastic sampler governed by a single temperature parameter. The synthetic experiments confirmed a smooth phase transition between retrieval and generation (Fig.~\ref{fig:experiments}a), convergence to the correct Boltzmann target (Fig.~\ref{fig:experiments}b), and graceful degradation with load ratio (Fig.~\ref{fig:phase-diagram}). The strongest result came from protein sequences (Table~\ref{tab:protein-main}), where the training-free score function preserved family-level fidelity at position-specific and co-evolutionary levels that the VAE could not maintain from $K{=}68$ examples. On MNIST, SA led the best learned baseline by $2.6{\times}$ on novelty and $2.0{\times}$ on diversity, while DDPM failed across all memory sizes tested (Table~\ref{tab:mnist-baselines}). The entropy inflection (Proposition~\ref{prop:entropy-derivative}) located the retrieval-to-generation boundary from data alone, correctly predicting $\beta^*{=}3.85$ on RRM (Fig.~\ref{fig:protein-entropy}), and the masking extension lifted SA to $96.0\%$ subject-conditional accuracy on Olivetti from a $10.4\%$ unconditional baseline (Table~\ref{tab:olivetti-recovery}).
 
 A deliberate choice shapes our experimental design: we evaluate at memory sizes $K$ from 68 to 3{,}500, the low-to-moderate data regime where learned generative models are most constrained, matching most real low-data domains. Score-based and diffusion models need enough data to learn an accurate score function, ill-posed at small $K$ as DDPM's failure illustrates; stochastic attention sidesteps this because $\nabla\log p_\beta = \beta(\mathbf{T}-\boldsymbol{\xi})$ is exact for any $K$, reusing standard attention primitives with no score network or training loop. The Hopfield energy gives convex-regime convergence (Corollary~\ref{cor:convergence}) and geometric ergodicity for all $\beta>0$. The same score function extends to soft-bias conditioning ($b_{k}\in\mathbb{R}$), recovering the multiplicity-weight conditioning of Varner~\cite{varnerConditioningProtein2026}; concurrent work covers eight Pfam families~\cite{varnerTrainingFreeProtein2026} and synthetic patient generation~\cite{varnerSyntheticPatient2026}, with integration into pretrained multi-head attention left to future work (Appendix~\ref{app:multihead}).
