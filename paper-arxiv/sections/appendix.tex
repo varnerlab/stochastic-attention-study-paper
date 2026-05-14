@@ -135,7 +135,6 @@ Algorithm~\ref{alg:stochastic-attention} uses the Unadjusted Langevin Algorithm 
 
 Compared with Algorithm~\ref{alg:stochastic-attention}, MALA replaces the single-line state update (line~4) with a propose-then-correct cycle (lines~2--13). The additional cost per step is one extra attention evaluation (line~6) and one energy evaluation (line~8), doubling the per-iteration $\mathcal{O}(dK)$ cost. In the limit $\alpha\to 0$ both algorithms coincide; at moderate $\alpha$ the accept/reject step removes $O(\alpha)$ discretization bias.
 
-\paragraph{What line~8 computes and why.}
 The ULA update in Algorithm~\ref{alg:stochastic-attention} draws each new state from a Gaussian proposal centered on the Langevin mean $\boldsymbol{\mu}_t$:
 \begin{equation}\label{eq:mala-forward}
 q(\boldsymbol{\xi}^{\star}\mid\boldsymbol{\xi}_t)
@@ -173,19 +172,13 @@ Summing the two contributions gives the expression on line~8:
 \end{equation}
 Term~(i) is the standard Boltzmann factor: it favors moves to lower energy (as in simulated annealing). Term~(ii) corrects for the asymmetry of the Langevin proposal: $\lVert\boldsymbol{\xi}^{\star}-\boldsymbol{\mu}_t\rVert^2$ measures how far the candidate is from the forward proposal mean, while $\lVert\boldsymbol{\xi}_t-\boldsymbol{\mu}^{\star}\rVert^2$ measures how far the current state is from the reverse proposal mean. If the proposal were symmetric (as it would be for a random walk with no gradient), these two norms would cancel and only the energy term would remain. With the Langevin gradient drift they differ, and term~(ii) accounts for the resulting bias.
 
-\paragraph{The accept/reject decision (lines~9--13).}
-Given $\log r$, the chain draws $u\sim\mathrm{Uniform}(0,1)$ and accepts the candidate $\boldsymbol{\xi}^{\star}$ if $\log u < \min(0,\log r)$, i.e.\ if $u < \min(1,r)$. There are two cases:
-\begin{itemize}
-\item \emph{$r\ge 1$ (always accept):} The candidate is favored by both the target and the proposal correction. The move is accepted with probability~1.
-\item \emph{$r<1$ (accept with probability $r$):} The candidate is disfavored on net. It is accepted with probability $r$ and rejected with probability $1{-}r$, in which case the chain stays at $\boldsymbol{\xi}_t$.
-\end{itemize}
-This stochastic accept/reject step restores detailed balance \emph{exactly}, regardless of the step size $\alpha$. The trade-off is efficiency: when $\alpha$ is too large the proposal overshoots, $r$ is frequently small, and most candidates are rejected, so the chain moves slowly. When $\alpha$ is small the proposal is accurate, $r\approx 1$ almost always, and MALA reduces to ULA. The acceptance rate therefore serves as a built-in diagnostic: high acceptance ($\gtrsim$90\%) means the discretization bias is small and ULA suffices; low acceptance means the Metropolis correction is actively preventing the chain from drifting to the wrong distribution.\\
+Given $\log r$, the chain draws $u\sim\mathrm{Uniform}(0,1)$ and accepts the candidate $\boldsymbol{\xi}^{\star}$ if $\log u < \min(0,\log r)$, i.e.\ if $u < \min(1,r)$. The two cases collapse to a single rule: when $r\ge 1$ the candidate is favored by both the target and the proposal correction, so the move is accepted with probability~1; when $r<1$ the candidate is disfavored on net, so it is accepted with probability $r$ and rejected with probability $1{-}r$, in which case the chain stays at $\boldsymbol{\xi}_t$. This stochastic accept/reject step restores detailed balance \emph{exactly}, regardless of the step size $\alpha$. The trade-off is efficiency: when $\alpha$ is too large the proposal overshoots, $r$ is frequently small, and most candidates are rejected, so the chain moves slowly. When $\alpha$ is small the proposal is accurate, $r\approx 1$ almost always, and MALA reduces to ULA. The acceptance rate therefore serves as a built-in diagnostic: high acceptance ($\gtrsim$90\%) means the discretization bias is small and ULA suffices; low acceptance means the Metropolis correction is actively preventing the chain from drifting to the wrong distribution.
 
-\noindent\textbf{When is the correction useful?}  At the operating point of our MNIST experiment ($\alpha{=}0.01$, $d{=}784$, $\beta{=}2000$) the acceptance rate is 99.2\%, so the correction is a near no-op. However, if the step size is increased to accelerate mixing (e.g., $\alpha{=}0.1$ or larger), the ULA bias grows as $O(\alpha)$ and the stationary distribution shifts away from the true target. In this regime MALA remains unbiased (albeit with a lower acceptance rate), making it the preferred choice. Practitioners should therefore monitor the acceptance rate: values above $\sim$90\% indicate that ULA suffices, while lower rates signal that the Metropolis correction is earning its keep.
+The correction earns its keep at larger step sizes: at the operating point of our MNIST experiment ($\alpha{=}0.01$, $d{=}784$, $\beta{=}2000$) the acceptance rate is 99.2\%, so the correction is a near no-op, but if the step size is increased to accelerate mixing (e.g., $\alpha{=}0.1$ or larger), the ULA bias grows as $O(\alpha)$ and the stationary distribution shifts away from the true target. In this regime MALA remains unbiased (albeit with a lower acceptance rate), making it the preferred choice; practitioners should therefore monitor the acceptance rate, treating values above $\sim$90\% as a signal that ULA suffices while lower rates signal that the Metropolis correction is doing real work.
 
 \section{Load-Ratio Phase Diagram}\label{app:phase-diagram}
 
-Figure~\ref{fig:phase-diagram} shows the full phase diagram of attention concentration $C = 1 - H(\mathbf{a})/\log K$ over load ratio $K/d$ and inverse temperature~$\beta$, as described in the main text.
+The synthetic experiments of the main text characterized the retrieval-to-generation transition along the temperature axis at fixed load. We complemented that view with a two-dimensional phase diagram over the joint $(K/d, \beta)$ plane, swept over $K/d \in [0.05, 2.0]$ and $\beta \in [0.5, 100]$ at $d{=}64$, with each cell averaging over five independent datasets drawn uniformly from $\mathbb{S}^{d-1}$. The full phase diagram of attention concentration $C = 1 - H(\mathbf{a})/\log K$ is in Fig.~\ref{fig:phase-diagram}: the dashed $C=0.5$ contour separated a retrieval regime in the upper-left (high $\beta$, low $K/d$, attention concentrated on a single memory) from a diffuse regime in the lower-right (low $\beta$ or high $K/d$, attention spread across many memories). The boundary shifted rightward as $\beta$ increased, consistent with the classical Hopfield capacity scaling: at higher temperatures the sampler can accommodate more stored patterns before attention loses its retrieval-like sharpness, and the empirical contour qualitatively tracked the $\beta\sigma_{\max}^{2}{=}2$ convexity boundary identified in the main text.
 
 \begin{figure}[t]
 \centering
@@ -196,7 +189,7 @@ Figure~\ref{fig:phase-diagram} shows the full phase diagram of attention concent
 
 \section{Multi-Digit MNIST Generalization}\label{app:multidigit}
 
-To verify that the results reported for digit ``3'' in the main text are not specific to a single morphological class, we repeated the identical multi-chain protocol (30~chains, $T{=}5{,}000$, burn-in~$2{,}000$, thin every 100 then sub-sample 5, $\beta{=}2000$, $\alpha{=}0.01$, $K{=}100$ stored patterns per digit) on two additional MNIST digits chosen for their distinct morphological properties: digit ``1'' (simple stroke, near-degenerate orientation) and digit ``8'' (complex topology with two enclosed loops and high intra-class variance). All seven baselines (including the VAE) and the MALA variant were run with the identical protocol; results appear in Tables~\ref{tab:mnist-digit1} and~\ref{tab:mnist-digit8}.
+To verify that the results reported for digit ``3'' in the main text were not specific to a single morphological class, we repeated the identical multi-chain protocol (30~chains, $T{=}5{,}000$, burn-in~$2{,}000$, thin every 100 then sub-sample 5, $\beta{=}2000$, $\alpha{=}0.01$, $K{=}100$ stored patterns per digit) on two additional MNIST digits chosen for their distinct morphological properties: digit ``1'' (simple stroke, near-degenerate orientation) and digit ``8'' (complex topology with two enclosed loops and high intra-class variance). All seven baselines (including the VAE) and the MALA variant were run with the identical protocol, with results in Tables~\ref{tab:mnist-digit1} and~\ref{tab:mnist-digit8}. The two digits stress different aspects of the Hopfield energy: digit ``1'' produces a near-rank-deficient memory matrix where most variation is captured by orientation, while digit ``8'' produces a high-rank, multimodal memory where the two loops can fail independently. If the SA results were an artifact of digit ``3'' specifically, we would expect divergent behavior here.
 
 \begin{table}[h]
 \centering
@@ -238,9 +231,7 @@ MALA                        & $0.151 \pm 0.001$ & $0.554 \pm 0.002$ & $-0.305 \p
 \end{tabular}
 \end{table}
 
-Across all three digit classes, the stochastic attention sampler and MALA produced practically indistinguishable metrics, both dominating every baseline on diversity simultaneously. The VAE (latent dim 8) was the strongest non-Langevin baseline on novelty ($0.180$--$0.209$ vs.\ $0.130$--$0.194$ for GMM-PCA), but both learned models were far below the Langevin methods on diversity ($0.397$--$0.408$ for VAE vs.\ $0.557$--$0.600$ for SA), confirming that a static learned density cannot match the ergodic coverage of Langevin dynamics. The MALA acceptance rate was 99.2\% for all digits, confirming that ULA discretization bias remains negligible regardless of digit morphology.
-
-Figures~\ref{fig:mnist-digit1-grids} and~\ref{fig:mnist-digit8-grids} show representative $4{\times}4$ sample grids for each method. The qualitative pattern was the same as for digit ``3'': bootstrap outputs were exact stored copies, Gaussian perturbation was visually indistinguishable from bootstrap, random convex combinations produced uniform blurry averages, and both Langevin methods generated diverse, structured digits.
+Across all three digit classes, the stochastic attention sampler and MALA produced practically indistinguishable metrics, both dominating every baseline on diversity simultaneously. The VAE (latent dim 8) was the strongest non-Langevin baseline on novelty ($0.180$--$0.209$ vs.\ $0.130$--$0.194$ for GMM-PCA), but both learned models were far below the Langevin methods on diversity ($0.397$--$0.408$ for VAE vs.\ $0.557$--$0.600$ for SA), confirming that a static learned density cannot match the ergodic coverage of Langevin dynamics. The MALA acceptance rate was $99.2\%$ for all digits, confirming that ULA discretization bias remains negligible regardless of digit morphology. Representative $4{\times}4$ sample grids for each method (Figs.~\ref{fig:mnist-digit1-grids},~\ref{fig:mnist-digit8-grids}) showed the same qualitative pattern as digit ``3'': bootstrap outputs were exact stored copies, Gaussian perturbation was visually indistinguishable from bootstrap, random convex combinations produced uniform blurry averages, and both Langevin methods generated diverse, structured digits.
 
 \begin{figure}[h]
 \centering
@@ -294,10 +285,8 @@ Figures~\ref{fig:mnist-digit1-grids} and~\ref{fig:mnist-digit8-grids} show repre
 \label{fig:mnist-digit8-grids}
 \end{figure}
 
-\paragraph{Temperature spectrum on digit ``8.''}
 The baseline comparison above fixes $\beta{=}2000$, which places the sampler deep in the retrieval regime: each chain stays near its seed pattern and the ``generation'' is local variation within a single energy basin.
-To show the full retrieval-generation trade-off on real images, Figure~\ref{fig:temp-spectrum-digit8} displays $4{\times}4$ SA grids at four inverse temperatures alongside 16 stored patterns for reference.
-Table~\ref{tab:temp-spectrum-digit8} reports the corresponding metrics.
+To show the full retrieval-to-generation trade-off on real images, we displayed $4{\times}4$ SA grids at four inverse temperatures alongside 16 stored patterns for reference, and computed the corresponding metrics (Fig.~\ref{fig:temp-spectrum-digit8}, Table~\ref{tab:temp-spectrum-digit8}).
 
 \begin{table}[h]
 \centering
@@ -350,13 +339,15 @@ This illustrates the fundamental retrieval-generation trade-off: no single $\bet
 
 \section{Single-Chain Diversity Analysis}\label{app:single-chain}
 
-Table~\ref{tab:mnist-baselines} uses 30 independent chains each initialized near a different stored pattern; the reported diversity of $0.600$ includes both \emph{initialization diversity} (spread from 30 distinct seeds) and \emph{within-chain mixing} (sampling from a fixed starting point). To quantify these contributions separately, we ran one chain from a fixed initialization (stored pattern~1 plus $\sigma_{\mathrm{init}}{=}0.01$ Gaussian noise, seed fixed) for $T{=}50{,}000$ steps (burn-in $10{,}000$, thin every~100, yielding 400 samples) at $\beta\in\{2000,\,200,\,50\}$ ($\mathrm{SNR}\in\{0.113,\,0.036,\,0.018\}$) on digit~``3''.
+The main-text MNIST baseline (Table~\ref{tab:mnist-baselines}) used 30 independent chains each initialized near a different stored pattern; the reported diversity of $0.600$ included both \emph{initialization diversity} (spread from 30 distinct seeds) and \emph{within-chain mixing} (sampling from a fixed starting point). To quantify these contributions separately (Table~\ref{tab:single-chain}, Figure~\ref{fig:generation-regimes}), we ran one chain from a fixed initialization (stored pattern~1 plus $\sigma_{\mathrm{init}}{=}0.01$ Gaussian noise, seed fixed) for $T{=}50{,}000$ steps (burn-in $10{,}000$, thin every~100, yielding 400 samples) at $\beta\in\{2000,\,200,\,50\}$ ($\mathrm{SNR}\in\{0.113,\,0.036,\,0.018\}$) on digit~``3''.
 
 \begin{table}[h]
 \centering
 \caption{Single-chain vs.\ multi-chain diversity on digit ``3'' ($K{=}100$, $d{=}784$, $\alpha{=}0.01$). $\mathrm{SNR}=\sqrt{\alpha\beta/2d}$. The multi-chain row reproduces the SA entry from Table~\ref{tab:mnist-baselines}. The diversity gap of $0.318$ at $\mathrm{SNR}{=}0.113$ is the initialization contribution; single-chain diversity exceeds the multi-chain value once SNR falls toward the entropy inflection point (Proposition~\ref{prop:entropy-derivative}).}
 \label{tab:single-chain}
 \small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}llccccc@{}}
 \toprule
 Protocol & $\beta$ & SNR & $\mathcal{N}$ $\uparrow$ & $\bar{\mathcal{D}}$ $\uparrow$ & $\bar{E}$ $\downarrow$ & Max-$\cos$ \\
@@ -366,7 +357,7 @@ Single-chain            & 2000 & 0.113 & $0.153 \pm 0.000$ & $0.282 \pm 0.001$ &
 Single-chain            & 200  & 0.036 & $0.551 \pm 0.001$ & $0.796 \pm 0.002$ & $\phantom{-}1.5\phantom{0} \pm 0.0\phantom{0}$ & $0.449 \pm 0.001$ \\
 Single-chain            & 50   & 0.018 & $0.756 \pm 0.002$ & $0.967 \pm 0.002$ & $\phantom{-}7.4\phantom{0} \pm 0.0\phantom{0}$ & $0.244 \pm 0.002$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \begin{figure}[h]
@@ -394,32 +385,34 @@ Single-chain            & 50   & 0.018 & $0.756 \pm 0.002$ & $0.967 \pm 0.002$ &
 
 At $\beta{=}2000$ the single-chain diversity of $0.282$ is not negligible: the chain samples a genuine distribution within its energy basin rather than collapsing to a point mass. As $\beta$ decreased the energy barriers shrank, chains escaped their initial basins, and single-chain diversity rose sharply, mirroring the temperature-spectrum results of Appendix~\ref{app:multidigit}. At $\beta{=}200$ single-chain diversity ($0.796$) exceeds the multi-chain value at $\beta{=}2000$, and at $\beta{=}50$ it approaches the isotropic limit ($0.967$, mean max-cos $0.244$). The multi-chain protocol at $\beta{=}2000$ is therefore best understood as a \emph{structured retrieval} strategy in which each chain contributes low-energy samples from a distinct basin, while single-chain operation at $\beta{=}200$ provides genuine generative diversity without requiring multiple initializations.
 
-\paragraph{Mixing time.}
-At $\beta{=}2000$ the single chain remained in the basin of its seed pattern for the entire $50{,}000$-step run (${\approx}12$\,s wall-clock on a laptop CPU): the max-cosine to the seed pattern stayed above $0.84$ at every thinned sample, and the chain never visited the basin of any other stored pattern. The \emph{inter-basin} mixing time at this temperature therefore exceeds $50{,}000$ steps, consistent with the exponential-barrier scaling discussed in Section~4. \emph{Intra-basin} mixing, by contrast, is fast: energy and max-cosine stabilize within the $2{,}000$-step burn-in, and consecutive thinned samples (every $100$ steps) have pairwise cosine distance $0.11\pm0.01$, indicating decorrelation within $O(100)$ steps. At $\beta{=}200$ the picture changes: the chain crosses into a different basin within the first ${\approx}5{,}000$ steps and visits multiple basins over the $50{,}000$-step run, yielding the observed single-chain diversity of $0.796$.
+At $\beta{=}2000$ the single chain remained in the basin of its seed pattern for the entire $50{,}000$-step run (${\approx}12$\,s wall-clock on a laptop CPU): the max-cosine to the seed pattern stayed above $0.84$ at every thinned sample, and the chain never visited the basin of any other stored pattern, so the \emph{inter-basin} mixing time at this temperature exceeded $50{,}000$ steps, consistent with the exponential-barrier scaling discussed in the main text. \emph{Intra-basin} mixing, by contrast, was fast: energy and max-cosine stabilized within the $2{,}000$-step burn-in, and consecutive thinned samples (every $100$ steps) had pairwise cosine distance $0.11\pm0.01$, indicating decorrelation within $O(100)$ steps. At $\beta{=}200$ the picture changed: the chain crossed into a different basin within the first ${\approx}5{,}000$ steps and visited multiple basins over the $50{,}000$-step run, yielding the observed single-chain diversity of $0.796$. The basin-crossing behavior is also visible directly in the chain dynamics (Fig.~\ref{fig:trajectories}): one MNIST chain at $\beta{=}50$ on digit~``3'' visited five distinct stored ``3'' basins (stored memories $\#95,\#95,\#100,\#18,\#53,\#96$ at the six snapshots), with the denoise readout snapping to whichever basin the chain currently occupied, and one unconditional Olivetti chain at $\beta_{\mathrm{chain}}{=}200$ initialized in subject~0 visited five different subjects (subject~6 by $T{=}100$, then~7,~4,~6,~8 over the next $3{,}000$ steps); this drift behavior is what produces the $10.4\%$ unconditional subject-recovery rate and motivates the masking mechanism of the main text.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.55\textwidth]{figs/Fig_mnist_trajectory.png}\\[0.4em]
+\includegraphics[width=0.95\textwidth]{figs/Fig_olivetti_trajectory.png}
+
+\small
+\makebox[0.95\textwidth]{\centering $T = 0,\, 1000,\, 5000,\, 10000,\, 25000,\, 50000$\ \ (MNIST, top); $T = 0,\, 100,\, 500,\, 1000,\, 2000,\, 3000$\ \ (Olivetti, bottom)}
+\caption{Chain-trajectory snapshots from a single Langevin chain at successive timesteps; no burn-in. \textbf{Top:} one MNIST chain at $\beta{=}50$ on digit~``3'', warm-started from stored ``3'' \#95; each cell is the denoise readout (one noise-free attention update at $\beta_{\mathrm{read}}{=}2{,}000$) of the chain state at the indicated $T$. The chain visits stored basins $\{95,\,95,\,100,\,18,\,53,\,96\}$ across the six checkpoints, demonstrating inter-basin mixing on the $\sim 5{,}000$-step timescale established above. \textbf{Bottom:} one unconditional Olivetti chain at $\beta_{\mathrm{chain}}{=}200$, warm-started in subject~0; each cell is the denoise readout at $\beta_{\mathrm{read}}{=}10{,}000$. The chain leaves subject~0 by $T{=}100$ and visits subjects $\{6,\,7,\,4,\,6,\,8\}$ at the subsequent checkpoints, illustrating the inter-basin drift the hard mask of the main text suppresses.}
+\label{fig:trajectories}
+\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Protein Sequence Generation}\label{app:protein}
 % ─────────────────────────────────────────────────────────────────────────────
 
-To test stochastic attention on a non-image domain with discrete structure, we applied the full experimental pipeline to protein sequences from the Pfam RRM family (PF00076, RNA Recognition Motif)~\cite{mistryPfamProteinFamilies2021}.
+To test stochastic attention on a non-image domain with discrete structure, we applied the full experimental pipeline to protein sequences from the Pfam RRM family (PF00076, RNA Recognition Motif)~\cite{mistryPfamProteinFamilies2021}. We downloaded the Pfam seed alignment (Stockholm format), removed columns with $>50\%$ gaps and sequences with $>30\%$ gaps, yielding $K{=}68$ aligned sequences of length $L{=}71$ positions over the 20 standard amino acids. Each sequence was one-hot encoded into $\mathbb{R}^{1420}$ ($20\times 71$), projected via PCA retaining 95\% of variance ($1420\to 59$ dimensions), and $\ell_2$-normalized to form the memory matrix $\hat{\mathbf{X}}\in\mathbb{R}^{59\times 68}$. The entropy inflection analysis (Proposition~\ref{prop:entropy-derivative}) yielded $\beta^*\approx 3.85$ ($\mathrm{SNR}^*=0.018$), compared to the theoretical prediction $\beta^*=\sqrt{d}=7.68$ for random unit-norm patterns; the ratio of $0.50$ reflects the structured (non-random) geometry of the protein family, where conserved positions reduce the effective variance of the similarities $e_k$ and shift the transition to lower $\beta$. We set $\beta_{\mathrm{ret}}=20\beta^*\approx 77$ ($\mathrm{SNR}=0.081$) for the structured-retrieval regime and $\beta_{\mathrm{gen}}=2\beta^*\approx 8$ ($\mathrm{SNR}=0.026$, just above the inflection) for the generation regime.
 
-\paragraph{Data and encoding.}
-We downloaded the Pfam seed alignment (Stockholm format), removed columns with $>50\%$ gaps and sequences with $>30\%$ gaps, yielding $K{=}68$ aligned sequences of length $L{=}71$ positions over the 20 standard amino acids. Each sequence was one-hot encoded into $\mathbb{R}^{1420}$ ($20\times 71$), projected via PCA retaining 95\% of variance ($1420\to 59$ dimensions), and $\ell_2$-normalized to form the memory matrix $\hat{\mathbf{X}}\in\mathbb{R}^{59\times 68}$.
-
-\paragraph{Phase transition.}
-The entropy inflection analysis (Proposition~\ref{prop:entropy-derivative}) yielded $\beta^*\approx 3.85$ ($\mathrm{SNR}^*=0.018$), compared to the theoretical prediction $\beta^*=\sqrt{d}=7.68$ for random unit-norm patterns. The ratio of $0.50$ reflects the structured (non-random) geometry of the protein family: conserved positions reduce the effective variance of the similarities $e_k$, shifting the transition to lower $\beta$. We set $\beta_{\mathrm{ret}}=20\beta^*\approx 77$ ($\mathrm{SNR}=0.081$) for the structured-retrieval regime and $\beta_{\mathrm{gen}}=2\beta^*\approx 8$ ($\mathrm{SNR}=0.026$, just above the inflection) for the generation regime.
-
-\paragraph{Protocol.}
-We ran the identical multi-chain protocol used for MNIST: 30 chains, $T{=}5{,}000$ iterations, burn-in $2{,}000$, thinning every 100 steps, 5 samples per chain, yielding $S{=}150$ generated sequences. SA was run at both $\beta_{\mathrm{ret}}{=}77$ (retrieval) and $\beta_{\mathrm{gen}}{=}8$ (generation) to demonstrate the temperature knob on a non-image domain. All seven baselines (bootstrap, Gaussian perturbation, random convex combination, GMM-PCA, VAE with latent dim 8, MALA) were run with the same protocol. Generated PCA-space vectors were decoded back to amino acid sequences by inverse-PCA followed by per-position argmax over the 20 amino acid channels.
-
-\paragraph{Metrics.}
-In addition to the standard metrics (novelty~$\mathcal{N}$, diversity~$\bar{\mathcal{D}}$, energy~$\bar{E}$), we report two protein-specific measures: \emph{sequence identity} to the nearest stored member (max over stored sequences of the fraction of non-gap positions with matching amino acids) and \emph{amino acid composition KL divergence} ($D_{\mathrm{KL}}(p_{\mathrm{stored}}\|q_{\mathrm{gen}})$ over the 20 amino acid frequencies).
+We ran the identical multi-chain protocol used for MNIST: 30 chains, $T{=}5{,}000$ iterations, burn-in $2{,}000$, thinning every 100 steps, 5 samples per chain, yielding $S{=}150$ generated sequences. SA was run at both $\beta_{\mathrm{ret}}{=}77$ (retrieval) and $\beta_{\mathrm{gen}}{=}8$ (generation) to demonstrate the temperature knob on a non-image domain, and all seven baselines (bootstrap, Gaussian perturbation, random convex combination, GMM-PCA, VAE with latent dim 8, MALA) were run with the same protocol. Generated PCA-space vectors were decoded back to amino acid sequences by inverse-PCA followed by per-position argmax over the 20 amino acid channels. In addition to the standard metrics (novelty~$\mathcal{N}$, diversity~$\bar{\mathcal{D}}$, energy~$\bar{E}$), we reported two protein-specific measures: \emph{sequence identity} to the nearest stored member (max over stored sequences of the fraction of non-gap positions with matching amino acids) and \emph{amino acid composition KL divergence} ($D_{\mathrm{KL}}(p_{\mathrm{stored}}\|q_{\mathrm{gen}})$ over the 20 amino acid frequencies).
 
 \begin{table}[h]
 \centering
 \caption{Protein sequence generation on Pfam PF00076 (RRM family, $K{=}68$, $L{=}71$, $d{=}59$ after PCA). Two SA rows demonstrate the temperature knob: $\beta{=}77$ (retrieval, $20\beta^*$) and $\beta{=}8$ (generation, $2\beta^*$). SeqID: maximum sequence identity to any stored sequence. KL: amino acid composition divergence from stored sequences (lower is better). $^\dagger$Energy is positive at $\beta{=}8$ because samples explore off the attractor manifold. MALA acceptance rate: 99.8\%.}
 \label{tab:protein}
 \small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lccccc@{}}
 \toprule
 Method & $\mathcal{N}$ $\uparrow$ & $\bar{\mathcal{D}}$ $\uparrow$ & $\bar{E}$ $\downarrow$ & SeqID & KL $\downarrow$ \\
@@ -433,7 +426,7 @@ MALA ($\beta{=}77$)         & $0.249 \pm 0.004$ & $0.992 \pm 0.007$ & $-0.115 \p
 SA ($\beta{=}77$, retrieval) & $0.243 \pm 0.004$ & $0.991 \pm 0.007$ & $-0.120 \pm 0.006$ & $0.616 \pm 0.012$ & 0.107 \\
 \textbf{SA ($\beta{=}8$, generation)} & $\mathbf{0.623 \pm 0.006}$ & $\mathbf{1.001 \pm 0.006}$ & $3.08 \pm 0.06^\dagger$ & $\mathbf{0.538 \pm 0.006}$ & \textbf{0.060} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \begin{figure}[h]
@@ -459,11 +452,7 @@ SA ($\beta{=}77$, retrieval) & $0.243 \pm 0.004$ & $0.991 \pm 0.007$ & $-0.120 \
 \label{fig:protein}
 \end{figure}
 
-Table~\ref{tab:protein} reveals the same two-regime structure observed on MNIST. At $\beta{=}77$ (retrieval), SA generates sequences ${\approx}62\%$ identical to their nearest stored member with the lowest KL divergence of any method at this temperature ($0.107$). SA and MALA are again indistinguishable (MALA acceptance $99.8\%$), consistent with the MNIST results. Random convex combinations catastrophically distort the composition (KL$=2.091$) because averaging one-hot vectors in PCA space does not preserve per-position amino acid structure.
-
-At $\beta{=}8$ (generation, $2\beta^*$), SA matches the VAE on novelty ($0.623$ vs.\ $0.621$) and exceeds it on diversity ($1.001$ vs.\ $0.834$), while achieving dramatically lower compositional divergence: KL$=0.060$ vs.\ $0.416$ for the VAE, a $6.9{\times}$ improvement. This means SA-generated sequences at generation temperature have the closest amino acid composition to the real RRM family of any method tested, including all baselines and SA at retrieval temperature. The temperature knob works as designed: lowering $\beta$ from retrieval to generation trades sequence identity ($0.616\to 0.538$) for novelty ($0.243\to 0.623$) while preserving family-level compositional fidelity. Energy rises above zero (samples leave the attractor manifold), but the Langevin gradient keeps the chain closer to the memory geometry than any learned baseline.
-
-The entropy inflection analysis validates at this new dimensionality: the empirical $\beta^*{=}3.85$ is approximately half the random-pattern prediction $\sqrt{d}{=}7.68$ (Fig.~\ref{fig:protein-entropy}). This discrepancy is expected: RRM sequences share conserved residues at many positions, reducing the effective variance of the query-key similarities and shifting the phase transition to lower $\beta$. The inflection criterion (Eq.~\ref{eq:inflection}) automatically accounts for this structure, providing the correct operating point without manual tuning.
+The same two-regime structure observed on MNIST appeared on the protein experiment (Table~\ref{tab:protein}, Fig.~\ref{fig:protein}). At $\beta{=}77$ (retrieval), SA generated sequences ${\approx}62\%$ identical to their nearest stored member with the lowest KL divergence of any method at this temperature ($0.107$); SA and MALA were again indistinguishable (MALA acceptance $99.8\%$), consistent with the MNIST results. Random convex combinations catastrophically distorted the composition (KL$=2.091$) because averaging one-hot vectors in PCA space does not preserve per-position amino acid structure. At $\beta{=}8$ (generation, $2\beta^*$), SA matched the VAE on novelty ($0.623$ vs.\ $0.621$) and exceeded it on diversity ($1.001$ vs.\ $0.834$), while achieving dramatically lower compositional divergence (KL$=0.060$ vs.\ $0.416$ for the VAE, a $6.9{\times}$ improvement); SA-generated sequences at generation temperature had the closest amino acid composition to the real RRM family of any method tested, including all baselines and SA at retrieval temperature. The temperature knob worked as designed: lowering $\beta$ from retrieval to generation traded sequence identity ($0.616\to 0.538$) for novelty ($0.243\to 0.623$) while preserving family-level compositional fidelity, with energy rising above zero (samples leave the attractor manifold) but the Langevin gradient keeping the chain closer to the memory geometry than any learned baseline. The entropy inflection analysis validated at this new dimensionality: the empirical $\beta^*{=}3.85$ was approximately half the random-pattern prediction $\sqrt{d}{=}7.68$ (Fig.~\ref{fig:protein-entropy}), an expected discrepancy because RRM sequences share conserved residues at many positions, reducing the effective variance of the query-key similarities and shifting the phase transition to lower $\beta$; the inflection criterion (Eq.~\ref{eq:inflection}) automatically accounts for this structure, providing the correct operating point without manual tuning.
 
 \begin{figure}[h]
 \centering
@@ -472,21 +461,11 @@ The entropy inflection analysis validates at this new dimensionality: the empiri
 \label{fig:protein-entropy}
 \end{figure}
 
-\paragraph{HMMER validation.}
-To provide a biologically meaningful validity metric beyond amino acid composition, we validated all generated sequences against the Pfam RRM profile HMM using HMMER~3.4~\cite{hmmer3}. Gap characters were removed from each generated sequence before submission to \texttt{hmmsearch}. All $150$ generated sequences from every method pass at $E$-value~$<0.01$, with SA at generation temperature achieving a median $E$-value of $8.1{\times}10^{-34}$ -- far below the threshold and lower (better) than the stored sequences' median of $2.5{\times}10^{-22}$. The generated sequences achieve better $E$-values because the generation process produces smoother, more canonical sequences that match the HMM consensus closely. The $100\%$ pass rate confirms that SA-generated sequences are biologically valid RRM family members, not arbitrary sequences that happen to share amino acid composition statistics.
+To provide a biologically meaningful validity metric beyond amino acid composition, we validated all generated sequences against the Pfam RRM profile HMM using HMMER~3.4~\cite{hmmer3}. Gap characters were removed from each generated sequence before submission to \texttt{hmmsearch}. All $150$ generated sequences from every method passed at $E$-value~$<0.01$, with SA at generation temperature achieving a median $E$-value of $8.1{\times}10^{-34}$, far below the threshold and lower (better) than the stored sequences' median of $2.5{\times}10^{-22}$. The generated sequences achieved better $E$-values because the generation process produced smoother, more canonical sequences that matched the HMM consensus closely; the $100\%$ pass rate confirmed that SA-generated sequences were biologically valid RRM family members, not arbitrary sequences that happened to share amino acid composition statistics.
 
-\paragraph{Position-specific fidelity.}
-The global amino acid KL divergence aggregates frequencies across all positions. To verify that SA preserves \emph{position-specific} conservation patterns, we computed the KL divergence independently at each of the $L{=}71$ aligned positions and report the mean.
+The global amino acid KL divergence aggregates frequencies across all positions; to verify that SA preserved \emph{position-specific} conservation patterns, we computed the KL divergence independently at each of the $L{=}71$ aligned positions and reported the mean. SA in the generation regime achieved a mean per-position KL of $2.92$, compared to $9.99$ for the VAE ($3.4{\times}$ lower), $7.52$ for bootstrap, and $9.09$ for GMM-PCA. This confirmed that the advantage extended beyond global composition to position-specific conservation patterns: SA correctly identified which positions were conserved and which were variable, preserving the position-specific amino acid distribution at each residue, and MALA at generation temperature achieved a comparable $2.96$.
 
-SA in the generation regime achieves a mean per-position KL of $2.92$, compared to $9.99$ for the VAE ($3.4{\times}$ lower), $7.52$ for bootstrap, and $9.09$ for GMM-PCA. This confirms that the advantage extends beyond global composition to position-specific conservation patterns: SA correctly identifies which positions are conserved and which are variable, preserving the position-specific amino acid distribution at each residue. MALA at generation temperature achieves a comparable $2.96$.
-
-\paragraph{Pairwise coupling fidelity.}
-To address the concern that marginal frequency metrics ignore sequence-level dependencies, we computed the pairwise mutual information (MI) between residue positions. For a set of sequences, the MI between positions $i$ and $j$ is $\mathrm{MI}(i,j)=\sum_{a,b}p(a,b)\log\bigl[p(a,b)/(p(a)p(b))\bigr]$, where $p(a,b)$ is the joint frequency of amino acids $a$ and $b$ at positions $i$ and $j$. We computed MI matrices for each method's generated sequences and measured the Pearson correlation with the stored family's MI matrix.
-
-SA at generation temperature achieves MI correlation $r{=}0.871$, compared to $r{=}0.525$ for the VAE -- a $66\%$ improvement. Bootstrap replay achieves $r{=}0.692$ and SA at retrieval temperature achieves $r{=}0.733$. This demonstrates that SA-generated sequences reproduce the pairwise co-evolutionary coupling structure of the RRM family, capturing sequence-level dependencies that go beyond single-position statistics. The high MI correlation, combined with the low per-position KL and $100\%$ HMM pass rate, provides strong evidence that SA-generated sequences are structurally and functionally plausible RRM family members.
-
-\paragraph{MALA at generation temperature.}
-SA and MALA produce near-identical results at the generation temperature ($\beta{=}8$): KL$=0.060$ vs.\ $0.058$, sequence identity $0.538$ vs.\ $0.537$, novelty $0.623$ vs.\ $0.616$, MI correlation $0.871$ vs.\ $0.887$ (MALA acceptance $99.8\%$). The ULA bias is negligible for protein sequences at both retrieval and generation temperatures.
+To address the concern that marginal frequency metrics ignore sequence-level dependencies, we computed the pairwise mutual information (MI) between residue positions. For a set of sequences, the MI between positions $i$ and $j$ is $\mathrm{MI}(i,j)=\sum_{a,b}p(a,b)\log\bigl[p(a,b)/(p(a)p(b))\bigr]$, where $p(a,b)$ is the joint frequency of amino acids $a$ and $b$ at positions $i$ and $j$. We computed MI matrices for each method's generated sequences and measured the Pearson correlation with the stored family's MI matrix. SA at generation temperature achieved MI correlation $r{=}0.871$, compared to $r{=}0.525$ for the VAE, a $66\%$ improvement; bootstrap replay achieved $r{=}0.692$ and SA at retrieval temperature achieved $r{=}0.733$. SA-generated sequences therefore reproduced the pairwise co-evolutionary coupling structure of the RRM family, capturing sequence-level dependencies that go beyond single-position statistics; combined with the low per-position KL and $100\%$ HMM pass rate, this provided strong evidence that SA-generated sequences were structurally and functionally plausible RRM family members. SA and MALA produced near-identical results at the generation temperature ($\beta{=}8$; KL$=0.060$ vs.\ $0.058$, sequence identity $0.538$ vs.\ $0.537$, novelty $0.623$ vs.\ $0.616$, MI correlation $0.871$ vs.\ $0.887$, MALA acceptance $99.8\%$), so the ULA bias was negligible for protein sequences at both retrieval and generation temperatures.
 
 \section{Financial Log-Return Generation}\label{app:finance}
 
@@ -500,14 +479,9 @@ We collected daily adjusted closing prices for $d=424$ S\&P~500 constituents wit
 
 We compared SA to \emph{historical bootstrap resampling} (drawing stored return vectors uniformly at random from $\mathbf{M}$) on marginal and cross-sectional metrics. Because the projection $\hat{\mathbf{g}}=\mathbf{M}\,\operatorname{softmax}(\beta\,\mathbf{X}^\top\boldsymbol{\xi})$ is a convex combination of historical return vectors, bootstrap sets an upper bound on distributional fidelity; the key question is what SA contributes beyond verbatim replay. We launched $n_{\text{chains}}=30$ independent ULA chains, each initialized near a randomly chosen stored memory, and ran $T=5{,}000$ steps with step size $\alpha=0.01$ and fixed inverse temperature $\beta=25$ ($\mathrm{SNR}=\sqrt{\alpha\beta/2d}\approx 0.017$). After discarding a burn-in of $2{,}000$ steps and thinning every $100$, we obtained $900$ approximately i.i.d.\ samples.
 
-\paragraph{Marginal distributions and novelty.}
-For each of $d=424$ tickers, we ran a two-sample KS test between generated and historical returns, and QQ plots for five representative tickers (Figure~\ref{fig:finance-qq}). The convex-combination projection compresses per-ticker standard deviation by $\approx1.14\times$ at $\beta{=}25$ (SNR$\approx$0.017); we correct for this by applying a per-ticker affine standardization (aligning the mean and standard deviation of each ticker's generated series to the historical moments, analogous to the marginal-calibration step in copula-based scenario generation), which leaves the chain dynamics and novelty metric unchanged. After correction, $272$ of $424$ tickers pass the two-sample KS test at the $5\%$ level (mean $p{=}0.193$). Bootstrap achieves $99.3\%$ pass by drawing from the empirical distribution (mean $p{=}0.622$); the residual $35.8\%$ SA failure reflects higher-order distributional differences (skewness, kurtosis) beyond what affine correction addresses. The key distinction remains novelty: SA chain states have $1-\max_k\cos(\boldsymbol{\xi},\mathbf{X}_{:,k})=0.768\pm0.001$, while every bootstrap draw is a verbatim historical scenario (novelty~$0.000$, Table~\ref{tab:finance-summary}).
+For each of $d=424$ tickers, we ran a two-sample KS test between generated and historical returns, and QQ plots for five representative tickers (Fig.~\ref{fig:finance-qq}). The convex-combination projection compresses per-ticker standard deviation by $\approx 1.14\times$ at $\beta{=}25$ (SNR$\approx 0.017$); we corrected for this by applying a per-ticker affine standardization (aligning the mean and standard deviation of each ticker's generated series to the historical moments, analogous to the marginal-calibration step in copula-based scenario generation), which left the chain dynamics and novelty metric unchanged. After correction, $272$ of $424$ tickers passed the two-sample KS test at the $5\%$ level (mean $p{=}0.193$); bootstrap achieved $99.3\%$ pass by drawing from the empirical distribution (mean $p{=}0.622$), and the residual $35.8\%$ SA failure reflected higher-order distributional differences (skewness, kurtosis) beyond what affine correction addresses. The key distinction remained novelty: SA chain states had $1-\max_k\cos(\boldsymbol{\xi},\mathbf{X}_{:,k})=0.768\pm0.001$, while every bootstrap draw was a verbatim historical scenario (novelty~$0.000$, Table~\ref{tab:finance-summary}).
 
-\paragraph{Cross-asset correlation.}
-Figure~\ref{fig:finance-correlation} plots each of the $\binom{424}{2}=89{,}676$ pairwise correlations of the generated returns against the corresponding historical correlations. The cloud lay along the $y=x$ diagonal: SA Frobenius correlation error is $26.3\%$ versus $15.6\%$ for bootstrap. The per-ticker affine correction does not alter this value: correlation is scale-invariant, so rescaling each ticker's series preserves $\operatorname{cor}(\hat{\mathbf{G}})$ exactly. SA trades some correlation fidelity for novelty; the Hopfield energy concentrates sampling on energetically favorable regime interpolations rather than uniform historical replay.
-
-\paragraph{Tail survival functions.}
-Figure~\ref{fig:finance-tails} displays the empirical survival functions of portfolio-level (equal-weight) returns. Both right and left tails matched closely on a log scale, demonstrating that the sampler reproduced the heavy-tailed nature of equity returns without distributional assumptions.
+The pairwise correlations of generated returns lay along the $y{=}x$ diagonal when plotted against the corresponding historical correlations (Fig.~\ref{fig:finance-correlation}, all $\binom{424}{2}=89{,}676$ asset pairs): SA Frobenius correlation error was $26.3\%$ versus $15.6\%$ for bootstrap. The per-ticker affine correction did not alter this value because correlation is scale-invariant, so rescaling each ticker's series preserves $\operatorname{cor}(\hat{\mathbf{G}})$ exactly; SA traded some correlation fidelity for novelty, with the Hopfield energy concentrating sampling on energetically favorable regime interpolations rather than uniform historical replay. Both right and left tails of the empirical survival function for portfolio-level (equal-weight) returns matched closely on a log scale (Fig.~\ref{fig:finance-tails}), demonstrating that the sampler reproduced the heavy-tailed nature of equity returns without distributional assumptions.
 
 \begin{figure}[h]
 \centering
@@ -534,10 +508,9 @@ Figure~\ref{fig:finance-tails} displays the empirical survival functions of port
 
 The i.i.d.\ pool above validates marginal fidelity but says nothing about temporal dynamics. Real equity returns exhibit two key temporal properties: (i)~returns are essentially unpredictable (near-zero autocorrelation), and (ii)~squared returns (a proxy for volatility) are highly autocorrelated and decay slowly, a phenomenon known as \emph{volatility clustering}~\cite{contStylizedFactsAsset2001}. We tested how far the stochastic attention sampler could go toward reproducing these properties.
 
-\paragraph{Protocol.}
 We generated a sequential time series of daily return vectors using the MALA sampler (Algorithm~\ref{alg:mala}) with warm-starting: each day's chain was initialized at the previous day's endpoint, creating temporal continuity in the chain trajectory.
 We set $\beta = 12$ (below the main operating point $\beta{=}25$) to ensure adequate MALA mixing within $T_{\text{inner}}{=}200$ inner steps per day.
-Algorithm~\ref{alg:mala-sequential} gives the pseudocode.
+The pseudocode is in Algorithm~\ref{alg:mala-sequential}.
 
 \begin{algorithm}[h]
 \caption{MALA Warm-Start Sequential Return Generation}\label{alg:mala-sequential}
@@ -553,18 +526,11 @@ Algorithm~\ref{alg:mala-sequential} gives the pseudocode.
 \end{algorithmic}
 \end{algorithm}
 
-We generated $T_{\text{days}} = 2{,}766$ synthetic trading days (matching the historical sample size) with $T_{\text{inner}} = 200$, $\alpha = 0.01$, and $\beta = 12$. The mean MALA acceptance rate was 99.4\%, confirming that the ULA discretization bias is negligible at this operating point.
-
-\paragraph{Stylized Fact~2: Near-zero return autocorrelation.}
-Figure~\ref{fig:finance-acf-combined} (top row) shows the autocorrelation function of raw returns for five representative tickers. The generated ACF (blue) lay within the 99\% confidence interval for white noise at all lags $\geq 1$, matching the historical pattern (red).
-
-\paragraph{Stylized Fact~3: Volatility clustering.}
-Figure~\ref{fig:finance-acf-combined} (bottom row) shows the autocorrelation function of squared returns. The historical series (red) exhibits the characteristic slow-decaying positive autocorrelation of volatility clustering. The generated series (blue), however, shows ACF($g^2$) $\approx 0$ at all lags; the sampler did not reproduce this effect. We verified that at the main operating point ($\beta{=}25$, $T_{\text{inner}}{=}2{,}000$), ACF($g^2$) also collapses to ${\approx}0$ (mean over $424$ tickers: $0.0005$), confirming this is a property of equilibrium sampling and not an artifact of the choice of~$\beta$.
+We generated $T_{\text{days}} = 2{,}766$ synthetic trading days (matching the historical sample size) with $T_{\text{inner}} = 200$, $\alpha = 0.01$, and $\beta = 12$; the mean MALA acceptance rate was $99.4\%$, confirming that the ULA discretization bias was negligible at this operating point. Near-zero return autocorrelation was reproduced cleanly: the autocorrelation function of raw returns for five representative tickers showed the generated ACF (blue) lying within the $99\%$ confidence interval for white noise at all lags $\geq 1$, matching the historical pattern (red) (Fig.~\ref{fig:finance-acf-combined}, top row). Volatility clustering told a different story (Fig.~\ref{fig:finance-acf-combined}, bottom row): the historical squared-return series (red) exhibited the characteristic slow-decaying positive autocorrelation of volatility clustering, whereas the generated series (blue) showed ACF($g^2$) $\approx 0$ at all lags, so the sampler did not reproduce this effect. We verified that at the main operating point ($\beta{=}25$, $T_{\text{inner}}{=}2{,}000$), ACF($g^2$) also collapsed to ${\approx}0$ (mean over $424$ tickers: $0.0005$), confirming the absence was a property of equilibrium sampling and not an artifact of the choice of~$\beta$.
 
 This is a fundamental limitation of equilibrium Boltzmann sampling, not a tuning failure. The stochastic attention sampler targets the stationary distribution $p_\beta \propto \exp(-\beta E)$ at fixed~$\beta$. At stationarity, the variance of each day's output is governed by the static energy landscape and the fixed temperature; there is no mechanism for the return variance to change systematically over time. Volatility clustering in real markets arises from non-stationary dynamics: regime shifts driven by exogenous shocks, feedback loops between volatility and leverage, and time-varying risk premia~\cite{contStylizedFactsAsset2001}. Reproducing these effects within the Langevin framework would require introducing explicit temporal structure, for instance a time-varying inverse temperature $\beta(t)$ that creates exogenous volatility regimes, or coupling the sampler to a latent regime-switching process. These extensions are natural directions for future work.
 
-\paragraph{Summary.}
-Table~\ref{tab:finance-summary} makes three theoretical predictions concrete. \emph{First}, the novelty--fidelity trade-off is real and quantified: SA generates regime interpolations absent from the historical record ($\mathcal{N}=0.768\pm0.001$) while bootstrap, which replays history verbatim, achieves $\mathcal{N}=0.000$; marginal fidelity runs in the opposite direction ($64.2\%$ vs.\ $99.3\%$ KS pass). \emph{Second}, the Hopfield energy captures cross-sectional dependence independently of marginals: Frobenius error $26.3\%$ is unchanged by per-ticker affine correction, confirming that the energy geometry encodes correlation structure, not scale. \emph{Third}, volatility clustering, a non-stationary phenomenon driven by regime shifts and leverage feedback~\cite{contStylizedFactsAsset2001}, is exactly what a fixed-$\beta$ equilibrium sampler cannot reproduce; the absence is a theoretical prediction confirmed by experiment, not a tuning failure.
+Three theoretical predictions were made concrete by the summary numbers (Table~\ref{tab:finance-summary}). \emph{First}, the novelty-fidelity trade-off was real and quantified: SA generated regime interpolations absent from the historical record ($\mathcal{N}=0.768\pm0.001$) while bootstrap, which replayed history verbatim, achieved $\mathcal{N}=0.000$; marginal fidelity ran in the opposite direction ($64.2\%$ vs.\ $99.3\%$ KS pass). \emph{Second}, the Hopfield energy captured cross-sectional dependence independently of marginals: Frobenius error $26.3\%$ was unchanged by per-ticker affine correction, confirming that the energy geometry encoded correlation structure, not scale. \emph{Third}, volatility clustering, a non-stationary phenomenon driven by regime shifts, the leverage effect linking falling prices to rising volatility~\cite{black1976studies,christie1982stochastic}, and time-varying risk premia~\cite{contStylizedFactsAsset2001}, was exactly what a fixed-$\beta$ equilibrium sampler could not reproduce; the absence was a theoretical prediction confirmed by experiment, not a tuning failure.
 
 \begin{table}[h]
 \centering
@@ -597,84 +563,55 @@ SF3: Volatility clustering & Not reproduced ($\beta{=}12$) & N/A \\
 \end{figure}
 
 
-\section{Simpsons Character Face Generation}\label{app:simpsons}
+\section{Olivetti Faces and Conditional Generation by Masking}\label{app:olivetti}
 
-To test whether the stochastic attention sampler generalizes from grayscale digit images to structured natural images at larger scale, we applied Algorithm~\ref{alg:stochastic-attention} to a corpus of $1{,}000$ Simpsons character face images, each downsampled to $64\times 64$ pixels and converted to grayscale, yielding pattern vectors in $\mathbb{R}^{d}$ with $d=4{,}096$, a $5.2\times$ scale-up over the MNIST experiment ($d=784$).
+This appendix supplies the full setup for the Olivetti experiment and the masked update of the main text, and reports the single-$\beta$ sweep that demonstrates the Hopfield $\to$ Hebbian transition under a fixed mask. The Olivetti faces dataset~\cite{samariaParameterisationStochasticModel1994} contains 400 grayscale portraits of 40 subjects, 10 portraits per subject, each $64\times 64$. We used the first 10 subjects (100 portraits), flattened each portrait in row-major order to a vector in $\mathbb{R}^{4096}$, and $\ell_2$-normalized the columns of the memory matrix $\mathbf{X}\in\mathbb{R}^{4096\times 100}$ (load ratio $K/d\approx 0.024$). Subject labels formed a length-100 vector $\mathbf{y}\in\{0,\dots,9\}^{K}$ used only by the evaluation classifier; the sampler itself saw $\mathbf{X}$ alone.
 
-\paragraph{Data and setup.}
-We selected $K=100$ images uniformly at random (fixed seed), matching the MNIST memory bank size to enable direct metric comparison. Each image was flattened in row-major order and normalized to unit $\ell_2$ norm to form the memory matrix $\mathbf{X}\in\mathbb{R}^{4096\times 100}$ (load ratio $K/d\approx 0.024$, well below capacity).
+We adopted a two-phase $\beta$ schedule: a Langevin chain at $\beta_{\mathrm{chain}}{=}200$ for $T{=}3{,}000$ steps with $\alpha{=}0.01$ and $\sigma_{\mathrm{init}}{=}0.05$, followed by a single noise-free attention readout at $\beta_{\mathrm{read}}{=}10{,}000$ to project the chain endpoint onto the convex hull of (kept) memories. The chain temperature placed the sampler in the diffuse-generation regime where the noise scale $\sqrt{2\alpha/\beta_{\mathrm{chain}}}=0.01$ was large enough for the chain to wander between subjects; the readout temperature recovered a sharp MAP-style read on the memory manifold, mirroring the standard low-$\beta$-mix-then-high-$\beta$-read pattern used in score-based samplers. For evaluation we used the training-free nearest-mean classifier of Samaria \& Harter~\cite{samariaParameterisationStochasticModel1994}: for each subject $c$, compute the per-subject mean portrait $\bar{\mathbf{m}}_{c}=\frac{1}{|\mathcal{S}_{c}|}\sum_{k\in\mathcal{S}_{c}}\mathbf{m}_{k}$ where $\mathcal{S}_{c}=\{k : y_{k}=c\}$, and assign a sample $\mathbf{s}$ to $\arg\min_{c}\|\mathbf{s}-\bar{\mathbf{m}}_{c}\|_{2}$. The classifier has no trainable parameters and uses the same $\mathbf{X}$ as the sampler.
 
-\paragraph{Choosing $\beta$ via the SNR rule.}
-At $d=4{,}096$, the MNIST value $\beta=2{,}000$ gives $\mathrm{SNR}=\sqrt{\alpha\beta/(2d)}\approx 0.049$, half the MNIST operating point ($\mathrm{SNR}\approx 0.113$). At this lower SNR the noise overwhelms the gradient, inflating the chain norm above unity and placing samples far from the memory manifold (empirically: energy $\approx +0.53$). The SNR rule gives
-\begin{equation*}
-\beta = \mathrm{SNR}_{\mathrm{MNIST}}^{2}\cdot\frac{2d}{\alpha}
-= 0.01276 \times \frac{2\times 4096}{0.01} \approx 10{,}449.
-\end{equation*}
-We used $\beta=10{,}000$ ($\mathrm{SNR}=0.110$), recovering the MNIST operating point. All other hyperparameters were identical to the MNIST experiment: $\alpha=0.01$, 30 independent chains initialized near distinct stored patterns ($\sigma_{\mathrm{init}}=0.01$), $T=5{,}000$ iterations, burn-in $2{,}000$, thin every 100 then sub-sample 5 per chain, yielding $30\times 5=150$ samples per method. The MALA acceptance rate exceeded 99\%, confirming that ULA discretization bias is negligible.
-
-\paragraph{Temperature spectrum.}
-Figure~\ref{fig:simpsons-spectrum} shows four samples at each of six inverse temperatures spanning $\beta\in\{500,1000,2000,5000,10000,20000\}$, corresponding to $\mathrm{SNR}\in\{0.025,0.035,0.049,0.078,0.110,0.156\}$. The noise-to-retrieval transition tracked SNR, not the raw $\beta$ value: rows below $\mathrm{SNR}\approx 0.05$ show diffuse gray images, while rows at $\mathrm{SNR}\geq 0.110$ yield recognizable character faces.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.65\textwidth]{figs/Fig_simpsons_beta_spectrum.png}
-\caption{Temperature spectrum for Simpsons character images ($K{=}100$, $d{=}4{,}096$, $\alpha{=}0.01$). Each row shows 4 SA samples at one inverse temperature; rows are ordered from high $\beta$ (top, $\beta{=}20{,}000$, $\mathrm{SNR}{=}0.156$) to low $\beta$ (bottom, $\beta{=}500$, $\mathrm{SNR}{=}0.025$). The operating point $\beta{=}10{,}000$ ($\mathrm{SNR}{=}0.110$, row 2 from top) reproduces the MNIST SNR and yields structured character faces.}
-\label{fig:simpsons-spectrum}
-\end{figure}
-
-\paragraph{Quantitative comparison.}
-Table~\ref{tab:simpsons-baselines} reports metrics for all five methods at $\beta=10{,}000$. The relative ranking matches the MNIST experiment exactly: SA and MALA dominated all non-Langevin baselines on every axis simultaneously, and both Langevin methods were statistically indistinguishable. SA novelty ($0.159\pm 0.000$) was comparable to the MNIST value ($0.152\pm 0.001$); mean energy ($-0.293\pm 0.000$) confirmed that samples lay on the memory manifold. Diversity was lower than MNIST ($0.293$ vs.\ $0.600$), but this reflected the higher inter-pattern correlation of face images rather than a failure of the sampler: bootstrap diversity ($0.117$) was likewise far below the MNIST value ($0.459$), indicating that the stored patterns themselves were more concentrated in the Simpsons corpus.
+We measured subject recovery in three regimes (Table~\ref{tab:olivetti-recovery}): random guess (uniform over the 10 subjects), unconditional SA warm-started uniformly across all subjects, and hard-masked SA with $b_{k}=-\infty$ for memories outside the target subject. The hard mask raised subject recovery from $10.4\%$ (essentially the random-guess baseline) to $96.0\%$, a $9.2{\times}$ improvement, with no change to the sampler or any learned components. The four misses out of 100 ($96.0\%$) reflected cases where the masked chain endpoint was closer to another subject's mean portrait than to the target subject's mean; in every such case the sample was a clean blend of the target's stored portraits and was recognizable as the correct subject visually (Fig.~\ref{fig:olivetti}b).
 
 \begin{table}[h]
 \centering
-\caption{Quantitative comparison on Simpsons character faces ($K{=}100$, $d{=}4{,}096$, $\beta{=}10{,}000$, $\mathrm{SNR}=0.110$). Same protocol as Table~\ref{tab:mnist-baselines} except GMM-PCA and VAE are omitted: at $d{=}4{,}096$ with only $K{=}100$ training patterns, both methods are degenerate (GMM covariance is rank-deficient; VAE encoder--decoder cannot generalize from 100 examples in 4,096 dimensions). MALA acceptance rate: $>99\%$. Values are mean $\pm$ SE across 30 chains. Lower diversity relative to MNIST reflects higher inter-pattern correlation of face images (bootstrap diversity $0.117$ vs.\ $0.459$ for digit~``3'').}
-\label{tab:simpsons-baselines}
+\caption{Subject-recovery rate on Olivetti faces ($K{=}100$, $d{=}4{,}096$, 10 subjects). Hard-masked SA recovers the target subject $9.2\times$ more reliably than unconditional SA, matching random-guess. ``Hard-mask'' was computed across $5\times 5=25$ samples spanning the first 5 subjects; ``unconditional'' across $50$ chains warm-started uniformly across all 10 subjects, averaged against the same 5 target subjects.}
+\label{tab:olivetti-recovery}
 \small
-\begin{tabular}{@{}lccc@{}}
+\begin{tabular}{@{}lc@{}}
 \toprule
-Method & $\mathcal{N}$ $\uparrow$ & $\bar{\mathcal{D}}$ $\uparrow$ & $\bar{E}$ $\downarrow$ \\
+Regime & Subject-recovery rate $\uparrow$ \\
 \midrule
-Bootstrap (replay)           & $0.000 \pm 0.000$ & $0.117 \pm 0.005$ & $-0.500 \pm 0.000$ \\
-Gaussian perturbation        & $0.004 \pm 0.000$ & $0.124 \pm 0.004$ & $-0.496 \pm 0.000$ \\
-Random convex combination    & $0.018 \pm 0.000$ & $0.001 \pm 0.000$ & $-0.482 \pm 0.000$ \\
-MALA                         & $0.157 \pm 0.000$ & $0.289 \pm 0.001$ & $-0.296 \pm 0.000$ \\
-\textbf{Stochastic attention} & $\mathbf{0.159 \pm 0.000}$ & $\mathbf{0.293 \pm 0.001}$ & $\mathbf{-0.293 \pm 0.000}$ \\
+Random guess (uniform over 10 subjects) & $0.100$ \\
+Unconditional SA, uniform warm-start    & $0.104$ \\
+\textbf{Hard-masked SA ($b_{k}{=}-\infty$ off-subject)} & $\mathbf{0.960}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.19\textwidth]{figs/Fig_simpsons_grid_bootstrap.png}%
-\hfill
-\includegraphics[width=0.19\textwidth]{figs/Fig_simpsons_grid_gaussian.png}%
-\hfill
-\includegraphics[width=0.19\textwidth]{figs/Fig_simpsons_grid_convex.png}%
-\hfill
-\includegraphics[width=0.19\textwidth]{figs/Fig_simpsons_grid_mala.png}%
-\hfill
-\includegraphics[width=0.19\textwidth]{figs/Fig_simpsons_grid_sa.png}
+To trace the Hopfield $\to$ Hebbian transition under a fixed mask, we held the subject mask fixed (subject 0) and swept the inverse temperature $\beta$ over six points spanning three decades, using the same $\beta$ for both chain dynamics and readout. Novelty was the median of $1-\max_{k\in\mathcal{S}_{c}}\cos(\mathbf{s},\mathbf{m}_{k})$, the smallest cosine distance to any kept portrait; hit rate was the nearest-mean classifier rate (Table~\ref{tab:olivetti-betasweep}). At $\beta{=}2$ the readout was a near-uniform soft blend of the 10 in-subject portraits and samples sat at small but non-zero distance from any single one (novelty $0.009$, hit rate $1.000$); by $\beta{=}512$ the sharp readout collapsed each chain to a single stored portrait (novelty $0.000$). The hit rate stayed in $[0.90, 1.00]$ across the full range because the $-\infty$ logits make the off-subject subset unreachable; only the within-subject blend $\to$ recall transition varies with $\beta$.
 
+\begin{table}[h]
+\centering
+\caption{Single-$\beta$ masked sampler on subject 0 of Olivetti, $20$ chains per row. Novelty is the median minimum cosine distance to any in-subject stored portrait; hit rate is the nearest-mean classifier rate. The sweep recovers the modern-Hopfield $\to$ Hebbian transition empirically inside the masked regime.}
+\label{tab:olivetti-betasweep}
 \small
-\makebox[0.19\textwidth]{\centering (a) Bootstrap}%
-\hfill
-\makebox[0.19\textwidth]{\centering (b) Gaussian}%
-\hfill
-\makebox[0.19\textwidth]{\centering (c) Convex}%
-\hfill
-\makebox[0.19\textwidth]{\centering (d) MALA}%
-\hfill
-\makebox[0.19\textwidth]{\centering (e) Ours}
-\caption{Generated Simpsons character face samples ($4{\times}4$ grids, $d{=}4{,}096$, $\beta{=}10{,}000$). The qualitative pattern mirrors MNIST: only the Langevin-based methods (d,\,e) produce diverse, structured face images.}
-\label{fig:simpsons-grids}
-\end{figure}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+$\beta$ & $2$ & $8$ & $32$ & $128$ & $512$ & $2048$ \\
+\midrule
+Novelty $\uparrow$ & $0.009$ & $0.009$ & $0.006$ & $0.005$ & $0.000$ & $0.000$ \\
+Hit rate $\uparrow$ & $1.000$ & $1.000$ & $0.950$ & $0.900$ & $0.900$ & $0.900$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Replacing $b_{k}\in\{0,-\infty\}$ with a finite scalar $b_{k}\in\mathbb{R}$ recovers the multiplicity-weight conditioning of Varner~\cite{varnerConditioningProtein2026} and the synthetic-patient generator of Varner et al.~\cite{varnerSyntheticPatient2026}. The hard-mask version studied here is the limiting case as the bias on out-of-set memories diverges to $-\infty$; the regularity guarantees of the main text hold for both regimes since both are equivalent to running unmasked SA on a (re-weighted) reduced memory matrix.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Baseline Method Specifications}\label{app:baseline-methods}
 % ─────────────────────────────────────────────────────────────────────────────
 
-This section gives complete mathematical specifications for the two learned generative
-baselines in Table~\ref{tab:mnist-baselines}: GMM-PCA and the VAE.
+Complete mathematical specifications for the two learned generative
+baselines (GMM-PCA and the VAE; Table~\ref{tab:mnist-baselines}) follow.
 All hyperparameters reported here were used without modification in the experiments;
 the implementation is publicly available in \texttt{code/mnist-experiment/} and
 \texttt{code/vae-experiment/} in the accompanying repository.
@@ -764,20 +701,7 @@ The KL term has a closed form:
 Training directly with the full $\beta$-VAE objective on a small dataset ($K{=}100$)
 causes \emph{posterior collapse}: the encoder ignores the input, the KL term drives every
 latent dimension to $\mathcal{N}(0,1)$, and the decoder learns a constant map.
-We prevent this with a two-phase schedule:
-\begin{enumerate}
-  \item \textbf{Warm-up (epochs 1--2{,}000):} Train with $\beta_{\mathrm{KL}}{=}0$
-    (reconstruction-only autoencoder objective). This establishes a non-degenerate
-    encoder (one that uses the latent code productively) before any regularization pressure
-    is applied.
-  \item \textbf{Fine-tuning (epochs 2{,}001--4{,}000):} Introduce the KL term with
-    $\beta_{\mathrm{KL}}{=}0.0001$ and a linear warmup schedule
-    ($\beta_{\mathrm{KL}}(t) = 0.0001\cdot(t/2000)$ for $t\in[1,2000]$).
-    The small final weight provides light regularization toward the Gaussian prior without
-    overriding the reconstruction signal.
-\end{enumerate}
-The warm-up phase is equivalent to a hard $\beta$-annealing schedule and is standard practice
-for low-data VAE training~\cite{lucasHowAvoidTrivial2019}.
+We prevented this with a two-phase schedule. The warm-up phase (epochs 1--2{,}000) trained with $\beta_{\mathrm{KL}}{=}0$, i.e.\ a reconstruction-only autoencoder objective, to establish a non-degenerate encoder (one that uses the latent code productively) before any regularization pressure was applied. The fine-tuning phase (epochs 2{,}001--4{,}000) introduced the KL term with $\beta_{\mathrm{KL}}{=}0.0001$ and a linear warmup schedule ($\beta_{\mathrm{KL}}(t) = 0.0001\cdot(t/2000)$ for $t\in[1,2000]$); the small final weight provides light regularization toward the Gaussian prior without overriding the reconstruction signal. The warm-up phase is equivalent to a hard $\beta$-annealing schedule and is standard practice for low-data VAE training~\cite{lucasHowAvoidTrivial2019}.
 On large datasets ($K\gg10^4$), the reconstruction gradient swamps the KL term and posterior
 collapse does not occur; the two-phase protocol is needed here specifically because
 $K{=}100$ makes the per-sample gradients noisy relative to the KL regularization pressure.
@@ -855,13 +779,7 @@ themselves.
 
 At the operating point used throughout this paper ($\alpha{=}0.01$, $\beta{=}2000$), MALA acceptance exceeds $99\%$ and the two algorithms are trivially equivalent. A natural question is: \emph{at what step size does the ULA discretization bias become significant, and how does sample quality degrade?} We swept $\alpha\in\{0.001,0.005,0.01,0.02,0.05,0.1,0.2,0.3,0.5\}$ on MNIST digit~``3'' ($K{=}100$, $d{=}784$, $\beta{=}2000$), running 30 chains per method with the same protocol as the main MNIST experiment (Table~\ref{tab:mnist-baselines}).
 
-Table~\ref{tab:stepsize-sweep} and Figure~\ref{fig:stepsize-sweep} reveal three regimes:
-\begin{enumerate}
-  \item \textbf{Equivalent regime} ($\alpha\leq 0.02$): MALA acceptance $>97\%$; ULA and MALA metrics are indistinguishable ($\Delta E < 0.003$).
-  \item \textbf{Divergence regime} ($\alpha\in[0.05,0.1]$): acceptance drops to $75$--$91\%$; ULA bias becomes detectable but small ($\Delta\mathcal{N}\approx 0.007$, $\Delta E \approx 0.011$).
-  \item \textbf{MALA-frozen regime} ($\alpha\geq 0.2$): MALA acceptance collapses to $0\%$ (the chain freezes at its initialization) while ULA continues to produce samples with gracefully degrading quality (rising energy, increasing novelty as the noise term dominates).
-\end{enumerate}
-The practical divergence threshold is $\alpha\approx 0.1$ ($75\%$ acceptance, $\Delta E = 0.011$). At the paper's operating point ($\alpha{=}0.01$), ULA bias is negligible ($\Delta E = 0.0018$). At large step sizes, ULA is \emph{preferable} to MALA: MALA freezes entirely because the large Langevin proposals are almost always rejected, while ULA, which unconditionally accepts every proposal, continues to explore the energy landscape.
+The sweep revealed three regimes (Table~\ref{tab:stepsize-sweep}, Fig.~\ref{fig:stepsize-sweep}). In the \emph{equivalent regime} ($\alpha\leq 0.02$), MALA acceptance exceeded $97\%$ and the ULA and MALA metrics were indistinguishable ($\Delta E < 0.003$). In the \emph{divergence regime} ($\alpha\in[0.05,0.1]$), acceptance dropped to $75$--$91\%$ and the ULA bias became detectable but small ($\Delta\mathcal{N}\approx 0.007$, $\Delta E \approx 0.011$). In the \emph{MALA-frozen regime} ($\alpha\geq 0.2$), MALA acceptance collapsed to $0\%$, freezing the chain at its initialization, while ULA continued to produce samples with gracefully degrading quality (rising energy, increasing novelty as the noise term dominated). The practical divergence threshold is $\alpha\approx 0.1$ ($75\%$ acceptance, $\Delta E = 0.011$). At the paper's operating point ($\alpha{=}0.01$), ULA bias is negligible ($\Delta E = 0.0018$). At large step sizes, ULA is \emph{preferable} to MALA: MALA freezes entirely because the large Langevin proposals are almost always rejected, while ULA, which unconditionally accepts every proposal, continues to explore the energy landscape.
 
 \begin{table}[h]
 \centering
@@ -901,19 +819,11 @@ $\alpha$ & Accept & \multicolumn{2}{c}{Novelty} & \multicolumn{2}{c}{Diversity} 
 \section{Gaussian Noise Control at $\beta{=}200$}\label{app:noise-control}
 % ─────────────────────────────────────────────────────────────────────────────
 
-At $\beta{=}200$ (SNR$=0.036$, the generation regime), SA achieves high novelty ($0.547$) and diversity ($0.885$) but the mean Hopfield energy is positive ($+1.47$), meaning samples lie outside the attractor manifold. A natural concern is that these metrics could be achieved trivially by high-temperature noise that bears no structural relationship to the stored patterns. We test this by comparing SA against two Gaussian noise controls on MNIST digit~``3'' ($K{=}100$, $d{=}784$).
+At $\beta{=}200$ (SNR$=0.036$, the generation regime), SA achieved high novelty ($0.547$) and diversity ($0.885$) but the mean Hopfield energy was positive ($+1.47$), meaning samples lay outside the attractor manifold. A natural concern is that these metrics could be achieved trivially by high-temperature noise that bears no structural relationship to the stored patterns. We tested this by comparing SA against two Gaussian noise controls on MNIST digit~``3'' ($K{=}100$, $d{=}784$).
 
-\paragraph{Controls.}
 \emph{Matched Gaussian}: for each pixel $j$, we estimate the mean $\mu_j$ and variance $\sigma_j^2$ of the 150 SA samples and draw i.i.d.\ $\mathcal{N}(\mu_j, \sigma_j^2)$; this is the strongest possible Gaussian that matches SA's marginal pixel statistics. \emph{Isotropic Gaussian}: we draw $\mathbf{g}\sim\mathcal{N}(\mathbf{0},\mathbf{I}_d)$ and rescale to match the mean norm of SA samples ($\lVert\boldsymbol{\xi}\rVert\approx 2.22$). Both controls produce 150 samples.
 
-\paragraph{Results.}
-Table~\ref{tab:noise-control} and Figure~\ref{fig:noise-control} present the comparison. The key separating metric is \emph{maximum cosine similarity} to the nearest stored pattern (Max-$\cos$): SA retains $0.453$, meaning each sample sits roughly halfway between the stored-pattern manifold ($1.0$) and random directions (${\approx}0.06$ in $\mathbb{R}^{784}$). The matched Gaussian achieves only $0.328$ despite sharing SA's per-pixel moments, and isotropic noise achieves $0.057$ (the random-direction baseline). Hopfield energy separates the methods in the same order: SA ($1.47$) $<$ matched Gaussian ($1.78$) $<$ isotropic ($2.34$).
-
-Novelty and diversity, by contrast, are similar between SA and the matched Gaussian ($0.547$ vs.\ $0.672$ and $0.885$ vs.\ $0.878$), confirming the reviewer's observation that these metrics alone do not distinguish structured generation from noise. However, the max-cosine and energy metrics do: SA samples are geometrically closer to stored patterns because the Langevin dynamics is guided by the Hopfield energy gradient, which biases the chain toward the memory manifold even at high temperature. Gaussian noise, lacking this gradient signal, cannot achieve the same structural similarity.
-
-Visually (Figure~\ref{fig:noise-control}), SA samples show faint but recognizable digit-3 structure (curved strokes, characteristic topology), while both Gaussian controls produce uniform static with no discernible spatial structure.
-
-We note honestly that $\beta{=}200$ is a high-temperature regime where sample quality is limited: the noise term $\sqrt{2\alpha/\beta}\,\boldsymbol{\epsilon}$ has standard deviation $0.01$ per component, comparable to the gradient step. The samples are ``blurry-but-recognizable'' rather than crisp. Higher-fidelity generation requires operating closer to the transition band ($\beta{\approx}500$--$1000$), trading novelty for structural quality.
+The comparison is summarized below (Table~\ref{tab:noise-control}, Fig.~\ref{fig:noise-control}). The key separating metric was \emph{maximum cosine similarity} to the nearest stored pattern (Max-$\cos$): SA retained $0.453$, meaning each sample sat roughly halfway between the stored-pattern manifold ($1.0$) and random directions (${\approx}0.06$ in $\mathbb{R}^{784}$); the matched Gaussian achieved only $0.328$ despite sharing SA's per-pixel moments, and isotropic noise achieved $0.057$ (the random-direction baseline). Hopfield energy separated the methods in the same order: SA ($1.47$) $<$ matched Gaussian ($1.78$) $<$ isotropic ($2.34$). Novelty and diversity, by contrast, were similar between SA and the matched Gaussian ($0.547$ vs.\ $0.672$ and $0.885$ vs.\ $0.878$), confirming the concern that these metrics alone do not distinguish structured generation from noise; the max-cosine and energy metrics do, because SA samples were geometrically closer to stored patterns thanks to the Langevin dynamics being guided by the Hopfield energy gradient, which biased the chain toward the memory manifold even at high temperature. Gaussian noise, lacking this gradient signal, could not achieve the same structural similarity. Visually, SA samples showed faint but recognizable digit-3 structure (curved strokes, characteristic topology), while both Gaussian controls produced uniform static with no discernible spatial structure (Fig.~\ref{fig:noise-control}). $\beta{=}200$ is a high-temperature regime where sample quality is limited: the noise term $\sqrt{2\alpha/\beta}\,\boldsymbol{\epsilon}$ has standard deviation $0.01$ per component, comparable to the gradient step, so the samples are ``blurry-but-recognizable'' rather than crisp; higher-fidelity generation requires operating closer to the transition band ($\beta{\approx}500$--$1000$), trading novelty for structural quality.
 
 \begin{table}[h]
 \centering
@@ -966,16 +876,7 @@ Gaussian (isotropic)              & 0.943 & 1.000 & $+2.34$ & 0.057 & 3.91 \\
 \section{Scaling Experiment: SA vs.\ DDPM}\label{app:scaling}
 % ─────────────────────────────────────────────────────────────────────────────
 
-The $K{=}100$ MNIST experiment (Table~\ref{tab:mnist-baselines}) showed that DDPM fails entirely when training data are scarce, but this comparison is arguably unfair to DDPM: diffusion models are designed for large-data regimes. We therefore ran a scaling study at $K\in\{100,\,500,\,1{,}000,\,2{,}000,\,3{,}500\}$ digit-3 images (the maximum available in MNIST) to test whether DDPM catches up as $K$ grows and to characterize how SA behaves under a principled, data-dependent $\beta$ selection.
-
-\paragraph{$\beta$ selection via entropy inflection.}
-At each~$K$, we set $\beta$ using the entropy inflection criterion of Proposition~\ref{prop:entropy-derivative}: we sweep $\beta$ over a grid, compute the attention entropy $H(\beta)=-\sum_k p_k\log p_k$ where $\mathbf{p}=\mathrm{softmax}(\beta\mathbf{X}^\top\boldsymbol{\xi})$ averaged over a probe set, and identify $\beta^*$ at the inflection point (maximum $|dH/d\beta|$). This gives a principled, data-dependent operating point for each $K$ without manual tuning. For each $K$ we also report SA at $5\beta^*$ (the retrieval regime) to illustrate the temperature knob.
-
-\paragraph{DDPM configuration.}
-We use the same MLP architecture (Appendix~\ref{app:ddpm}) with $T{=}200$ diffusion steps at every~$K$. Training epochs are scaled inversely with $K$ to keep total gradient steps comparable: $5{,}000$ epochs at $K{=}100$ down to $1{,}000$ epochs at $K{=}3{,}500$.
-
-\paragraph{Results.}
-Table~\ref{tab:scaling} and Figure~\ref{fig:scaling} present the results. The key metric is max-cosine similarity to the nearest stored pattern, which distinguishes structured generation from noise.
+The $K{=}100$ MNIST experiment (Table~\ref{tab:mnist-baselines}) showed that DDPM fails entirely when training data are scarce, but this comparison is arguably unfair to DDPM: diffusion models are designed for large-data regimes. We therefore ran a scaling study at $K\in\{100,\,500,\,1{,}000,\,2{,}000,\,3{,}500\}$ digit-3 images (the maximum available in MNIST) to test whether DDPM catches up as $K$ grows and to characterize how SA behaves under a principled, data-dependent $\beta$ selection. At each~$K$, we set $\beta$ using the entropy inflection criterion of Proposition~\ref{prop:entropy-derivative}: we swept $\beta$ over a grid, computed the attention entropy $H(\beta)=-\sum_k p_k\log p_k$ where $\mathbf{p}=\mathrm{softmax}(\beta\mathbf{X}^\top\boldsymbol{\xi})$ averaged over a probe set, and identified $\beta^*$ at the inflection point (maximum $|dH/d\beta|$); this gave a principled, data-dependent operating point for each $K$ without manual tuning, and for each $K$ we also reported SA at $5\beta^*$ (the retrieval regime) to illustrate the temperature knob. We used the same MLP DDPM architecture (Appendix~\ref{app:ddpm}) with $T{=}200$ diffusion steps at every~$K$, scaling training epochs inversely with $K$ to keep total gradient steps comparable: $5{,}000$ epochs at $K{=}100$ down to $1{,}000$ epochs at $K{=}3{,}500$. The key metric was max-cosine similarity to the nearest stored pattern, which distinguishes structured generation from noise (Table~\ref{tab:scaling}, Fig.~\ref{fig:scaling}).
 
 \begin{table}[h]
 \centering
@@ -1008,14 +909,14 @@ $K$ & $K/d$ & $\beta^*$ & \multicolumn{3}{c}{SA (generation, $\beta{=}\beta^*$)}
 \label{fig:scaling}
 \end{figure}
 
-Three findings emerge. First, DDPM's max-cosine similarity never exceeds $0.09$ across the entire range $K\in[100,\,3{,}500]$, remaining close to the isotropic noise baseline of ${\approx}0.06$. The MLP denoiser cannot learn the data distribution even with $3{,}500$ training images in $\mathbb{R}^{784}$. Second, SA's max-cosine similarity grows monotonically with $K$: from $0.126$ at $K{=}100$ to $0.175$ at $K{=}3{,}500$ in the generation regime, and from $0.237$ to $0.327$ in the retrieval regime. More stored patterns provide denser coverage of the data manifold, enabling SA to generate samples that are structurally closer to the training distribution. Third, the entropy-inflection $\beta^*$ increases with $K$ (from $9$ to $18$), consistent with the theoretical prediction that the transition temperature shifts as memory load grows. SA requires no retuning: the entropy inflection provides a principled, automatic $\beta$ at each $K$.
+Three findings emerged from the scaling sweep. First, DDPM's max-cosine similarity never exceeded $0.09$ across the entire range $K\in[100,\,3{,}500]$, remaining close to the isotropic noise baseline of ${\approx}0.06$; the MLP denoiser could not learn the data distribution even with $3{,}500$ training images in $\mathbb{R}^{784}$. Second, SA's max-cosine similarity grew monotonically with $K$: from $0.126$ at $K{=}100$ to $0.175$ at $K{=}3{,}500$ in the generation regime, and from $0.237$ to $0.327$ in the retrieval regime. More stored patterns provided denser coverage of the data manifold, enabling SA to generate samples structurally closer to the training distribution. Third, the entropy-inflection $\beta^*$ increased with $K$ (from $9$ to $18$), consistent with the theoretical prediction that the transition temperature shifts as memory load grows. SA required no retuning: the entropy inflection provided a principled, automatic $\beta$ at each $K$.
 
 We acknowledge that a convolutional U-Net DDPM operating on 2D images (rather than flattened vectors) would likely perform better, particularly at larger $K$. The comparison here is deliberately controlled: both methods operate on the same flattened, unit-norm representation. The point is not that SA is universally superior to diffusion models, but that SA's training-free score function provides a structural advantage in the low-data regime ($K\lesssim 10^3$) and that this advantage persists as $K$ grows within the range tested.
 
 \section{MALA at Generation Temperature}\label{app:mala-generation}
 % ─────────────────────────────────────────────────────────────────────────────
 
-To confirm that the ULA discretization bias is negligible in the generation regime (not just the retrieval regime), we ran the full MALA comparison at $\beta\in\{200,\,500,\,1000\}$ with the same 30-chain protocol on MNIST digit ``3'' ($K{=}100$).
+To confirm that the ULA discretization bias was negligible in the generation regime (not just the retrieval regime), we ran the full MALA comparison at $\beta\in\{200,\,500,\,1000\}$ with the same 30-chain protocol on MNIST digit ``3'' ($K{=}100$). The retrieval-regime comparison (Table~\ref{tab:mnist-baselines} at $\beta{=}2000$) had already shown $99.2\%$ acceptance and indistinguishable metrics; the question this section answered was whether the bias remained negligible as $\beta$ moved into the generation regime where the noise scale $\sqrt{2\alpha/\beta}$ is larger and the Langevin proposal is correspondingly more aggressive (Table~\ref{tab:mala-generation}).
 
 \begin{table}[h]
 \centering
@@ -1040,7 +941,6 @@ At $\beta{=}200$ (the generation regime), the deltas are: $\Delta\mathcal{N}{=}+
 
 To test whether SA's advantage over the VAE is an artifact of the limited training data ($K{=}100$), we trained VAEs on substantially larger datasets and compared against SA using the same $K{=}100$ memory.
 
-\paragraph{Setup.}
 We trained two classes of VAE: (1)~a \emph{digit-3 VAE} trained on $N{=}1{,}000$ digit-3 images (${10\times}$ the SA memory); and (2)~an \emph{all-MNIST VAE} trained on $N{=}10{,}000$ images across all ten digit classes (${100\times}$ the SA memory). Both use a larger architecture than the $K{=}100$ baseline (encoder: $784\to 512\to 256$; decoder: symmetric), with latent dimensions swept over $\{8,\,16,\,32,\,64\}$ for the digit-3 VAE and $32$ for the all-MNIST VAE. Training followed the same two-phase protocol (AE warmup + KL annealing, 2{,}000 epochs each) with mini-batch training (batch size $256$). For the all-MNIST VAE, we generated $5{,}000$ samples and selected the $150$ with highest max-cosine similarity to the $K{=}100$ digit-3 memory (simulating class-conditional generation without an explicit classifier).
 
 \begin{table}[h]
@@ -1064,13 +964,13 @@ SA ($\beta{=}200$)          & $K{=}100$ & $0.452$ & $\mathbf{0.548}$ & $\mathbf{
 \end{tabular}
 \end{table}
 
-Three findings emerge. First, SA at $\beta{=}2000$ (retrieval) achieves higher max-cosine similarity ($0.848$) than the best full-data VAE ($0.830$, all-MNIST with top-$150$ filtering), with $85\%$ higher diversity ($0.600$ vs.\ $0.325$), despite using $100{\times}$ less data and zero training. Second, the original $K{=}100$ VAE (lat${=}8$) achieves higher max-cos ($0.775$) than the $N{=}1{,}000$ VAEs with larger latent dimensions ($0.668$--$0.762$), because training on only $K{=}100$ patterns causes the VAE to memorize them; with more data, the VAE generalizes but individual samples are less similar to specific stored patterns. Third, all full-data VAEs produce less diverse outputs ($0.325$--$0.603$) than SA at any temperature ($0.600$--$0.885$). SA's advantage is not an artifact of limited training data: the training-free score function provides a structural advantage in both fidelity and diversity.
+Three findings emerged from the full-data VAE comparison. First, SA at $\beta{=}2000$ (retrieval) achieved higher max-cosine similarity ($0.848$) than the best full-data VAE ($0.830$, all-MNIST with top-$150$ filtering), with $85\%$ higher diversity ($0.600$ vs.\ $0.325$), despite using $100{\times}$ less data and zero training. Second, the original $K{=}100$ VAE (lat${=}8$) achieved higher max-cos ($0.775$) than the $N{=}1{,}000$ VAEs with larger latent dimensions ($0.668$--$0.762$), because training on only $K{=}100$ patterns caused the VAE to memorize them; with more data, the VAE generalized but individual samples were less similar to specific stored patterns. Third, all full-data VAEs produced less diverse outputs ($0.325$--$0.603$) than SA at any temperature ($0.600$--$0.885$). SA's advantage was not an artifact of limited training data: the training-free score function provided a structural advantage in both fidelity and diversity.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 \section{Principal Component Analysis}\label{app:pca}
 % ═══════════════════════════════════════════════════════════════════════════════
 
-Several experiments in this paper use Principal Component Analysis (PCA) for dimensionality reduction: the protein sequence experiment projects one-hot encodings from $\mathbb{R}^{1420}$ to $\mathbb{R}^{59}$ (Section~\ref{app:protein}), the GMM-PCA baseline operates in a 50-dimensional PCA subspace (Section~\ref{app:gmm-pca}), and the multi-head SA demo partitions PCA subspaces across heads (Section~\ref{app:multihead}). We briefly summarize the construction for completeness.
+Several experiments in this paper use Principal Component Analysis (PCA) for dimensionality reduction: the protein sequence experiment projects one-hot encodings from $\mathbb{R}^{1420}$ to $\mathbb{R}^{59}$ (Appendix~\ref{app:protein}), the GMM-PCA baseline operates in a 50-dimensional PCA subspace (Appendix~\ref{app:gmm-pca}), and the multi-head SA demo partitions PCA subspaces across heads (Appendix~\ref{app:multihead}). We briefly summarize the construction for completeness.
 
 \paragraph{Setup.}
 Given a memory matrix $\mathbf{X} = [\mathbf{m}_1,\dots,\mathbf{m}_K] \in \mathbb{R}^{d \times K}$, define the column mean $\bar{\mathbf{m}} = \frac{1}{K}\sum_{k=1}^{K}\mathbf{m}_k$ and the centered matrix $\tilde{\mathbf{X}} = \mathbf{X} - \bar{\mathbf{m}}\mathbf{1}_K^\top \in \mathbb{R}^{d \times K}$.
@@ -1092,26 +992,21 @@ The $j$-th principal component of pattern $\mathbf{m}_k$ is $z_{kj} = \mathbf{u}
 To reduce dimensionality from $d$ to $p \le r$, define the projection matrix $\mathbf{W}_p = \mathbf{U}_{:,1:p}^\top \in \mathbb{R}^{p \times d}$ using the first $p$ principal directions. The projected representation of pattern $\mathbf{m}_k$ is $\mathbf{z}_k = \mathbf{W}_p(\mathbf{m}_k - \bar{\mathbf{m}}) \in \mathbb{R}^p$, and the approximate reconstruction is $\hat{\mathbf{m}}_k = \bar{\mathbf{m}} + \mathbf{W}_p^\top\mathbf{z}_k$. Among all rank-$p$ linear projections, PCA minimizes the mean squared reconstruction error $\frac{1}{K}\sum_{k=1}^{K}\|\mathbf{m}_k - \hat{\mathbf{m}}_k\|_2^2 = \frac{1}{K}\sum_{j=p+1}^{r}\sigma_j^2$.
 
 \paragraph{Usage in this paper.}
-In the protein experiment (Section~\ref{app:protein}), we select $p$ such that $\rho(p) \ge 0.95$ (retaining 95\% of variance), yielding $p{=}59$ from $d{=}1420$. After projection, the $p$-dimensional representations are $\ell_2$-normalized to form the memory matrix. In the multi-head SA experiment (Section~\ref{app:multihead}), we partition the principal directions across attention heads to assign each head a different variance subspace.
+In the protein experiment (Appendix~\ref{app:protein}), we select $p$ such that $\rho(p) \ge 0.95$ (retaining 95\% of variance), yielding $p{=}59$ from $d{=}1420$. After projection, the $p$-dimensional representations are $\ell_2$-normalized to form the memory matrix. In the multi-head SA experiment (Appendix~\ref{app:multihead}), we partition the principal directions across attention heads to assign each head a different variance subspace.
 
 % ═══════════════════════════════════════════════════════════════════════════════
 \section{Multi-Head Stochastic Attention}\label{app:multihead}
 % ═══════════════════════════════════════════════════════════════════════════════
 
-A natural question is whether SA extends to multi-head attention, where each head operates on a learned low-dimensional projection of the memory. We present a toy demonstration using PCA-partitioned subspaces as a proxy for learned projections.
-
-\paragraph{Construction.}
-In standard multi-head attention, each head $h \in \{1,\dots,H\}$ has learned projection matrices $\mathbf{W}_K^h, \mathbf{W}_Q^h \in \mathbb{R}^{d_{\mathrm{head}} \times d}$ that map keys and queries into a $d_{\mathrm{head}}$-dimensional subspace. Multi-head SA replaces the deterministic attention output with a Langevin sample from each head's energy:
+A natural question is whether SA extends to multi-head attention, where each head operates on a learned low-dimensional projection of the memory. Modern transformers run several attention heads in parallel because no single learned projection can simultaneously capture every relevant aspect of the data; the same intuition suggests that running independent Langevin chains in different subspaces should be more effective than a single chain in the full $d$-dimensional space, especially when the data lives near a low-dimensional manifold. We present a toy demonstration using PCA-partitioned subspaces as a proxy for learned projections, sidestepping the need to actually train projection matrices while preserving the architectural structure. In standard multi-head attention, each head $h \in \{1,\dots,H\}$ has learned projection matrices $\mathbf{W}_K^h, \mathbf{W}_Q^h \in \mathbb{R}^{d_{\mathrm{head}} \times d}$ that map keys and queries into a $d_{\mathrm{head}}$-dimensional subspace. Multi-head SA replaces the deterministic attention output with a Langevin sample from each head's energy:
 \begin{equation}\label{eq:multihead-energy}
     E_h(\mathbf{z}) = \tfrac{1}{2}\|\mathbf{z}\|_2^2 - \tfrac{1}{\beta}\log\sum_{k=1}^{K}\exp\bigl(\beta\,(\mathbf{W}_K^h\mathbf{m}_k)^\top\mathbf{z}\bigr),
     \quad \mathbf{z} \in \mathbb{R}^{d_{\mathrm{head}}},
 \end{equation}
 where the projected memories $\mathbf{W}_K^h\mathbf{m}_k$ serve as the stored patterns in head $h$'s subspace. Independent Langevin chains run on each $E_h$, producing per-head samples $\mathbf{z}^{(h)}$. The outputs are concatenated and projected back to the original space via $\boldsymbol{\xi} = \mathbf{W}_O[\mathbf{z}^{(1)};\dots;\mathbf{z}^{(H)}]$, exactly as in standard multi-head attention.
 
-\paragraph{PCA-partitioned projections.}
-Without learned projections, we use PCA to define meaningful subspaces. Given $K$ stored patterns with $r = \min(d, K)$ non-zero principal components (Section~\ref{app:pca}), we assign PCs $\{(h{-}1) \cdot r/H + 1,\,\dots,\,h \cdot r/H\}$ to head $h$. This gives each head a distinct slice of the data's variance structure: head 1 captures the dominant shape modes, while later heads capture progressively finer variation.
+Without learned projections, we use PCA to define meaningful subspaces. Given $K$ stored patterns with $r = \min(d, K)$ non-zero principal components (Appendix~\ref{app:pca}), we assign PCs $\{(h{-}1) \cdot r/H + 1,\,\dots,\,h \cdot r/H\}$ to head $h$. This gives each head a distinct slice of the data's variance structure: head 1 captures the dominant shape modes, while later heads capture progressively finer variation.
 
-\paragraph{Setup.}
 We use $K{=}100$ digit-3 images from MNIST ($d{=}784$), the same memory as all other MNIST experiments. With $r{=}100$ non-zero PCs, each head in an $H{=}4$ configuration receives 25 PCs. The sampling protocol is identical to the main experiments: 30 chains, 5{,}000 steps, 2{,}000 burn-in, thinned every 100 steps, 5 samples per chain (150 total). We also test whether simply increasing the number of stored patterns $K$ at fixed $H{=}1$ achieves the same effect.
 
 \begin{table}[h]
@@ -1137,12 +1032,6 @@ SA ($H{=}4$, 25 PCs/head) & 1000 & $0.469 \pm 0.004$ & $0.582 \pm 0.003$ & $0.53
 \end{tabular}
 \end{table}
 
-\paragraph{Variance decomposition.}
 The PCA variance explained by each head ($H{=}4$, $K{=}100$) is: head~1 (PCs~1--25): 81.2\%, head~2 (PCs~26--50): 12.6\%, head~3 (PCs~51--75): 4.5\%, head~4 (PCs~76--100): 1.6\%. Head~1 captures the dominant digit shape, while later heads contribute stroke-width variation and fine detail.
 
-\paragraph{Results.}
-Three findings emerge from Table~\ref{tab:multihead}. First, multi-head SA at $K{=}100$ substantially improves fidelity at the same $\beta$: $H{=}4$ achieves max-cos~$= 0.815$, approaching single-head retrieval at $\beta{=}2000$ ($0.848$, Table~\ref{tab:full-vae}), while single-head at $\beta{=}200$ achieves only $0.453$. The mechanism is that each head runs Langevin dynamics in a lower-dimensional subspace ($d_{\mathrm{head}} \ll d$), where the same $\beta$ produces a sharper Boltzmann distribution due to higher signal-to-noise ratio. Multi-head attention effectively shifts the retrieval--generation phase boundary.
-
-Second, increasing $K$ alone does not improve single-head SA at generation temperature: $K{=}1000$ gives identical metrics to $K{=}100$ (max-cos $= 0.452$ in both cases). At $\beta{=}200$ the energy landscape is sufficiently flat that additional memories do not sharpen the softmax weights. This confirms that the multi-head improvement is a genuine structural effect of dimensionality reduction, not simply a consequence of the $K/d$ ratio.
-
-Third, the multi-head advantage diminishes as $K$ grows per head: at $K{=}1000$ with $H{=}4$ (250 patterns per 25-dimensional head subspace), max-cos drops to $0.531$, approaching the single-head value. This is consistent with the paper's capacity analysis: as $K/d_{\mathrm{head}}$ increases, the per-head energy landscape flattens and the dimensionality-reduction benefit erodes. In a learned multi-head architecture, the projections would adapt to maintain separation even at large $K$, but the PCA-partitioned proxy cannot.
+Three findings emerged from the multi-head sweep (Table~\ref{tab:multihead}). First, multi-head SA at $K{=}100$ substantially improved fidelity at the same $\beta$: $H{=}4$ achieved max-cos~$= 0.815$, approaching single-head retrieval at $\beta{=}2000$ ($0.848$, Table~\ref{tab:full-vae}), while single-head at $\beta{=}200$ achieved only $0.453$. The mechanism is that each head runs Langevin dynamics in a lower-dimensional subspace ($d_{\mathrm{head}} \ll d$), where the same $\beta$ produces a sharper Boltzmann distribution due to higher signal-to-noise ratio; multi-head attention effectively shifts the retrieval-generation phase boundary. Second, increasing $K$ alone did not improve single-head SA at generation temperature: $K{=}1000$ gave identical metrics to $K{=}100$ (max-cos $= 0.452$ in both cases) because at $\beta{=}200$ the energy landscape is sufficiently flat that additional memories do not sharpen the softmax weights, confirming that the multi-head improvement was a genuine structural effect of dimensionality reduction rather than a consequence of the $K/d$ ratio. Third, the multi-head advantage diminished as $K$ grew per head: at $K{=}1000$ with $H{=}4$ (250 patterns per 25-dimensional head subspace), max-cos dropped to $0.531$, approaching the single-head value, consistent with the paper's capacity analysis (as $K/d_{\mathrm{head}}$ increases, the per-head energy landscape flattens and the dimensionality-reduction benefit erodes). In a learned multi-head architecture the projections would adapt to maintain separation even at large $K$, but the PCA-partitioned proxy cannot.
