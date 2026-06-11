@@ -201,7 +201,7 @@ function run_gmm_pca_digit(digit::Int; digits_image_dictionary, figpath)
     # ── Save grid PNG ─────────────────────────────────────────────────────────
     canvas = build_grid(gmm_samples)
     fname  = "Fig_mnist_grid_gmm_pca_digit$(digit).png"
-    save(joinpath(figpath, fname), Gray.(canvas))
+    save_pub(joinpath(figpath, fname), Gray.(canvas))
     @info "  Saved $fname"
 
     return (novelty=novelty_mean, novelty_se=novelty_se,

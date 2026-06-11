@@ -415,7 +415,7 @@ for (tag, samps) in [
     canvas = build_grid(samps)
     img = Gray.(canvas)
     fname = "Fig_mnist_grid_$(tag)_digit3.png"
-    save(joinpath(figpath, fname), img)
+    save_pub(joinpath(figpath, fname), img)
     @info "Saved $fname"
 end
 

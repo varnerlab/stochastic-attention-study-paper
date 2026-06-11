@@ -11,8 +11,8 @@
 #                         hit rate (nearest-mean classifier).
 #
 # Outputs into ../paper-neurips/figs/ :
-#   Fig_olivetti_unconditional.png      — 2x5 grid of unconditional samples
-#   Fig_olivetti_masked.png             — 5 subjects x 5 samples each (hard mask)
+#   Fig_olivetti_unconditional.pdf      — 2x5 grid of unconditional samples
+#   Fig_olivetti_masked.pdf             — 5 subjects x 5 samples each (hard mask)
 #   Fig_olivetti_beta_sweep.pdf         — novelty vs. hit-rate tradeoff
 # Numbers are written to ../paper-neurips/figs/olivetti_metrics.csv
 # ──────────────────────────────────────────────────────────────────────────────
@@ -30,10 +30,20 @@ using StatsBase
 using Printf
 using Images
 using FileIO
+using JLD2
 
 const _DATA_DIR = joinpath(@__DIR__, "data")
 const _PAPER_FIG_DIR = joinpath(@__DIR__, "..", "..", "paper-neurips", "figs")
 isdir(_PAPER_FIG_DIR) || mkpath(_PAPER_FIG_DIR)
+
+# Output version tag. v2 = upright-face orientation fix; written alongside the
+# originals so the rotated v1 figures are not clobbered. Generated sample
+# vectors are also persisted (see data save below) so the panels can be
+# re-rendered without re-running the chains.
+const FIG_TAG = "_v2"
+
+# publication figures are ALWAYS PDF, never PNG — provides save_pub(path, img)
+include(joinpath(@__DIR__, "..", "save_pub.jl"))
 
 # ── Load Olivetti ────────────────────────────────────────────────────────────
 @info "Loading Olivetti faces …"
@@ -139,10 +149,10 @@ function image_grid(samples::Vector{Vector{Float64}}; nrows::Int, ncols::Int,
         c = rem(k - 1, ncols)
         y0 = r * (H + gap) + 1
         x0 = c * (W + gap) + 1
-        img = reshape(samples[k], H, W)  # column-major: rows = first dim
-        # Olivetti CSV is row-major (each row is a flattened image read left-to-right);
-        # reshape to (H, W) then transpose for correct orientation.
-        img = transpose(reshape(samples[k], W, H))  # H x W
+        # This Olivetti export flattens each portrait column-major, so reshaping
+        # to (H, W) directly yields the upright face. A transpose here rotates
+        # the portrait 90° (the orientation bug we are fixing).
+        img = reshape(samples[k], H, W)
         # Min-max normalize per image for display.
         lo, hi = minimum(img), maximum(img)
         hi > lo && (img = (img .- lo) ./ (hi - lo))
@@ -153,7 +163,7 @@ end
 
 function save_grid(path::String, canvas::Matrix{Float64})
     img = Gray.(clamp.(canvas, 0.0, 1.0))
-    save(path, img)
+    save_pub(path, img)
 end
 
 # ── Block 1: Unconditional SA ────────────────────────────────────────────────
@@ -196,16 +206,18 @@ warmstart_by_subject = Dict{Int, Vector{Vector{Float64}}}()
 masked_samples_by_subject = Dict{Int, Vector{Vector{Float64}}}()
 masked_raw_by_subject     = Dict{Int, Vector{Vector{Float64}}}()
 uncond_paired_by_subject  = Dict{Int, Vector{Vector{Float64}}}()
+uncond_raw_by_subject     = Dict{Int, Vector{Vector{Float64}}}()
 for c in SUBJECTS_TO_SHOW
     keep_c = [yj == c for yj in y]
     bias_c = hard_mask_bias(keep_c)
     pool_c = findall(keep_c)
     @assert length(pool_c) >= samples_per_subject "subject $c has only $(length(pool_c)) portraits"
 
-    warm_c   = Vector{Vector{Float64}}()
-    masked_c = Vector{Vector{Float64}}()
-    raw_c    = Vector{Vector{Float64}}()
-    uncond_c = Vector{Vector{Float64}}()
+    warm_c       = Vector{Vector{Float64}}()
+    masked_c     = Vector{Vector{Float64}}()
+    raw_c        = Vector{Vector{Float64}}()
+    uncond_c     = Vector{Vector{Float64}}()
+    uncond_raw_c = Vector{Vector{Float64}}()
     for j in 1:samples_per_subject
         kpat = pool_c[j]                       # j-th stored portrait of subject c
         push!(warm_c, X[:, kpat])
@@ -223,12 +235,14 @@ for c in SUBJECTS_TO_SHOW
         # (c) UNCONDITIONAL SA from the SAME warm-start, no mask
         ξT_u = masked_sa_sample(X, copy(ξ0), T_chain; β = β_chain, α = α_step,
             seed = 2000 + c * 100 + j)
+        push!(uncond_raw_c, copy(ξT_u))
         push!(uncond_c, denoise_step(ξT_u, X, β_read))
     end
     warmstart_by_subject[c]      = warm_c
     masked_samples_by_subject[c] = masked_c
     masked_raw_by_subject[c]     = raw_c
     uncond_paired_by_subject[c]  = uncond_c
+    uncond_raw_by_subject[c]     = uncond_raw_c
 end
 
 # ── Subject-recovery rate (nearest-mean classifier on Olivetti class means) ──
@@ -335,22 +349,49 @@ end
 # panel corresponds to the same warm-start: the j-th stored portrait of
 # subject i. Reader can scan one row left-to-right and see what the masked
 # and unmasked SA chains do to the same starting memory.
-warm_flat   = Vector{Vector{Float64}}()
-masked_flat = Vector{Vector{Float64}}()
-uncond_flat = Vector{Vector{Float64}}()
+warm_flat       = Vector{Vector{Float64}}()
+masked_flat     = Vector{Vector{Float64}}()   # denoised readout (β_read) — metrics
+uncond_flat     = Vector{Vector{Float64}}()   # denoised readout (β_read) — metrics
+masked_raw_flat = Vector{Vector{Float64}}()   # pre-denoise chain endpoints — figure
+uncond_raw_flat = Vector{Vector{Float64}}()   # pre-denoise chain endpoints — figure
 for c in SUBJECTS_TO_SHOW
-    append!(warm_flat,   warmstart_by_subject[c])
-    append!(masked_flat, masked_samples_by_subject[c])
-    append!(uncond_flat, uncond_paired_by_subject[c])
+    append!(warm_flat,       warmstart_by_subject[c])
+    append!(masked_flat,     masked_samples_by_subject[c])
+    append!(uncond_flat,     uncond_paired_by_subject[c])
+    append!(masked_raw_flat, masked_raw_by_subject[c])
+    append!(uncond_raw_flat, uncond_raw_by_subject[c])
 end
 nrows_panel = length(SUBJECTS_TO_SHOW)
 ncols_panel = samples_per_subject
-save_grid(joinpath(_PAPER_FIG_DIR, "Fig_olivetti_stored.png"),
-          image_grid(warm_flat;   nrows = nrows_panel, ncols = ncols_panel))
-save_grid(joinpath(_PAPER_FIG_DIR, "Fig_olivetti_masked.png"),
-          image_grid(masked_flat; nrows = nrows_panel, ncols = ncols_panel))
-save_grid(joinpath(_PAPER_FIG_DIR, "Fig_olivetti_unconditional.png"),
-          image_grid(uncond_flat; nrows = nrows_panel, ncols = ncols_panel))
+
+# Persist the generated sample vectors (each column a d-vector portrait) so the
+# panels can be re-rendered without re-running the SA chains. Re-render with
+# reshape(col, H, W). Both the pre-denoise chain endpoints (what the figure
+# shows) and the β_read-denoised readout (what the subject-recovery metrics use)
+# are saved.
+data_path = joinpath(_DATA_DIR, "olivetti_samples$(FIG_TAG).jld2")
+jldsave(data_path;
+        stored             = reduce(hcat, warm_flat),
+        masked_raw         = reduce(hcat, masked_raw_flat),
+        unconditional_raw  = reduce(hcat, uncond_raw_flat),
+        masked_denoised    = reduce(hcat, masked_flat),
+        unconditional_denoised = reduce(hcat, uncond_flat),
+        subjects_shown      = collect(SUBJECTS_TO_SHOW),
+        samples_per_subject = samples_per_subject,
+        beta_chain = β_chain, beta_read = β_read,
+        H = 64, W = 64)
+@info "Sample data written to $data_path"
+
+# Panels (b)/(c) show the PRE-DENOISE chain endpoints: at β_read=10,000 the
+# sharp readout collapses to near-exact recall of a stored portrait (so it would
+# look identical to (a)); the raw endpoints are the actual novel in-subject
+# samples where the diffusive texture / novelty lives.
+save_grid(joinpath(_PAPER_FIG_DIR, "Fig_olivetti_stored$(FIG_TAG).pdf"),
+          image_grid(warm_flat;       nrows = nrows_panel, ncols = ncols_panel))
+save_grid(joinpath(_PAPER_FIG_DIR, "Fig_olivetti_masked$(FIG_TAG).pdf"),
+          image_grid(masked_raw_flat; nrows = nrows_panel, ncols = ncols_panel))
+save_grid(joinpath(_PAPER_FIG_DIR, "Fig_olivetti_unconditional$(FIG_TAG).pdf"),
+          image_grid(uncond_raw_flat; nrows = nrows_panel, ncols = ncols_panel))
 
 # β-sweep numbers go to CSV only; the curves are too flat for a useful figure
 # (within-subject portraits are highly similar so single-β masked novelty is

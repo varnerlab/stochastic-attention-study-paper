@@ -244,7 +244,7 @@ for (tag, samps) in grids
     canvas = build_grid(samps)
     img = Images.Gray.(canvas)
     fname = "Fig_noise_control_$(tag).png"
-    Images.save(joinpath(figpath, fname), img)
+    save_pub(joinpath(figpath, fname), img)
     @info "  Saved $fname"
 end
 

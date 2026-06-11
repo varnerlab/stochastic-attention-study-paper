@@ -144,7 +144,7 @@ for β in β_values
     # save grid figure
     fname = "Fig_single_chain_grid_beta$(Int(β)).png"
     canvas = build_grid(chain_samples[1:min(36, S)])
-    save(joinpath(figpath, fname), Gray.(canvas))
+    save_pub(joinpath(figpath, fname), Gray.(canvas))
     @info "  Saved $fname"
 end
 

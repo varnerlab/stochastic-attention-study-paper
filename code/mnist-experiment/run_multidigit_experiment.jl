@@ -347,7 +347,7 @@ function run_digit_experiment(digit::Int; digits_image_dictionary, figpath)
         canvas = build_grid(samps)
         img = Gray.(canvas)
         fname = "Fig_mnist_grid_$(tag)_digit$(digit).png"
-        save(joinpath(figpath, fname), img)
+        save_pub(joinpath(figpath, fname), img)
         @info "  Saved $fname"
     end
 

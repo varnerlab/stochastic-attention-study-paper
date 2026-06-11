@@ -44,3 +44,6 @@ Random.seed!(1234); # set the random seed for reproducibility
 include(joinpath(_PATH_TO_SRC, "Data.jl"))
 include(joinpath(_PATH_TO_SRC, "Compute.jl"))
 include(joinpath(_PATH_TO_SRC, "Utilities.jl"))
+
+# publication figures are ALWAYS PDF, never PNG — provides save_pub(path, img)
+include(joinpath(_ROOT, "..", "save_pub.jl"))

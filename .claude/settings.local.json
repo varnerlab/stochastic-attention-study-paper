@@ -35,7 +35,9 @@
       "WebFetch(domain:academic.oup.com)",
       "Skill(review-abstract)",
       "Skill(style-check)",
-      "Skill(audit-magic-numbers)"
+      "Skill(audit-magic-numbers)",
+      "Bash(rm -f Fig_blend_decode.aux Fig_blend_decode.log)",
+      "Bash(magick identify *)"
     ]
   }
 }

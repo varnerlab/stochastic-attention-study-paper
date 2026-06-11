@@ -124,7 +124,7 @@ for β in β_values
     β_tag = replace(string(Int(β)), "." => "")
     canvas = build_grid(sa_samples)
     fname = "Fig_mnist_tempspectrum_digit8_beta$(β_tag).png"
-    save(joinpath(figpath, fname), Gray.(canvas))
+    save_pub(joinpath(figpath, fname), Gray.(canvas))
     @info "  Saved $fname"
 end
 

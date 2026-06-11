@@ -9,9 +9,9 @@
 # MALA chain so the comparison is direct.
 #
 # Outputs (paper-neurips/figs/):
-#   Fig_mnist_pairs_warmstart.png   — 4x4 grid of warm-starts (the input)
-#   Fig_mnist_pairs_sa.png          — 4x4 grid of SA chain endpoints
-#   Fig_mnist_pairs_mala.png        — 4x4 grid of MALA chain endpoints
+#   Fig_mnist_pairs_warmstart.pdf   — 4x4 grid of warm-starts (the input)
+#   Fig_mnist_pairs_sa.pdf          — 4x4 grid of SA chain endpoints
+#   Fig_mnist_pairs_mala.pdf        — 4x4 grid of MALA chain endpoints
 # Each grid is row-aligned: row r in all three panels comes from the same
 # warm-start memory and the same chain seed.
 # ──────────────────────────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ function build_grid(samples; nrows=4, ncols=4, gap=2)
     return canvas
 end
 
-save_png(path, canvas) = save(path, Gray.(clamp.(canvas, 0.0, 1.0)))
+save_png(path, canvas) = save_pub(path, Gray.(clamp.(canvas, 0.0, 1.0)))
 
 # ── parameters (matched to the paper's MNIST experiment) ────────────────────
 const DIGIT     = 3
@@ -100,10 +100,10 @@ end
 # ── render and save ─────────────────────────────────────────────────────────
 fig_dir = abspath(joinpath(@__DIR__, "..", "..", "paper-neurips", "figs"))
 @info "Saving paired grids to $fig_dir …"
-save_png(joinpath(fig_dir, "Fig_mnist_pairs_warmstart.png"),
+save_png(joinpath(fig_dir, "Fig_mnist_pairs_warmstart.pdf"),
          build_grid(warm_samples; nrows = 4, ncols = 4))
-save_png(joinpath(fig_dir, "Fig_mnist_pairs_sa.png"),
+save_png(joinpath(fig_dir, "Fig_mnist_pairs_sa.pdf"),
          build_grid(sa_samples;   nrows = 4, ncols = 4))
-save_png(joinpath(fig_dir, "Fig_mnist_pairs_mala.png"),
+save_png(joinpath(fig_dir, "Fig_mnist_pairs_mala.pdf"),
          build_grid(mala_samples; nrows = 4, ncols = 4))
 @info "Done."

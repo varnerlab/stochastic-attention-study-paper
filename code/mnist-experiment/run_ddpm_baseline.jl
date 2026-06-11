@@ -256,12 +256,12 @@ mkpath(figpath)
 
 canvas_ddpm = build_grid(ddpm_samples)
 img_ddpm = Images.Gray.(canvas_ddpm)
-Images.save(joinpath(figpath, "Fig_mnist_grid_ddpm_digit$(DIGIT).png"), img_ddpm)
+save_pub(joinpath(figpath, "Fig_mnist_grid_ddpm_digit$(DIGIT).png"), img_ddpm)
 @info "  Saved DDPM grid"
 
 canvas_sa = build_grid(sa_samples)
 img_sa = Images.Gray.(canvas_sa)
-Images.save(joinpath(figpath, "Fig_mnist_grid_sa_ddpm_comparison_digit$(DIGIT).png"), img_sa)
+save_pub(joinpath(figpath, "Fig_mnist_grid_sa_ddpm_comparison_digit$(DIGIT).png"), img_sa)
 @info "  Saved SA grid (for comparison)"
 
 println("\nDone. Training time: $(train_time)s")

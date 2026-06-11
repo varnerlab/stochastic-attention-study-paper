@@ -4,7 +4,7 @@
 # β=200 (generation regime) snapshotted at six timesteps. Output is a 1-row
 # strip the appendix can include alongside the Olivetti trajectory.
 #
-# Output: paper-neurips/figs/Fig_mnist_trajectory.png
+# Output: paper-neurips/figs/Fig_mnist_trajectory.pdf
 # ──────────────────────────────────────────────────────────────────────────────
 
 @info "Loading environment …"
@@ -88,7 +88,7 @@ for (t, s) in zip(SNAPSHOTS, snapshots)
 end
 
 fig_dir = abspath(joinpath(@__DIR__, "..", "..", "paper-neurips", "figs"))
-out_path = joinpath(fig_dir, "Fig_mnist_trajectory.png")
+out_path = joinpath(fig_dir, "Fig_mnist_trajectory.pdf")
 canvas = strip_grid(snapshots)
-save(out_path, Gray.(clamp.(canvas, 0.0, 1.0)))
+save_pub(out_path, Gray.(clamp.(canvas, 0.0, 1.0)))
 @info "Wrote $out_path  (β=$β, snapshots at T=$SNAPSHOTS)"

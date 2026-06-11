@@ -8,17 +8,24 @@
 # The output illustrates that without a mask the chain visibly drifts across
 # subjects — the visual counterpart of the 10.4% subject-recovery number.
 #
-# Output: paper-neurips/figs/Fig_olivetti_trajectory.png
+# Output: paper-neurips/figs/Fig_olivetti_trajectory_v2.pdf (+ snapshot data in data/)
 # ──────────────────────────────────────────────────────────────────────────────
 
 using Pkg
 Pkg.activate(joinpath(@__DIR__, "..", "..", "code"))
 
 using LinearAlgebra, Statistics, Random, DelimitedFiles, NNlib, StatsBase, Printf
-using Images, FileIO
+using Images, FileIO, JLD2
 
 const _DATA_DIR = joinpath(@__DIR__, "data")
 const _PAPER_FIG_DIR = abspath(joinpath(@__DIR__, "..", "..", "paper-neurips", "figs"))
+
+# Output version tag. v2 = upright-face orientation fix; the snapshot vectors
+# are also persisted so the strip can be re-rendered without re-running.
+const FIG_TAG = "_v2"
+
+# publication figures are ALWAYS PDF, never PNG — provides save_pub(path, img)
+include(joinpath(@__DIR__, "..", "save_pub.jl"))
 
 # ── Olivetti loader (matches the masking driver) ────────────────────────────
 @info "Loading Olivetti…"
@@ -122,7 +129,7 @@ function render_strip(samples::Vector{Vector{Float64}}; H::Int=64, W::Int=64, ga
     canvas = zeros(Float64, H, n * W + (n - 1) * gap)
     for (k, s) in enumerate(samples)
         x0 = (k - 1) * (W + gap) + 1
-        img = transpose(reshape(s, W, H))  # row-major CSV → display orientation
+        img = reshape(s, H, W)  # upright portrait (no transpose; transpose rotates 90°)
         lo, hi = minimum(img), maximum(img)
         hi > lo && (img = (img .- lo) ./ (hi - lo))
         canvas[1:H, x0:x0 + W - 1] .= Matrix(img)
@@ -132,8 +139,18 @@ end
 
 samples_in_order = [snaps_clean[t] for t in SNAPSHOTS]
 canv = render_strip(samples_in_order)
-out_path = joinpath(_PAPER_FIG_DIR, "Fig_olivetti_trajectory.png")
-save(out_path, Gray.(clamp.(canv, 0.0, 1.0)))
+
+# Persist the snapshot vectors (each column a d-vector) so the strip can be
+# re-rendered without re-running the chain. Re-render with reshape(col, H, W).
+data_path = joinpath(_DATA_DIR, "olivetti_trajectory_samples$(FIG_TAG).jld2")
+jldsave(data_path;
+        samples   = reduce(hcat, samples_in_order),
+        snapshots = SNAPSHOTS,
+        H = 64, W = 64)
+@info "Snapshot data written to $data_path"
+
+out_path = joinpath(_PAPER_FIG_DIR, "Fig_olivetti_trajectory$(FIG_TAG).pdf")
+save_pub(out_path, Gray.(clamp.(canv, 0.0, 1.0)))
 @info "Wrote $out_path"
 
 # Also dump the per-checkpoint subject IDs to a small text file the caption
