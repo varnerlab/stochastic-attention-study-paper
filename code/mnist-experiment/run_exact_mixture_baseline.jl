@@ -113,9 +113,10 @@ end
 println("\n" * "="^110)
 println("EXACT ANCESTRAL SAMPLING FROM THE HOPFIELD BOLTZMANN TARGET  (MNIST digit 3, K=100, d=784)")
 println("="^110)
-println("Closed form for the exact target:  N = 1 − 1/√(1 + d/β)")
+println("High-dimensional approximation (norm concentration; generating component assumed nearest):")
+println("  N ≈ 1 − 1/√(1 + d/β)   -- not an exact closed form; reported N is max-cos over all K")
 for β in (2000.0, 200.0)
-    @printf("   β=%-6.0f  σ=β^(−1/2)=%.5f   predicted N = %.3f\n", β, 1/sqrt(β), 1 - 1/sqrt(1 + d/β))
+    @printf("   β=%-6.0f  σ=β^(−1/2)=%.5f   approx N = %.3f\n", β, 1/sqrt(β), 1 - 1/sqrt(1 + d/β))
 end
 
 println("\n" * "-"^110)
