@@ -31,13 +31,20 @@ Draw S independent samples from p_β = Σ_i (1/K) N(m_i, β⁻¹I).
 """
 function exact_ancestral(X̂::Matrix{Float64}, β::Float64, S::Int;
                          seed::Int=2026, restrict=nothing, per_component=nothing)
-    Random.seed!(seed)
     d, K = size(X̂)
     σ = 1.0 / sqrt(β)
     pool = restrict === nothing ? collect(1:K) : collect(restrict)
-    idx = per_component === nothing ? [rand(pool) for _ in 1:S] :
-                                      vcat([fill(k, per_component) for k in pool]...)
-    return [X̂[:, i] .+ σ .* randn(d) for i in idx]
+
+    if per_component === nothing
+        result = exact_hopfield_sample(X̂[:, pool], S; β=β, seed=seed)
+        return [Vector(result.samples[:, s]) for s in 1:S]
+    end
+
+    # Fixed component counts mirror the submitted chain allocation. This is an
+    # initialization-matched diagnostic, not the full stationary target.
+    rng = MersenneTwister(seed)
+    idx = vcat([fill(k, per_component) for k in pool]...)
+    return [X̂[:, i] .+ σ .* randn(rng, d) for i in idx]
 end
 
 function knn_perturbation(X̂::Matrix{Float64}, S::Int; k::Int=5, σ::Float64=0.0, seed::Int=2026)

@@ -158,6 +158,6 @@ SA_gen_b8_28         -          RRM_1                PF00076.29   5.8e-29   93.1
 # Query file:      /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/code/sequence-experiment/data/PF00076.hmm
 # Target file:     /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/code/sequence-experiment/data/exact_mixture_validation/SA_gen_b8.fasta
 # Option settings: hmmsearch --tblout /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/code/sequence-experiment/data/exact_mixture_validation/SA_gen_b8.fasta.hmmsearch.tbl --noali -E 1000 /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/code/sequence-experiment/data/PF00076.hmm /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/code/sequence-experiment/data/exact_mixture_validation/SA_gen_b8.fasta 
-# Current dir:     /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper
-# Date:            Sun Jul 26 13:28:19 2026
+# Current dir:     /Users/jdv27/Desktop/julia_work/stochastic-attention-study-paper/code/sequence-experiment
+# Date:            Fri Aug 14 17:07:31 2026
 # [ok]

@@ -7,7 +7,7 @@ println("Stochastic Attention Test Suite")
 println("=" ^ 60)
 
 # ── Setup ──────────────────────────────────────────────────────────
-println("\n[1/6] Loading core environment...")
+println("\n[1/7] Loading core environment...")
 t0 = time()
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
@@ -36,7 +36,7 @@ macro test(name, expr)
 end
 
 # ── Test 1: Data generation ────────────────────────────────────────
-println("\n[2/6] Testing data generation...")
+println("\n[2/7] Testing data generation...")
 
 result = datagenerate(8, 4, 2; seed=42)
 @test "datagenerate returns correct keys" haskey(result, "datasets") && haskey(result, "d")
@@ -52,7 +52,58 @@ end
 end
 
 # ── Test 2: ULA sampler (Algorithm 1) ─────────────────────────────
-println("\n[3/6] Testing ULA sampler...")
+println("\n[3/7] Testing exact Hopfield mixture...")
+
+X_unequal = [0.0 1.0 2.0;
+             0.0 0.0 0.0]
+β_exact = 1.7
+r_exact = [1.0, 2.0, 0.5]
+w_exact = hopfield_component_weights(X_unequal; β=β_exact,
+                                      multiplicities=r_exact)
+
+@test "exact weights are normalized" isapprox(sum(w_exact), 1.0; atol=1e-12)
+@test "unequal memory norms produce unequal weights" w_exact[3] > w_exact[2] > w_exact[1]
+
+X_equal = [1.0 0.0 -1.0 0.0;
+           0.0 1.0  0.0 -1.0]
+w_equal = hopfield_component_weights(X_equal; β=3.0)
+@test "equal-norm memories have uniform weights" all(isapprox.(w_equal, 0.25; atol=1e-12))
+
+ξ_exact = [0.3, -0.4]
+a_exact = hopfield_responsibilities(ξ_exact, X_unequal; β=β_exact,
+                                     multiplicities=r_exact)
+@test "responsibilities are normalized" isapprox(sum(a_exact), 1.0; atol=1e-12)
+
+score_exact = hopfield_score(ξ_exact, X_unequal; β=β_exact,
+                              multiplicities=r_exact)
+fd_score = similar(score_exact)
+h = 1e-6
+for j in eachindex(ξ_exact)
+    ξ_plus = copy(ξ_exact); ξ_plus[j] += h
+    ξ_minus = copy(ξ_exact); ξ_minus[j] -= h
+    fd_score[j] = (hopfield_logpdf(ξ_plus, X_unequal; β=β_exact,
+                                    multiplicities=r_exact) -
+                   hopfield_logpdf(ξ_minus, X_unequal; β=β_exact,
+                                    multiplicities=r_exact)) / (2h)
+end
+@test "analytic score matches log-density finite differences" isapprox(
+    score_exact, fd_score; atol=1e-7, rtol=1e-6)
+
+exact_draws = exact_hopfield_sample(X_unequal, 50_000; β=β_exact,
+                                     multiplicities=r_exact, seed=42)
+observed_weights = [count(==(k), exact_draws.components) / length(exact_draws.components)
+                    for k in 1:size(X_unequal, 2)]
+@test "exact sampler reproduces analytic component weights" isapprox(
+    observed_weights, w_exact; atol=0.01)
+
+exact_draws_repeat = exact_hopfield_sample(X_unequal, 10; β=β_exact,
+                                            multiplicities=r_exact, seed=42)
+exact_draws_repeat_2 = exact_hopfield_sample(X_unequal, 10; β=β_exact,
+                                              multiplicities=r_exact, seed=42)
+@test "exact sampler is reproducible" exact_draws_repeat == exact_draws_repeat_2
+
+# ── Test 3: ULA sampler (Algorithm 1) ─────────────────────────────
+println("\n[4/7] Testing ULA sampler...")
 
 X_test = result["datasets"][1]  # 8 x 4
 xi0 = randn(8)
@@ -69,7 +120,7 @@ e_final = hopfield_energy(Vector(res_ula.Ξ[end, :]), X_test, 5.0)
 @test "ULA energy decreases from random init" e_final < e_init
 
 # ── Test 3: MALA sampler ──────────────────────────────────────────
-println("\n[4/6] Testing MALA sampler...")
+println("\n[5/7] Testing MALA sampler...")
 
 res_mala = mala_sample(X_test, xi0, 200; β=5.0, α=0.01, seed=42)
 @test "MALA returns correct trajectory shape" size(res_mala.Ξ) == (201, 8)
@@ -81,7 +132,7 @@ e_mala = hopfield_energy(Vector(res_mala.Ξ[end, :]), X_test, 5.0)
 @test "MALA reaches low energy" e_mala < e_init
 
 # ── Test 4: Utility functions ─────────────────────────────────────
-println("\n[5/6] Testing utility functions...")
+println("\n[6/7] Testing utility functions...")
 
 xi_sample = Vector(res_ula.Ξ[end, :])
 
@@ -109,7 +160,7 @@ samples = [Vector(res_ula.Ξ[end-i, :]) for i in 0:9]
 @test "sample_quality returns finite" isfinite(sample_quality(samples, X_test, 5.0))
 
 # ── Test 5: Phase transition behavior ─────────────────────────────
-println("\n[6/6] Testing phase transition behavior...")
+println("\n[7/7] Testing phase transition behavior...")
 
 # At high beta, should converge near a stored pattern (high cosine similarity)
 X_big = datagenerate(64, 16, 1; seed=99)["datasets"][1]

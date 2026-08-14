@@ -1,4 +1,36 @@
-% relatedwork.tex -- Related Work
-The classical Hopfield network~\cite{hopfieldNeuralNetworksPhysical1982} stores binary patterns as local minima of a quadratic energy; retrieval proceeds by gradient descent but the storage capacity scales only as $\mathcal{O}(d)$~\cite{amitStoringInfiniteNumbers1985}. Dense associative memories~\cite{krotovDenseAssociativeMemory2016,krotovLargeAssociativeMemory2021} replace the quadratic interaction with higher-order polynomials, breaking the linear barrier. At the top of this hierarchy, the log-sum-exp energy of modern Hopfield networks~\cite{ramsauerHopfieldNetworksAll2021} achieves exponential capacity and is equivalent to transformer attention: each head performs one step of gradient descent on the energy. All of these works focus on \emph{retrieval}; sampling from the Boltzmann distribution of the same energy is not explored. The duality between retrieval and generation dates to the Boltzmann machine~\cite{ackleyLearningAlgorithmBoltzmann1985}, which shares the Hopfield energy but samples via Gibbs dynamics over binary states. Our formulation lifts this duality to the continuous modern Hopfield setting where Langevin dynamics scales naturally to high dimensions.
+Modern Hopfield networks connect dense associative memory with dot-product
+attention~\cite{ramsauerHopfieldNetworksAll2021,krotovDenseAssociativeMemory2016}.
+Work on their capacity and temperature-dependent behavior studies retrieval,
+condensation, and random-pattern limits
+\cite{lucibelloExponentialCapacityDense2024,koulischerExploringTemperatureDependent2023}.
+Our result concerns a different but elementary property of the same continuous
+energy: its normalized Boltzmann law is a finite Gaussian mixture. The result
+does not imply that a general transformer head defines this density, because the
+derivation requires tied keys and values in a common state space.
 
-Energy-based models (EBMs) define $p(\mathbf{x})\propto\exp(-E(\mathbf{x}))$ with a neural-network energy trained by contrastive divergence~\cite{hintonTrainingProductsExperts2002}, score matching~\cite{hyvarinen2005estimation}, or noise contrastive estimation~\cite{gutmannHyvaerinenNoiseContrastive2010,songHowTrainEnergyBased2021}. Because the energy is a black box, its gradient must be learned. By contrast, the Hopfield energy has a closed-form gradient (identity minus softmax attention), requires no training, and provides analytic guarantees (smoothness, Lipschitz gradients, quadratic confinement). The Energy Transformer~\cite{hooverEnergyTransformer2024} brings Hopfield energies into a deep architecture for discriminative tasks but does not sample from the Boltzmann distribution. Score-based generative models~\cite{songGenerativeModelingEstimating2019,songScoreBasedGenerativeModeling2021} and diffusion models~\cite{hoDenoisingDiffusionProbabilistic2020,sohlDicksteinDeepUnsupervisedLearning2015} achieve remarkable sample quality but rely on a learned score network; our score is exact and analytic, at the cost of being restricted to a fixed memory $\mathbf{X}$. Normalizing flows~\cite{rezendeMohamed2015} construct generative models via learned invertible transformations but, like diffusion models, require training data and a learned bijection without exposing a closed-form score over a fixed memory. Deng et al.~\cite{dengLatentAlignment2018} introduce stochasticity into attention by replacing softmax with a latent variable trained via variational inference to model alignment uncertainty; our stochasticity arises from Langevin dynamics on a fixed energy with no variational objective.
+The probabilistic interpretation is closely related to kernel views of
+attention. Tsai et al.~\cite{tsaiTransformerKernel2019} formulate attention as a
+kernel smoother, while Nguyen et al.~\cite{nguyenProbabilisticKeys2022} model
+attention keys using Gaussian mixtures. In the equal-norm case studied here,
+the exact Hopfield law is also an isotropic Parzen estimator whose bandwidth is
+$h=\beta^{-1/2}$~\cite{parzenEstimationProbability1962}. Thus KDE sampling is
+not an external competitor at the matched bandwidth; it is the same probability
+model. Nearest-neighbor interpolation and perturbation are distinct local-memory
+baselines and are included in our reanalysis.
+
+ULA and MALA are standard tools for targets known only through an energy or
+score~\cite{robertsTweedieExponentialConvergence1996,durmusNonasymptoticAnalysisUnadjusted2017}.
+They remain valid numerical approaches to the Hopfield target, but a Markov
+chain is unnecessary for independent endpoints once the mixture form is used.
+This differs from learned energy and score models, for which the density or its
+normalizer is generally unavailable
+\cite{lecunTutorialEnergyBased2006,songHowTrainEnergyBased2021,songScoreBasedGenerativeModeling2021}.
+
+Low-data generation also requires comparisons beyond a VAE with a fixed unit
+Gaussian prior~\cite{kingmaWellingAutoEncoding2014}. Geometry-aware VAEs model
+the latent support explicitly in high-dimensional, low-sample settings
+\cite{chadebecGeometryVAE2023}; iterative encode--decode maps expose attractors
+and memorization in trained autoencoders~\cite{fumeroLatentDynamics2026}. These
+are appropriate baselines for a complete low-data study. We distinguish them
+from the exact correction established here and do not claim that the submitted
+VAE comparison settles relative generative quality.

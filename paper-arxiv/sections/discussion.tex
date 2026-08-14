@@ -1,8 +1,47 @@
-% discussion.tex -- Discussion and Conclusion (merged to save space)
+The central conclusion is a separation of model and algorithm. The tied
+modern-Hopfield energy defines a simple, normalized, memory-centered Gaussian
+mixture. Attention computes its component responsibilities, and the exact score
+is available analytically. ULA and MALA can explore this law, but neither is
+needed to produce independent equilibrium endpoints. Exact ancestral sampling
+is faster, unbiased, and provides the appropriate reference against which
+finite-step dynamics should be evaluated.
 
-The experiments validated the core claim: Langevin dynamics on the modern Hopfield energy converts deterministic attention into a principled stochastic sampler governed by a single temperature parameter. The synthetic experiments confirmed a smooth phase transition between retrieval and generation (Fig.~\ref{fig:experiments}a), convergence to the correct Boltzmann target (Fig.~\ref{fig:experiments}b), and graceful degradation with load ratio (Fig.~\ref{fig:phase-diagram}). The strongest result came from protein sequences (Table~\ref{tab:protein-main}), where the training-free score function preserved family-level fidelity at position-specific and co-evolutionary levels that the VAE could not maintain from $K{=}68$ examples. On MNIST, SA led the best learned baseline by $2.6{\times}$ on novelty and $2.0{\times}$ on diversity, while DDPM failed across all memory sizes tested (Table~\ref{tab:mnist-baselines}). The entropy inflection (Proposition~\ref{prop:entropy-derivative}) located the retrieval-to-generation boundary from data alone, correctly predicting $\beta^*{=}3.85$ on RRM (Fig.~\ref{fig:protein-entropy}), and the masking extension lifted SA to $96.0\%$ subject-conditional accuracy on Olivetti from a $10.4\%$ unconditional baseline (Table~\ref{tab:olivetti-recovery}).
-
-A deliberate choice shapes our experimental design: we evaluate at memory sizes $K$ from 68 to 3{,}500, the low-to-moderate data regime where learned generative models are most constrained, matching most real low-data domains. Score-based and diffusion models need enough data to learn an accurate score function, ill-posed at small $K$ as DDPM's failure illustrates; stochastic attention sidesteps this because $\nabla\log p_\beta = \beta(\mathbf{T}-\boldsymbol{\xi})$ is exact for any $K$, reusing standard attention primitives with no score network or training loop. The Hopfield energy gives convex-regime convergence (Corollary~\ref{cor:convergence}) and geometric ergodicity for all $\beta>0$. The same score function extends to soft-bias conditioning ($b_{k}\in\mathbb{R}$), recovering the multiplicity-weight conditioning of Varner~\cite{varnerConditioningProtein2026}; concurrent work covers eight Pfam families~\cite{varnerTrainingFreeProtein2026} and synthetic patient generation~\cite{varnerSyntheticPatient2026}, with integration into pretrained multi-head attention left to future work (Appendix~\ref{app:multihead}).
+The reanalysis also narrows the empirical interpretation. Exact all-component
+draws reproduce the submitted MNIST endpoint statistics and the qualitative
+protein results. A bandwidth-matched KDE is the same model, and a local $k$NN
+perturbation is competitive on the reported diagnostics. These findings do not
+make the memory-centered distribution valueless: simple local distributions can
+be useful in small-data applications. They do show that the value belongs to
+the distribution, representation, decoder, and application-specific
+validation—not uniquely to Langevin dynamics.
 
 \paragraph{Limitations.}
-ULA discretization bias scales with $\alpha$; MALA (Appendix~\ref{app:mala-algorithm}) is preferred at larger steps, though $99.2\%$ acceptance at $\alpha{=}0.01$ confirms negligible bias here (Table~\ref{tab:mala-generation}). At high $\beta$ SA produces structured interpolations rather than crisp novel images, and inter-basin mixing grows exponentially with barrier height; multi-chain sampling mitigates this in practice, but quantitative scaling laws remain open. The method requires $\mathbf{X}$ fixed; streaming and latent-memory settings need extension.
+The model has support around observed memories and should be described as local
+memory-supported generation rather than open-ended generation. At low
+$\beta$, the component variance grows and novelty or diversity can increase
+because samples become noisy. The MNIST experiments lack an external realism
+metric, and the protein statistics are computed against the same family used
+to construct the representation. The submitted VAE used a fixed latent prior;
+geometry-aware latent-density and iterative encode--decode baselines remain
+necessary for a complete learned-model comparison. The former DDPM comparison
+used an inadequately justified scale and compute protocol and is not retained
+as evidence of superiority. Hard masking and multiplicity remain exactly
+sampleable, and the tied-key/value derivation does not establish an integration
+with arbitrary pretrained multi-head attention.
+
+Finite-step ULA has discretization bias, while MALA can mix slowly even when its
+acceptance is near one. Warm-started multi-chain endpoints may reflect the
+chosen initialization allocation rather than stationary component weights.
+The all-component exact law must therefore be reported first. Sequential use of
+a Markov chain also costs one or more $\mathcal O(dK)$ attention operations per
+step, whereas independent exact endpoints require only a precomputed
+categorical distribution and Gaussian noise.
+
+The natural next methodological question is not how to resample the same base
+mixture with a more elaborate chain. It is how to sample a target in which the
+memory prior is combined with an external constraint or likelihood. A general
+tilt $p_0(\boldsymbol\xi)\exp[-C(\boldsymbol\xi)]$, hard feasible set, or product
+of memory experts need not retain cheap ancestral sampling. In that setting,
+exact draws from $p_0$ can serve as global proposals while MALA, constrained
+Monte Carlo, or annealed methods handle the additional factor. Such constrained
+targets are future work and are not evidence for the claims evaluated here.

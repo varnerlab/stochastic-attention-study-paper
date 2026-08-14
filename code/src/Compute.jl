@@ -1,4 +1,157 @@
 """
+    hopfield_component_weights(X; β=1.0, multiplicities=nothing) -> Vector{Float64}
+
+Return the normalized Gaussian-mixture weights of the modern Hopfield
+Boltzmann law. For memories `m_k = X[:, k]` and nonnegative multiplicities
+`r_k`,
+
+```math
+w_k \\propto r_k\\exp\\!\\left(\\frac{\\beta}{2}\\|m_k\\|_2^2\\right).
+```
+
+The weights are uniform only when the memories have equal norm and the
+multiplicities are equal.
+"""
+function hopfield_component_weights(X::AbstractMatrix{<:Real};
+    β::Real=1.0, multiplicities::Union{Nothing,AbstractVector{<:Real}}=nothing)
+
+    β > 0 || throw(ArgumentError("β must be positive, got β = $β"))
+    _, K = size(X)
+    K > 0 || throw(ArgumentError("X must contain at least one memory"))
+
+    r = multiplicities === nothing ? ones(Float64, K) : Float64.(multiplicities)
+    length(r) == K || throw(DimensionMismatch(
+        "multiplicities has length $(length(r)) but X has $K memories"))
+    all(isfinite, r) || throw(ArgumentError("multiplicities must be finite"))
+    all(>=(0.0), r) || throw(ArgumentError("multiplicities must be nonnegative"))
+    any(>(0.0), r) || throw(ArgumentError("at least one multiplicity must be positive"))
+
+    log_weights = similar(r)
+    for k in 1:K
+        log_weights[k] = r[k] == 0.0 ? -Inf :
+            log(r[k]) + 0.5 * Float64(β) * sum(abs2, @view X[:, k])
+    end
+    max_log_weight = maximum(log_weights)
+    weights = exp.(log_weights .- max_log_weight)
+    return weights ./ sum(weights)
+end
+
+
+"""
+    hopfield_responsibilities(ξ, X; β=1.0, multiplicities=nothing)
+
+Return the posterior mixture-component responsibilities at state `ξ`. These
+are exactly the multiplicity-biased attention weights
+
+```math
+a_k(\\xi)=\\operatorname{softmax}_k(\\beta X^\\top\\xi+\\log r).
+```
+"""
+function hopfield_responsibilities(ξ::AbstractVector{<:Real},
+    X::AbstractMatrix{<:Real}; β::Real=1.0,
+    multiplicities::Union{Nothing,AbstractVector{<:Real}}=nothing)
+
+    β > 0 || throw(ArgumentError("β must be positive, got β = $β"))
+    d, K = size(X)
+    length(ξ) == d || throw(DimensionMismatch(
+        "state has length $(length(ξ)) but X has $d rows"))
+
+    r = multiplicities === nothing ? ones(Float64, K) : Float64.(multiplicities)
+    length(r) == K || throw(DimensionMismatch(
+        "multiplicities has length $(length(r)) but X has $K memories"))
+    all(isfinite, r) || throw(ArgumentError("multiplicities must be finite"))
+    all(>=(0.0), r) || throw(ArgumentError("multiplicities must be nonnegative"))
+    any(>(0.0), r) || throw(ArgumentError("at least one multiplicity must be positive"))
+
+    logits = Float64(β) .* (Float64.(X)' * Float64.(ξ))
+    for k in 1:K
+        logits[k] += r[k] == 0.0 ? -Inf : log(r[k])
+    end
+    max_logit = maximum(logits)
+    responsibilities = exp.(logits .- max_logit)
+    return responsibilities ./ sum(responsibilities)
+end
+
+
+"""
+    hopfield_score(ξ, X; β=1.0, multiplicities=nothing)
+
+Evaluate the exact score of the modern Hopfield Boltzmann density:
+
+```math
+\\nabla_\\xi\\log p_\\beta(\\xi)
+=\\beta\\left[Xa(\\xi)-\\xi\\right].
+```
+"""
+function hopfield_score(ξ::AbstractVector{<:Real}, X::AbstractMatrix{<:Real};
+    β::Real=1.0, multiplicities::Union{Nothing,AbstractVector{<:Real}}=nothing)
+
+    a = hopfield_responsibilities(ξ, X; β=β, multiplicities=multiplicities)
+    return Float64(β) .* (Float64.(X) * a .- Float64.(ξ))
+end
+
+
+"""
+    hopfield_logpdf(ξ, X; β=1.0, multiplicities=nothing) -> Float64
+
+Evaluate the normalized log density of the exact Gaussian mixture induced by
+the modern Hopfield energy. Each component has mean `X[:, k]`, covariance
+`β⁻¹I`, and weight returned by [`hopfield_component_weights`](@ref).
+"""
+function hopfield_logpdf(ξ::AbstractVector{<:Real}, X::AbstractMatrix{<:Real};
+    β::Real=1.0, multiplicities::Union{Nothing,AbstractVector{<:Real}}=nothing)
+
+    β > 0 || throw(ArgumentError("β must be positive, got β = $β"))
+    d, K = size(X)
+    length(ξ) == d || throw(DimensionMismatch(
+        "state has length $(length(ξ)) but X has $d rows"))
+
+    weights = hopfield_component_weights(X; β=β, multiplicities=multiplicities)
+    log_terms = Vector{Float64}(undef, K)
+    log_gaussian_constant = 0.5 * d * (log(Float64(β)) - log(2π))
+    ξ_float = Float64.(ξ)
+    for k in 1:K
+        difference = ξ_float .- Float64.(@view X[:, k])
+        log_terms[k] = log(weights[k]) + log_gaussian_constant -
+            0.5 * Float64(β) * dot(difference, difference)
+    end
+    max_log_term = maximum(log_terms)
+    return max_log_term + log(sum(exp.(log_terms .- max_log_term)))
+end
+
+
+"""
+    exact_hopfield_sample(X, S; β=1.0, multiplicities=nothing, seed=nothing)
+
+Draw `S` independent samples from the exact modern Hopfield Boltzmann law.
+Returns a named tuple with a `d × S` sample matrix, sampled component indices,
+and normalized component weights.
+"""
+function exact_hopfield_sample(X::AbstractMatrix{<:Real}, S::Int;
+    β::Real=1.0, multiplicities::Union{Nothing,AbstractVector{<:Real}}=nothing,
+    seed::Union{Int,Nothing}=nothing)
+
+    S > 0 || throw(ArgumentError("S must be positive, got S = $S"))
+    β > 0 || throw(ArgumentError("β must be positive, got β = $β"))
+
+    X_float = Float64.(X)
+    d, K = size(X_float)
+    K > 0 || throw(ArgumentError("X must contain at least one memory"))
+    weights = hopfield_component_weights(X_float; β=β, multiplicities=multiplicities)
+    rng = seed === nothing ? Random.default_rng() : Random.MersenneTwister(seed)
+    component_distribution = Distributions.Categorical(weights)
+    components = rand(rng, component_distribution, S)
+    samples = Matrix{Float64}(undef, d, S)
+    noise_scale = inv(sqrt(Float64(β)))
+    for s in 1:S
+        samples[:, s] .= @view(X_float[:, components[s]]) .+
+            noise_scale .* randn(rng, d)
+    end
+    return (samples=samples, components=components, weights=weights)
+end
+
+
+"""
     sample(X, ξ₀, T; β=1.0, α=0.1, seed=nothing) -> (t, Ξ)
 
 Run the Stochastic Attention Sampler (Algorithm 1) on a memory matrix `X`.

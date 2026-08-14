@@ -55,7 +55,7 @@ function chain_metric_se(samps, metric_fn; nc=n_chains, spc=samples_per_chain)
     return std(vals) / sqrt(nc)
 end
 
-# ── The exact ancestral sampler ──────────────────────────────────────────────
+# ── Exact target helpers ─────────────────────────────────────────────────────
 """
 Draw S independent samples from p_β = Σ_i (1/K) N(m_i, β⁻¹I).
 If `restrict` is supplied, components are drawn from that index set only
@@ -63,16 +63,21 @@ If `restrict` is supplied, components are drawn from that index set only
 """
 function exact_ancestral(X̂::Matrix{Float64}, β::Float64, S::Int;
                          seed::Int=2026, restrict=nothing, per_component=nothing)
-    Random.seed!(seed)
     d, K = size(X̂)
     σ = 1.0 / sqrt(β)
     pool = restrict === nothing ? collect(1:K) : collect(restrict)
-    idx = if per_component === nothing
-        [rand(pool) for _ in 1:S]
-    else
-        vcat([fill(k, per_component) for k in pool]...)
+
+    if per_component === nothing
+        result = exact_hopfield_sample(X̂[:, pool], S; β=β, seed=seed)
+        return [Vector(result.samples[:, s]) for s in 1:S]
     end
-    return [X̂[:, i] .+ σ .* randn(d) for i in idx]
+
+    # This deliberately fixed-count construction is not an independent draw
+    # from the full stationary law. It mirrors the submitted chain allocation
+    # and is retained only as an initialization-matched diagnostic.
+    rng = MersenneTwister(seed)
+    idx = vcat([fill(k, per_component) for k in pool]...)
+    return [X̂[:, i] .+ σ .* randn(rng, d) for i in idx]
 end
 
 # ── Parzen / KDE: identical family, bandwidth h ↔ β = h⁻² ────────────────────
@@ -108,6 +113,26 @@ function report(name, samps, β_eval)
     ese  = chain_metric_se(samps, g -> mean(hopfield_energy(ξ, X̂, β_eval) for ξ in g))
     @printf("%-46s | %.3f ± %.3f | %.3f ± %.3f | %+.3f\n", name, nov, nse, div, dse, en)
     return (; nov, div, en, nse, dse, ese)
+end
+
+"""
+Repeat an independent endpoint experiment and report variation across complete
+sample sets. This is the uncertainty summary used for the revised manuscript;
+it does not treat arbitrary five-sample groups as independent chain estimates.
+"""
+function replicate_report(name, generator, β_eval; n_replicates=20)
+    metrics = Matrix{Float64}(undef, n_replicates, 3)
+    for replicate in 1:n_replicates
+        samps = generator(10_000 + replicate)
+        metrics[replicate, 1] = mean(sample_novelty(ξ, X̂) for ξ in samps)
+        metrics[replicate, 2] = sample_diversity(samps)
+        metrics[replicate, 3] = mean(hopfield_energy(ξ, X̂, β_eval) for ξ in samps)
+    end
+    means = vec(mean(metrics; dims=1))
+    sds = vec(std(metrics; dims=1))
+    @printf("%-46s | %.3f ± %.3f | %.3f ± %.3f | %+.3f ± %.3f\n",
+            name, means[1], sds[1], means[2], sds[2], means[3], sds[3])
+    return (; means, sds, metrics)
 end
 
 println("\n" * "="^110)
@@ -147,6 +172,17 @@ println("  SA (β=2000, retrieval)     N = 0.152 ± 0.001   D̄ = 0.600 ± 0.001
 println("  SA (β=200,  generation)    N = 0.548 ± 0.002   D̄ = 0.885 ± 0.002   Ē = +1.467")
 println("  Gaussian perturbation      N = 0.004 ± 0.000   D̄ = 0.450 ± 0.013   Ē = −0.496")
 println("  Bootstrap (replay)         N = 0.000 ± 0.000   D̄ = 0.459 ± 0.011   Ē = −0.500")
+
+println("\n" * "="^110)
+println("REPEATED ALL-K EXACT SAMPLING  (mean ± SD across 20 independent sets of S=150 endpoints)")
+println("="^110)
+@printf("%-46s | %-13s | %-13s | %s\n", "Method", "Novelty N", "Diversity D̄", "Energy Ē")
+println("-"^110)
+for β in (2000.0, 200.0)
+    βi = Int(β)
+    replicate_report("Exact ancestral (all K), β=$βi",
+                     seed -> exact_ancestral(X̂, β, S; seed=seed), β)
+end
 
 # ── Parzen / KDE bandwidth sweep (AQY1 Q2) ───────────────────────────────────
 println("\n" * "="^110)

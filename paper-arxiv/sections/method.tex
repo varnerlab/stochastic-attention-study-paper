@@ -1,128 +1,165 @@
-% method.tex -- Stochastic Attention via Langevin Dynamics on the Hopfield Energy
+\subsection{The exact Boltzmann law}
 
-The preceding section established that attention is gradient descent on the modern Hopfield energy $E$, that $E$ is smooth and confining, and that Langevin dynamics converts any such energy into a sampler. We now combine these facts to derive \emph{stochastic attention}.
+We begin with the probability model rather than a numerical sampler. Let
+$p_{\beta,\mathbf r}(\boldsymbol\xi)$ be the normalized Boltzmann density of
+Eq.~\eqref{eq:modern-hopfield-energy}:
+\begin{equation}
+p_{\beta,\mathbf r}(\boldsymbol\xi)
+=Z_{\beta,\mathbf r}^{-1}
+\exp[-\beta E_{\beta,\mathbf r}(\boldsymbol\xi)].
+\end{equation}
 
-\subsection{Stochastic Attention Update}
-The memory matrix $\mathbf{X}=[\mathbf{m}_1,\dots,\mathbf{m}_K]\in\mathbb{R}^{d\times K}$ stores $K$ patterns. We sample from the Boltzmann distribution $p_\beta(\boldsymbol{\xi})\propto\exp(-\beta E(\boldsymbol{\xi}))$ by applying the ULA~\eqref{eq:ula} to $U=\beta E$. Using $\nabla E(\boldsymbol{\xi})=\boldsymbol{\xi}-\mathbf{T}(\boldsymbol{\xi})$ and substituting $\tilde\alpha=\alpha/\beta$ so that the effective gradient step size is $\alpha$, we obtain
-\begin{equation}\label{eq:stochastic-attention}
-    \boldsymbol{\xi}_{t+1}
-    = \boldsymbol{\xi}_t
-      - \alpha\bigl(\boldsymbol{\xi}_t - \mathbf{T}(\boldsymbol{\xi}_t)\bigr)
-      + \sqrt{\tfrac{2\alpha}{\beta}}\;\boldsymbol{\epsilon}_t,
-    \qquad \boldsymbol{\epsilon}_t\sim\mathcal{N}(\mathbf{0},\mathbf{I}),
+\begin{theorem}[Exact Gaussian-mixture representation]
+\label{thm:exact-mixture}
+For $\beta>0$ and at least one positive $r_k$,
+\begin{equation}
+p_{\beta,\mathbf r}(\boldsymbol\xi)
+=\sum_{k=1}^K w_k\,
+\mathcal N(\boldsymbol\xi;\mathbf m_k,\beta^{-1}\mathbf I),
+\qquad
+w_k=\frac{r_k\exp(\frac\beta2\lVert\mathbf m_k\rVert_2^2)}
+{\sum_{j=1}^K r_j\exp(\frac\beta2\lVert\mathbf m_j\rVert_2^2)}.
+\label{eq:exact-mixture}
 \end{equation}
-which, after collecting terms, takes the form
-\begin{equation}\label{eq:stochastic-attention-expanded}
-    \boxed{\;
-    \boldsymbol{\xi}_{t+1}
-    = (1-\alpha)\,\boldsymbol{\xi}_t
-      + \alpha\,\mathbf{X}\,\operatorname{softmax}\!\bigl(\beta\,\mathbf{X}^{\top}\boldsymbol{\xi}_t\bigr)
-      + \sqrt{\tfrac{2\alpha}{\beta}}\;\boldsymbol{\epsilon}_t
-    \;}
-\end{equation}
-This is the \emph{stochastic attention} update: a contraction toward the origin, a softmax-weighted pull toward stored memories, and isotropic Gaussian noise governed by $1/\beta$. The complete procedure is given in Algorithm~\ref{alg:stochastic-attention}. Because $\mathbf{X}$ is fixed, each step requires only the same primitives as a single attention head (two matrix-vector products, one softmax, one Gaussian draw) at cost $\mathcal{O}(dK)$. No training loop, score network, or learned parameters are needed.
+\end{theorem}
+
+\begin{proof}
+Expanding the unnormalized Boltzmann density gives
+\begin{align}
+\exp[-\beta E_{\beta,\mathbf r}(\boldsymbol\xi)]
+&=\sum_{k=1}^K r_k
+\exp\!\left(-\frac\beta2\lVert\boldsymbol\xi\rVert_2^2
++\beta\mathbf m_k^\top\boldsymbol\xi\right)\\
+&=\sum_{k=1}^K r_k
+\exp\!\left(\frac\beta2\lVert\mathbf m_k\rVert_2^2\right)
+\exp\!\left[-\frac\beta2
+\lVert\boldsymbol\xi-\mathbf m_k\rVert_2^2\right].
+\end{align}
+Each final factor is proportional to a Gaussian with covariance
+$\beta^{-1}\mathbf I$. Normalizing the common Gaussian constant and the sum of
+component coefficients yields Eq.~\eqref{eq:exact-mixture}.
+\end{proof}
+
+If the memories have equal norm, including the $\ell_2$-normalized memories in
+our experiments, the norm factors cancel. Uniform multiplicities then give
+$w_k=1/K$. This is exactly an isotropic Parzen estimator with bandwidth
+$h=\beta^{-1/2}$. If memory norms differ, uniform component selection is
+incorrect; the exponential norm factor in Eq.~\eqref{eq:exact-mixture} must be
+used.
+
+Theorem~\ref{thm:exact-mixture} gives the preferred independent endpoint
+sampler (Algorithm~\ref{alg:exact-sampler}). Component weights can be
+precomputed in $\mathcal O(dK)$ time. Each subsequent sample requires a
+categorical draw and $d$ Gaussian variates, rather than $T$ attention
+evaluations costing $\mathcal O(TdK)$.
 
 \begin{algorithm}[t]
-\caption{Stochastic Attention Sampler}\label{alg:stochastic-attention}
+\caption{Exact modern-Hopfield endpoint sampler}
+\label{alg:exact-sampler}
 \begin{algorithmic}[1]
-\REQUIRE Memory matrix $\mathbf{X}\in\mathbb{R}^{d\times K}$, inverse temperature $\beta>0$, step size $\alpha\in(0,1)$, number of iterations $T$, initial state $\boldsymbol{\xi}_0\in\mathbb{R}^d$
-\ENSURE Sample trajectory $\boldsymbol{\xi}_0,\boldsymbol{\xi}_1,\dots,\boldsymbol{\xi}_T$
-\FOR{$t = 0,1,\dots,T-1$}
-    \STATE $\mathbf{a}_t \leftarrow \operatorname{softmax}\!\bigl(\beta\,\mathbf{X}^{\top}\boldsymbol{\xi}_t\bigr)$ \hfill $\triangleright$ attention weights
-    \STATE $\boldsymbol{\epsilon}_t \sim \mathcal{N}(\mathbf{0},\mathbf{I}_d)$
-    \STATE $\boldsymbol{\xi}_{t+1} \leftarrow (1-\alpha)\,\boldsymbol{\xi}_t + \alpha\,\mathbf{X}\,\mathbf{a}_t + \sqrt{2\alpha/\beta}\;\boldsymbol{\epsilon}_t$
+\REQUIRE Memories $\mathbf X$, inverse temperature $\beta>0$, multiplicities
+$\mathbf r\geq\mathbf0$, number of endpoints $S$
+\STATE $w_k\leftarrow
+r_k\exp(\frac\beta2\lVert\mathbf m_k\rVert_2^2)$ for $k=1,\ldots,K$
+\STATE Normalize $\mathbf w\leftarrow\mathbf w/(\sum_k w_k)$
+\FOR{$s=1,\ldots,S$}
+\STATE $z_s\sim\operatorname{Categorical}(\mathbf w)$
+\STATE $\boldsymbol\epsilon_s\sim\mathcal N(\mathbf0,\mathbf I)$
+\STATE $\boldsymbol\xi_s\leftarrow
+\mathbf m_{z_s}+\beta^{-1/2}\boldsymbol\epsilon_s$
 \ENDFOR
+\RETURN $\{\boldsymbol\xi_s\}_{s=1}^{S}$
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Properties and Limiting Behavior}
-When $\beta\to\infty$ and noise vanishes, the softmax sharpens to $\arg\max$ and the update reduces to deterministic retrieval (\emph{hard attention}). At finite $\beta$ with zero noise, it yields the standard softmax-weighted average (\emph{soft attention}). With finite $\beta$ and noise, the sampler generates novel patterns shaped by the memory geometry (\emph{stochastic attention}). The step size $\alpha\in(0,1)$ controls discretization fidelity versus mixing speed.
+\subsection{Attention is posterior responsibility}
 
-The score function $\nabla\log p_\beta = \beta(\mathbf{T}-\boldsymbol{\xi})$ is known in closed form from a single attention operation; no auxiliary network is needed. The following proposition (proved in Appendix~\ref{app:proof-regularity}) makes the regularity conditions explicit.
-
-\begin{proposition}\label{prop:regularity}
-Let $\sigma_{\max}=\|\mathbf{X}\|_{\mathrm{op}}$ denote the largest singular value of the memory matrix. The modern Hopfield energy~\eqref{eq:modern-hopfield-energy} has Lipschitz-continuous gradient with constant $L = 1 + \beta\sigma_{\max}^{2}/2$ and satisfies the dissipativity condition $\langle \nabla E(\boldsymbol{\xi}),\boldsymbol{\xi}\rangle \ge \|\boldsymbol{\xi}\|_2^2/2 - M^2/2$ for all $\boldsymbol{\xi}\in\mathbb{R}^d$.
-\end{proposition}
-
-The Hessian satisfies $\nabla^2 E \succeq (1-\beta\sigma_{\max}^{2}/2)\mathbf{I}$, so $E$ is strictly convex when $\beta\sigma_{\max}^{2}<2$, yielding a standard convergence result:
-
-\begin{corollary}\label{cor:convergence}
-When $\beta\sigma_{\max}^{2}<2$, the potential $U=\beta E$ is $m$-strongly convex with $m=\beta(1-\beta\sigma_{\max}^{2}/2)$ and has $L_{U}$-Lipschitz gradient with $L_{U}=\beta(1+\beta\sigma_{\max}^{2}/2)$. The iterates of Algorithm~\ref{alg:stochastic-attention} converge to~$p_\beta$ in $W_2$ at a geometric rate, with discretization bias vanishing as $\alpha\to 0$~\cite{dalalyanTheoreticalGuaranteesApproximate2017,durmusNonasymptoticAnalysisUnadjusted2017}.
-\end{corollary}
-
-The memory matrices in our experiments place the convex regime well below the operating range $\beta\in\{200,2000\}$. We state this boundary explicitly because it delineates where the Hopfield energy transitions from unimodal (one global basin) to multimodal (one local minimum per stored pattern): the condition $\beta\sigma_{\max}^{2}=2$ is the onset of non-convexity, beyond which energy barriers separate stored memories.
-
-For general non-convex energies, mixing time scales exponentially in the barrier height divided by the temperature~\cite{bovier2004metastability}. In the Hopfield energy at high~$\beta$, barriers between patterns are $O(\beta)$ while the temperature is $1/\beta$, so inter-basin mixing is exponentially slow. This is consistent with our empirical observation that a single chain at $\beta{=}2000$ does not cross between basins (single-chain diversity $0.282$; Table~\ref{tab:single-chain}). However, within each basin the energy is locally strongly convex (the Hessian near each minimum is positive definite), so \emph{intra-basin} mixing is fast. The multi-chain protocol used in our experiments exploits this: by initializing chains near distinct stored patterns, we obtain cross-basin coverage through initialization and rely on fast local mixing within each basin. At $\beta{=}200$, the barriers are low enough that single chains do cross basins (single-chain diversity $0.796$, exceeding the multi-chain $\beta{=}2000$ value of $0.600$; Table~\ref{tab:single-chain}).
-
-The confining bound~\eqref{eq:energy-lower-bound} keeps iterates concentrated near $\mathrm{conv}\{\mathbf{m}_1,\dots,\mathbf{m}_K\}$ with excursions controlled by $\sqrt{2\alpha/\beta}$. Two guarantees hold for all $\beta>0$ regardless of convexity: the continuous-time SDE is geometrically ergodic by dissipativity~\cite{robertsTweedieExponentialConvergence1996}, and our experiments confirm that ULA discretization bias is negligible in practice via the empirical MALA acceptance rate.
-
-
-\begin{figure}[t!]
-\centering
-\includegraphics[width=\textwidth]{figs/Fig_experiment-combined.pdf}
-\caption{Synthetic experiments.
-\textbf{(a)}~Phase behavior as a function of inverse temperature $\beta$ ($d=64$, $K=16$). Left axis (blue): mean cosine similarity to the nearest stored pattern; right axis (coral): scaled entropy $H(\mathbf{a})/\log K$. Both diagnostics reveal a smooth transition centered near $\beta\approx 5\text{--}10$ (gold band).
-\textbf{(b)}~Convergence validation ($d=8$, $K=4$, $\beta=5$). Pooled energy density from eight independent chains (gray) overlaid on a long-run reference distribution (coral); inset reports the Kolmogorov--Smirnov statistic and moment differences.}
-\label{fig:experiments}
-\end{figure}
-
-\subsection{Phase Transition and Temperature Selection}\label{sec:phase-transition}
-
-The attention entropy $H(\beta) = -\sum_k p_k \log p_k$, where $p_k = \operatorname{softmax}(\beta\mathbf{X}^{\top}\boldsymbol{\xi})_k$, quantifies selectivity for a given state~$\boldsymbol{\xi}$. At $\beta=0$ the distribution is uniform ($H=\log K$); as $\beta\to\infty$ it concentrates on the nearest memory ($H\to 0$).
-
-\begin{proposition}\label{prop:entropy-derivative}
-For fixed $\boldsymbol{\xi}\in\mathbb{R}^d$, let $e_k = \mathbf{m}_k^{\top}\boldsymbol{\xi}$ and $\mathbf{p}=\operatorname{softmax}(\beta\mathbf{e})$. Then
-\begin{equation}\label{eq:entropy-deriv}
-\frac{dH}{d\beta} \;=\; -\beta\,\mathrm{Var}_{\mathbf{p}}(e),
+Let $Z$ denote the Gaussian component. Substituting the weights from
+Eq.~\eqref{eq:exact-mixture} into Bayes' rule cancels the component-norm terms:
+\begin{equation}
+\Pr(Z=k\mid\boldsymbol\xi)
+=\frac{r_k\exp(\beta\mathbf m_k^\top\boldsymbol\xi)}
+{\sum_j r_j\exp(\beta\mathbf m_j^\top\boldsymbol\xi)}.
+\label{eq:responsibilities}
 \end{equation}
-where $\mathrm{Var}_{\mathbf{p}}(e) = \sum_k p_k\,e_k^2 - \bigl(\sum_k p_k\,e_k\bigr)^{\!2}$.
-\end{proposition}
-
-\begin{proof}
-Write $\log p_k = \beta e_k - \log Z$ with $Z=\sum_j\exp(\beta e_j)$, so $H = -\beta\langle e\rangle_{\mathbf{p}} + \log Z$. Differentiating and using $d(\log Z)/d\beta = \langle e\rangle_{\mathbf{p}}$ and $d\langle e\rangle_{\mathbf{p}}/d\beta = \mathrm{Var}_{\mathbf{p}}(e)$ yields the result.
-\end{proof}
-
-Since $\mathrm{Var}_{\mathbf{p}}(e)\ge 0$, entropy decreases monotonically. The derivative vanishes at both $\beta=0$ (prefactor) and $\beta\to\infty$ (variance collapse), so the maximum rate of entropy loss occurs at an inflection point $\beta^{*}$ satisfying $d^{2}H/d\beta^{2}=0$:
-\begin{equation}\label{eq:inflection}
-\mathrm{Var}_{\mathbf{p}}(e)\big|_{\beta^{*}} \;=\; -\beta^{*}\;\mu_{3}\big|_{\beta^{*}},
+The vector of posterior responsibilities is therefore exactly the biased
+softmax in Eq.~\eqref{eq:hopfield-update}. Differentiating the log mixture gives
+\begin{equation}
+\nabla_{\boldsymbol\xi}\log p_{\beta,\mathbf r}(\boldsymbol\xi)
+=\beta\left[\mathbf T_{\beta,\mathbf r}(\boldsymbol\xi)
+-\boldsymbol\xi\right].
+\label{eq:exact-score}
 \end{equation}
-where $\mu_3 = \langle(e - \langle e\rangle_{\mathbf{p}})^3\rangle_{\mathbf{p}}$ is the third central moment. This inflection marks the retrieval-to-generation phase boundary: below $\beta^{*}$, attention remains diffuse (generation); above it, attention concentrates on individual memories (retrieval).
+This establishes the precise relationship: attention is the posterior mean of
+the component center, and attention minus the state is the score divided by
+$\beta$.
 
-For random memories on $\mathbb{S}^{d-1}$, the similarities $e_k$ have $\mathrm{Var}(e_k)=1/d$, so the softmax logits have standard deviation $\beta/\sqrt{d}$; the transition occurs when this reaches order unity, giving $\beta^{*}\sim\sqrt{d}$. Substituting into the per-step signal-to-noise ratio (Eq.~\ref{eq:snr}) yields
-\begin{equation}\label{eq:snr-star}
-\mathrm{SNR}^{*} \;=\; \sqrt{\frac{\alpha\,\beta^{*}}{2d}} \;\sim\; \sqrt{\frac{\alpha}{2\sqrt{d}}}\,.
+\subsection{ULA and MALA as optional dynamics}
+
+Using Eq.~\eqref{eq:exact-score} in ULA with $\eta=\alpha/\beta$ gives
+\begin{equation}
+\boldsymbol\xi_{t+1}
+=(1-\alpha)\boldsymbol\xi_t
++\alpha\mathbf T_{\beta,\mathbf r}(\boldsymbol\xi_t)
++\sqrt{\frac{2\alpha}{\beta}}\boldsymbol\epsilon_t.
+\label{eq:stochastic-attention}
 \end{equation}
-At $d{=}64$ and $\alpha{=}0.01$ this evaluates to $\mathrm{SNR}^{*}=0.025$, matching the empirical transition (Fig.~\ref{fig:experiments}a). For structured data the effective variance may differ from $1/d$, but Eq.~\eqref{eq:inflection} provides a fully data-dependent criterion: evaluate $d^{2}H/d\beta^{2}$ over a $\beta$ sweep and locate the zero crossing.
-
-\begin{table}[t]
-\centering
-\caption{Quantitative comparison on MNIST digit ``3'' ($K=100$, $d=784$). $\mathcal{N}$ and $\bar{\mathcal{D}}$ are higher-is-better ($\uparrow$); $\bar{E}$ is lower-is-better ($\downarrow$). Values are mean $\pm$ SE across 30 chains. $^\dagger$Energy is positive at $\beta{=}200$ because samples explore off the attractor manifold. $^\ddagger$DDPM produces unstructured noise (max-$\cos=0.062$).}
-\label{tab:mnist-baselines}
-\small
-\begin{tabular}{@{}lccc@{}}
-\toprule
-Method & $\mathcal{N}$ $\uparrow$ & $\bar{\mathcal{D}}$ $\uparrow$ & $\bar{E}$ $\downarrow$ \\
-\midrule
-Bootstrap (replay)          & $0.000 \pm 0.000$ & $0.459 \pm 0.011$ & $-0.500 \pm 0.000$ \\
-Gaussian perturbation       & $0.004 \pm 0.000$ & $0.450 \pm 0.013$ & $-0.496 \pm 0.000$ \\
-Random convex combination   & $0.092 \pm 0.000$ & $0.008 \pm 0.000$ & $-0.399 \pm 0.000$ \\
-GMM-PCA ($r{=}50$, $C{=}10$) & $0.198 \pm 0.004$ & $0.419 \pm 0.011$ & $-0.303 \pm 0.005$ \\
-VAE (latent${=}8$)          & $0.214 \pm 0.005$ & $0.441 \pm 0.008$ & $-0.286 \pm 0.005$ \\
-DDPM ($T{=}200$)            & $0.938 \pm 0.002$ & $0.991 \pm 0.002$ & $+0.44\phantom{0} \pm 0.00\phantom{0}$$^\ddagger$ \\
-MALA ($\beta{=}2000$)       & $0.151 \pm 0.001$ & $0.598 \pm 0.001$ & $-0.305 \pm 0.001$ \\
-SA ($\beta{=}2000$, retrieval) & $0.152 \pm 0.001$ & $0.600 \pm 0.001$ & $-0.303 \pm 0.001$ \\
-\textbf{SA ($\beta{=}200$, generation)} & $\mathbf{0.548 \pm 0.002}$ & $\mathbf{0.885 \pm 0.002}$ & $1.467 \pm 0.008^\dagger$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Conditional Sampling via Attention Masking}\label{sec:masking}
-
-The same primitive that powers stochastic attention admits a one-line extension to \emph{conditional} sampling. Let $\mathcal{S}\subseteq\{1,\dots,K\}$ index a subset of memories the user wishes to keep, and define $\mathbf{b}\in(\mathbb{R}\cup\{-\infty\})^{K}$ by $b_{k}=0$ for $k\in\mathcal{S}$ and $b_{k}=-\infty$ otherwise. Replacing the softmax in Algorithm~\ref{alg:stochastic-attention} with $\operatorname{softmax}(\beta\mathbf{X}^{\top}\boldsymbol{\xi}+\mathbf{b})$ yields the masked update
-\begin{equation}\label{eq:masked-sa}
-\boldsymbol{\xi}_{t+1}
-= (1-\alpha)\,\boldsymbol{\xi}_t
-  + \alpha\,\mathbf{X}\,\operatorname{softmax}\!\bigl(\beta\,\mathbf{X}^{\top}\boldsymbol{\xi}_t+\mathbf{b}\bigr)
-  + \sqrt{\tfrac{2\alpha}{\beta}}\;\boldsymbol{\epsilon}_t.
+We retain the name \emph{stochastic attention} for this transition kernel, not
+for the underlying probability law. At finite $\alpha$, ULA has discretization
+bias. MALA uses the same proposal mean
+\begin{equation}
+\boldsymbol\mu(\boldsymbol\xi)
+=(1-\alpha)\boldsymbol\xi
++\alpha\mathbf T_{\beta,\mathbf r}(\boldsymbol\xi)
 \end{equation}
-Because $b_{k}=-\infty$ exactly zeroes the softmax weight on out-of-set memories, the masked sampler is identical to running unmasked SA on the reduced memory matrix $\mathbf{X}_{\mathcal{S}}$ that retains only the columns indexed by $\mathcal{S}$. Consequently, the regularity guarantees above transfer verbatim with $\mathbf{X}$ replaced by $\mathbf{X}_{\mathcal{S}}$: the energy is smooth and confining, the gradient is Lipschitz with $L=1+\beta\sigma_{\max}(\mathbf{X}_{\mathcal{S}})^{2}/2$, and Corollary~\ref{cor:convergence} applies whenever $\beta\sigma_{\max}(\mathbf{X}_{\mathcal{S}})^{2}<2$. The same operation is the well-known causal mask of transformer attention, here repurposed from sequence-position masking to memory-subset selection: a single boolean vector turns SA into a class-conditional sampler with no retraining and no architectural change. A finite-bias generalization, $b_{k}\in\mathbb{R}$, recovers the Hopfield-multiplicity conditioning of Varner~\cite{varnerConditioningProtein2026}.
+and covariance $2\alpha\beta^{-1}\mathbf I$, but accepts a proposal
+$\boldsymbol\xi'$ using
+\begin{equation}
+\min\!\left\{1,
+\frac{p(\boldsymbol\xi')q(\boldsymbol\xi\mid\boldsymbol\xi')}
+{p(\boldsymbol\xi)q(\boldsymbol\xi'\mid\boldsymbol\xi)}\right\}.
+\label{eq:mala-acceptance}
+\end{equation}
+The proposal-density ratio is required because the Langevin mean depends on
+the current state. High acceptance alone does not establish mixing or agreement
+with the target. In the unconstrained model, both algorithms are more expensive
+than Algorithm~\ref{alg:exact-sampler} for independent endpoints. They remain
+useful diagnostics for discretization, warm-start dependence, and finite-time
+trajectories.
+
+\subsection{Responsibility concentration and temperature}
+
+For a fixed state, write $e_k=\mathbf m_k^\top\boldsymbol\xi$ and
+$a_k\propto r_k\exp(\beta e_k)$. The responsibility entropy
+$H=-\sum_k a_k\log a_k$ satisfies
+\begin{equation}
+\frac{dH}{d\beta}=-\beta\operatorname{Var}_{\mathbf a}(e)
+\label{eq:entropy-derivative}
+\end{equation}
+when $\mathbf r$ and $\boldsymbol\xi$ are held fixed. Entropy therefore
+decreases monotonically with inverse temperature for that query. The location
+of maximal entropy loss is a descriptive crossover of the responsibility
+vector, not a universal generation threshold and not an exact storage-capacity
+boundary. Empirical multipliers applied to such a crossover remain manual
+hyperparameters.
+
+Temperature also has a direct probabilistic interpretation:
+$\beta^{-1/2}$ is the component standard deviation. For unit-norm memories and
+an exact draw $\boldsymbol\xi=\mathbf m_k+\boldsymbol\epsilon$, high-dimensional
+norm concentration gives the approximation
+\begin{equation}
+1-\cos(\boldsymbol\xi,\mathbf m_k)
+\approx 1-\frac{1}{\sqrt{1+d/\beta}}.
+\label{eq:novelty-approximation}
+\end{equation}
+This approximation neglects the noise projection along $\mathbf m_k$ and
+assumes that the generating component remains the nearest memory. It is not an
+exact formula for novelty defined by a maximum over all $K$ memories.
+
+\subsection{Masking and multiplicity}
+
+Setting $r_k=0$ removes component $k$; positive multiplicities reweight
+components according to Eq.~\eqref{eq:exact-mixture}. Thus hard memory-subset
+conditioning and multiplicity bias preserve the exact sampler. They are useful
+controls over a memory-centered model, but they do not by themselves create a
+new distributional family that requires Langevin dynamics.
