@@ -18,12 +18,15 @@ not an external competitor at the matched bandwidth; it is the same probability
 model. Nearest-neighbor interpolation and perturbation are distinct local-memory
 baselines and are included in our reanalysis.
 
-ULA and MALA are standard tools for targets known only through an energy or
+ULA and MALA are standard tools for targets known through an energy or
 score~\cite{robertsTweedieExponentialConvergence1996,durmusNonasymptoticAnalysisUnadjusted2017}.
-They remain valid numerical approaches to the Hopfield target, but a Markov
-chain is unnecessary for independent endpoints once the mixture form is used.
-This differs from learned energy and score models, for which the density or its
-normalizer is generally unavailable
+Stochastic attention specializes these methods to attention-derived energies.
+The exact mixture form of the unmodified tied Hopfield target provides an
+unusual analytic reference against which its Langevin implementations can be
+checked. Once the energy is composed with a generic constraint or likelihood,
+however, that independent sampler generally disappears while the gradient-based
+construction remains. This is the usual situation for learned energy and score
+models, whose density or normalizer is unavailable
 \cite{lecunTutorialEnergyBased2006,songHowTrainEnergyBased2021,songScoreBasedGenerativeModeling2021}.
 
 Low-data generation also requires comparisons beyond a VAE with a fixed unit

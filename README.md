@@ -1,13 +1,17 @@
-# Modern Hopfield Energy as a Memory-Centered Gaussian Mixture
+# Stochastic Attention via Langevin Dynamics on the Modern Hopfield Energy
 
-This repository contains the code, data, and manuscript source for a revised
-study of sampling from the tied modern-Hopfield energy. The central correction
-is that the normalized Boltzmann density is an explicit finite isotropic
-Gaussian mixture centered on the stored memories. It can therefore be sampled
-exactly by drawing a component and adding Gaussian noise. Unadjusted Langevin
-(ULA) and Metropolis-adjusted Langevin (MALA) remain available as finite-time
-dynamics, but they are not required to obtain equilibrium samples from this
-base model.
+This repository contains the code, data, and manuscript source for stochastic
+attention: an energy-based sampling method that combines the modern Hopfield
+attention drift with Langevin noise. The construction also supports composite
+targets $E(x)+\lambda C(x)$, for which the added energy can encode a constraint,
+likelihood, or design objective.
+
+For the unmodified tied modern-Hopfield energy, the normalized Boltzmann density
+is additionally an explicit finite isotropic Gaussian mixture centered on the
+stored memories. Exact ancestral draws from this special case provide a
+ground-truth calibration for ULA and MALA. The GMM and Langevin formulations
+target the same base law; the stochastic-attention construction is more general
+because it continues to apply when an added energy destroys the mixture form.
 
 For memories `m_k`, inverse temperature `β`, and optional nonnegative
 multiplicities `r_k`, the exact component probabilities are proportional to
@@ -81,11 +85,11 @@ Building the manuscript requires `pdflatex` and `bibtex`. From
 ./Build.sh Paper_v1
 ```
 
-This produces `Paper_v1.pdf`. The revision derives the exact normalized law,
-identifies attention weights as posterior component responsibilities, validates
-the sampling implementations against an analytic target, reanalyzes the MNIST
-and protein endpoints, and narrows claims whose submitted evidence did not
-support model-quality or open-ended-generation conclusions.
+This produces `Paper_v1.pdf`. The revision presents stochastic attention and
+its constrained-energy extension first, retains the ULA/MALA theory and
+pseudocode, derives the exact base-model law, validates the sampling
+implementations against that analytic target, and reanalyzes the MNIST and
+protein endpoints.
 
 ## License
 

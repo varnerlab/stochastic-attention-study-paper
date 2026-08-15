@@ -1,47 +1,62 @@
-The central conclusion is a separation of model and algorithm. The tied
-modern-Hopfield energy defines a simple, normalized, memory-centered Gaussian
-mixture. Attention computes its component responsibilities, and the exact score
-is available analytically. ULA and MALA can explore this law, but neither is
-needed to produce independent equilibrium endpoints. Exact ancestral sampling
-is faster, unbiased, and provides the appropriate reference against which
-finite-step dynamics should be evaluated.
+The central conclusion is that stochastic attention and the exact Gaussian
+mixture occupy different levels of generality. Stochastic attention is the
+energy-based sampling construction: it applies whenever the target energy and
+its gradient can be evaluated. The GMM is an exact identity for the unmodified
+tied-key/value Hopfield target. In that special case, continuous Langevin
+dynamics, MALA, and exact ancestral sampling share the same target, while
+finite-step ULA approximates it. This equivalence gives stochastic attention a
+rare analytic test bed; it does not invalidate or supersede the sampling
+formulation.
 
-The reanalysis also narrows the empirical interpretation. Exact all-component
-draws reproduce the submitted MNIST endpoint statistics and the qualitative
-protein results. A bandwidth-matched KDE is the same model, and a local $k$NN
-perturbation is competitive on the reported diagnostics. These findings do not
-make the memory-centered distribution valueless: simple local distributions can
-be useful in small-data applications. They do show that the value belongs to
-the distribution, representation, decoder, and application-specific
-validation—not uniquely to Langevin dynamics.
+The constrained target $E+\lambda C$ makes the distinction operational. A
+differentiable $C$ can express observations, mechanistic penalties, fitness
+criteria, or products of experts without retraining the memory model. Such a
+tilt generally couples or reshapes the Gaussian components and no longer admits
+the base ancestral sampler, but the stochastic-attention and MALA updates only
+require adding $\lambda\nabla C$ to the drift. This provides the direct bridge
+from the present theory to application papers that use stochastic attention as
+a constrained sampler.
+
+The exact-mixture result also improves the empirical analysis. Exact
+all-component draws reproduce the submitted MNIST endpoint statistics and the
+qualitative protein results, showing that those equilibrium-level effects are
+properties of the memory energy and decoder rather than artifacts of one
+numerical integrator. Conversely, discrepancies among exact draws, warm-started
+ULA, and MALA reveal allocation, mixing, and discretization effects. The two
+sampling routes are therefore useful together: exact draws establish the base
+law, while Langevin trajectories expose finite-time behavior and extend to
+targets for which no exact route exists.
 
 \paragraph{Limitations.}
-The model has support around observed memories and should be described as local
-memory-supported generation rather than open-ended generation. At low
-$\beta$, the component variance grows and novelty or diversity can increase
+The exact GMM theorem assumes tied keys and values in a common state space, the
+quadratic Hopfield state term, and no generic external tilt. It does not imply
+that an arbitrary pretrained transformer head defines a conservative energy.
+The scoped multi-head construction in Appendix~\ref{app:multihead} uses an
+independent tied energy within each head and treats the output projection as
+deterministic postprocessing; it is not a claim about a joint Boltzmann law for
+arbitrary multi-head attention.
+
+The base model has support around observed memories and should be described as
+memory-supported generation. At low $\beta$, novelty and diversity can increase
 because samples become noisy. The MNIST experiments lack an external realism
-metric, and the protein statistics are computed against the same family used
-to construct the representation. The submitted VAE used a fixed latent prior;
-geometry-aware latent-density and iterative encode--decode baselines remain
-necessary for a complete learned-model comparison. The former DDPM comparison
-used an inadequately justified scale and compute protocol and is not retained
-as evidence of superiority. Hard masking and multiplicity remain exactly
-sampleable, and the tied-key/value derivation does not establish an integration
-with arbitrary pretrained multi-head attention.
+metric, and the protein statistics are computed against the same family used to
+construct the representation. A held-out or experimental functional assay is
+needed before making a protein-design claim. The submitted VAE used a fixed
+latent prior; geometry-aware latent-density baselines remain important. The
+former DDPM comparison used an inadequately justified scale and compute
+protocol and is not retained as evidence of superiority.
 
 Finite-step ULA has discretization bias, while MALA can mix slowly even when its
-acceptance is near one. Warm-started multi-chain endpoints may reflect the
+acceptance rate is high. Warm-started multi-chain endpoints can reflect the
 chosen initialization allocation rather than stationary component weights.
-The all-component exact law must therefore be reported first. Sequential use of
-a Markov chain also costs one or more $\mathcal O(dK)$ attention operations per
-step, whereas independent exact endpoints require only a precomputed
-categorical distribution and Gaussian noise.
+Exact base-target draws should therefore accompany ULA/MALA diagnostics whenever
+the GMM identity applies. For constrained targets where it does not, convergence
+must instead be assessed with multiple chains, step-size sensitivity, effective
+sample size, and application-specific validation.
 
-The natural next methodological question is not how to resample the same base
-mixture with a more elaborate chain. It is how to sample a target in which the
-memory prior is combined with an external constraint or likelihood. A general
-tilt $p_0(\boldsymbol\xi)\exp[-C(\boldsymbol\xi)]$, hard feasible set, or product
-of memory experts need not retain cheap ancestral sampling. In that setting,
-exact draws from $p_0$ can serve as global proposals while MALA, constrained
-Monte Carlo, or annealed methods handle the additional factor. Such constrained
-targets are future work and are not evidence for the claims evaluated here.
+Several extensions follow naturally: constrained stochastic attention with
+smooth biochemical or physical energies, hard-constraint variants using
+reflected or proximal dynamics, coupled multi-head energy models, and annealed
+or tempered transitions for multimodal targets. These are not repairs to a
+defective base method; they are the broader cases for which the sampling
+formulation was designed.

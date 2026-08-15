@@ -1,41 +1,57 @@
 Attention and modern Hopfield retrieval share a familiar computation: a query
 is mapped to a softmax-weighted average of stored vectors
-\cite{vaswaniAttentionAllYou2017,ramsauerHopfieldNetworksAll2021}. Adding
-calibrated Gaussian noise to the corresponding gradient update gives an
-unadjusted Langevin algorithm (ULA), which we previously described as
-\emph{stochastic attention}. That construction is mathematically valid as a
-numerical dynamics, but it leaves a more basic question unanswered: what is the
-probability distribution being sampled, and does it require a Markov chain?
+\cite{vaswaniAttentionAllYou2017,ramsauerHopfieldNetworksAll2021}. Stochastic
+attention turns this deterministic update into an energy-based sampler by
+adding the drift and noise prescribed by Langevin dynamics. The result uses the
+same primitives as attention, requires no learned score network, and produces a
+trajectory whose target is defined directly by the memory energy.
+The construction has since been used for low-data protein sequence generation,
+pattern-multiplicity conditioning, and synthetic coagulation trajectories
+\cite{varnerTrainingFreeProtein2026,varnerConditioningProtein2026,
+varnerSyntheticPatient2026}.
 
-For the standard tied-key/value modern Hopfield energy, the answer is simple.
-Completing the square shows that its Boltzmann law is a finite isotropic
-Gaussian mixture centered on the stored memories. Softmax attention gives the
-posterior responsibilities of those components, and the attention-minus-state
-vector is exactly the mixture score. An independent equilibrium endpoint is
-therefore available by ancestral sampling: choose a memory according to its
-analytic component weight and add Gaussian noise. When all memories are
-$\ell_2$-normalized, those weights are uniform. This exact representation means
-that ULA adds no distributional expressiveness to the unconstrained endpoint
-problem and that a finite-step, warm-started ULA output should not be conflated
-with an exact draw from the stationary law.
+This paper is intended as the theoretical basis for that construction. The
+central object is not one particular endpoint-sampling trick, but a general
+recipe: if attention supplies the gradient of an energy, Langevin dynamics can
+sample from the corresponding Boltzmann law. Moreover, an application-specific
+energy can be added to form
+\begin{equation}
+p_{\beta,\lambda}(\boldsymbol\xi)\propto
+\exp\{-\beta[E(\boldsymbol\xi)+\lambda C(\boldsymbol\xi)]\}.
+\end{equation}
+The additional term may encode an observation, soft physical constraint,
+fitness objective, or another energy expert. This is the regime in which the
+sampling formulation matters most: the composite target generally has no
+closed-form normalizer or direct ancestral sampler, but its gradient remains
+available.
 
-This correction changes the empirical question. The relevant object is a
-memory-centered density closely related to an isotropic Parzen estimator, not a
-general-purpose generator. Temperature sets the perturbation scale and controls
-how concentrated posterior responsibilities are around individual memories.
-Hard masking removes mixture components, while multiplicity biases reweight
-them; neither operation by itself requires Langevin sampling. Finite-time ULA
-or MALA can still be useful when trajectories, warm starts, or later constrained
-extensions are of interest, but exact ancestral draws are the reference for
-independent equilibrium endpoints.
+The tied-key/value modern Hopfield energy also has a useful special structure.
+Completing the square shows that its unmodified Boltzmann law is a finite
+isotropic Gaussian mixture centered on the stored memories. Softmax attention
+gives the posterior component responsibilities, and attention minus state is
+the exact mixture score. Consequently, the base model admits two complementary
+sampling routes: stochastic attention via Langevin dynamics and exact
+ancestral mixture sampling. They target the same distribution (up to the
+finite-step discretization error of ULA), so the exact sampler provides a rare
+ground-truth calibration for the more general energy-based method.
 
-This revision makes four contributions. First, we derive the normalized
-Gaussian-mixture law for arbitrary memory norms and multiplicities. Second, we
-identify attention weights with component responsibilities and derive the exact
-score. Third, we compare exact draws with ULA and MALA on a tractable target and
-reanalyze the submitted MNIST and protein experiments using all memory
-components. Fourth, we delimit the empirical scope: the reported novelty,
-diversity, energy, and protein statistics describe local memory-supported
-behavior; they do not by themselves demonstrate realism, functional validity,
-or superiority to learned generative models. This distinction between the
-probability model and algorithms used to explore it is the central result.
+This perspective strengthens rather than removes the original construction.
+The Gaussian-mixture identity is restricted to the unmodified tied
+key/value energy with its quadratic state term. Generic constraints, likelihood
+factors, coupled experts, and other energy modifications destroy the finite
+mixture form while leaving ULA or MALA applicable. Even in the base case,
+finite-time trajectories, warm-started conditional exploration, and sequential
+sampling are meaningful algorithmic objects distinct from independent
+equilibrium endpoints.
+
+We make five contributions. First, we derive stochastic attention from
+Langevin dynamics and state the constrained-energy generalization explicitly.
+Second, we give the ULA and MALA algorithms together with regularity and
+convergence results for the Hopfield potential. Third, we derive the exact
+Gaussian-mixture law for the base tied model, identify attention with posterior
+responsibility, and use exact draws to validate the samplers. Fourth, we retain
+the temperature, masking, finite-time trajectory, and scoped multi-head theory
+that downstream applications build upon. Fifth, we reanalyze the MNIST and
+protein experiments to separate properties of the target distribution from
+finite-time sampling effects and to state clearly what the reported geometric
+diagnostics do and do not establish.

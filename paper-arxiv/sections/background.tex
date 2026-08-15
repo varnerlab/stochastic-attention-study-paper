@@ -33,8 +33,8 @@ attention map itself. Deterministic retrieval applies the map in
 Eq.~\eqref{eq:hopfield-update}, or equivalently takes a unit gradient-descent
 step on Eq.~\eqref{eq:modern-hopfield-energy}.
 
-Given a target $p(\mathbf x)\propto\exp[-U(\mathbf x)]$, overdamped Langevin
-dynamics follows
+Given a differentiable, normalizable target
+$p(\mathbf x)\propto\exp[-U(\mathbf x)]$, overdamped Langevin dynamics follows
 \begin{equation}
 d\mathbf x_t=-\nabla U(\mathbf x_t)\,dt+\sqrt{2}\,d\mathbf B_t,
 \end{equation}
@@ -48,5 +48,7 @@ and ULA discretizes this process as
 ULA is generally biased at finite step size; MALA corrects its
 state-dependent Gaussian proposal with a Metropolis--Hastings ratio
 \cite{robertsTweedieExponentialConvergence1996,durmusNonasymptoticAnalysisUnadjusted2017}.
-Neither dynamics is necessary when the target itself admits a cheap independent
-sampler. We derive that sampler next.
+This gradient-based formulation is especially useful when $U$ is a sum of
+energies: gradients add even when normalization and independent sampling are
+intractable. We apply that principle to the Hopfield energy next, then derive a
+closed-form sampler for its unmodified tied-key/value special case.

@@ -40,6 +40,42 @@ q(\mathbf y\mid\mathbf x)
 =\mathcal N(\mathbf y;\boldsymbol\mu(\mathbf x),
 \sigma_q^2\mathbf I).
 \end{equation}
+For the constrained target, let
+$\ell(\mathbf x)=-\beta[E_{\beta,\mathbf r}(\mathbf x)+\lambda C(\mathbf x)]$
+denote its unnormalized log density and define
+$\boldsymbol\mu(\mathbf x)=
+\mathbf x+(\alpha/\beta)\nabla\ell(\mathbf x)$. The complete adjusted sampler
+is given in Algorithm~\ref{alg:mala}.
+
+\begin{algorithm}[ht]
+\caption{MALA Stochastic Attention Sampler}
+\label{alg:mala}
+\begin{algorithmic}[1]
+\REQUIRE Initial state $\boldsymbol\xi_0$, log target $\ell$, inverse
+temperature $\beta>0$, step size $\alpha>0$, iterations $T$
+\FOR{$t=0,\ldots,T-1$}
+\STATE $\boldsymbol\mu_t\leftarrow\boldsymbol\xi_t
++(\alpha/\beta)\nabla\ell(\boldsymbol\xi_t)$
+\STATE $\boldsymbol\epsilon_t\sim\mathcal N(\mathbf0,\mathbf I)$
+\STATE $\boldsymbol\xi^\star\leftarrow\boldsymbol\mu_t
++\sqrt{2\alpha/\beta}\,\boldsymbol\epsilon_t$
+\STATE $\boldsymbol\mu^\star\leftarrow\boldsymbol\xi^\star
++(\alpha/\beta)\nabla\ell(\boldsymbol\xi^\star)$
+\STATE $\log R\leftarrow\ell(\boldsymbol\xi^\star)-\ell(\boldsymbol\xi_t)
+-\frac{\beta}{4\alpha}\left(
+\lVert\boldsymbol\xi_t-\boldsymbol\mu^\star\rVert_2^2
+-\lVert\boldsymbol\xi^\star-\boldsymbol\mu_t\rVert_2^2\right)$
+\STATE $u_t\sim\operatorname{Uniform}(0,1)$
+\IF{$\log u_t<\min(0,\log R)$}
+\STATE $\boldsymbol\xi_{t+1}\leftarrow\boldsymbol\xi^\star$
+\ELSE
+\STATE $\boldsymbol\xi_{t+1}\leftarrow\boldsymbol\xi_t$
+\ENDIF
+\ENDFOR
+\RETURN $\boldsymbol\xi_0,\ldots,\boldsymbol\xi_T$
+\end{algorithmic}
+\end{algorithm}
+
 The log acceptance ratio is
 \begin{align}
 \log R
@@ -48,9 +84,11 @@ The log acceptance ratio is
 \left[\lVert\boldsymbol\xi-\boldsymbol\mu(\boldsymbol\xi')\rVert_2^2
 -\lVert\boldsymbol\xi'-\boldsymbol\mu(\boldsymbol\xi)\rVert_2^2\right].
 \end{align}
-The second line cannot generally be dropped. The implementation evaluates the
-normalized mixture log density directly and is tested against finite-difference
-scores.
+The second line cannot generally be dropped. For the base target, the
+implementation evaluates the normalized mixture log density directly and is
+tested against finite-difference scores. For a constrained target, its
+normalizing constant cancels in the acceptance ratio, so only the unnormalized
+energy and gradient are required.
 
 \section{Analytic Target Validation Details}
 \label{app:analytic-validation}
@@ -174,12 +212,10 @@ selection in the revised paper.
 
 We do not retain the submitted DDPM comparison as evidence: the unit-normalized
 data, forward-noise schedule, and training-compute comparison were not matched
-well enough to support a conclusion about diffusion models. We likewise remove
-the proposed multi-head extension because tied keys/values, per-head state
-spaces, and the output projection were not specified or tested. Financial and
-additional image examples may illustrate the same local-memory distribution,
-but they do not alter the exact-mixture result and are omitted from the revised
-empirical claim.
+well enough to support a conclusion about diffusion models. The additional
+image, protein, finance, and multi-head experiments are retained elsewhere in
+the appendix as finite-protocol evidence and scoped demonstrations, but they are
+not used to claim superiority over learned generators.
 
 \section{Code and Reproduction}
 \label{app:code}

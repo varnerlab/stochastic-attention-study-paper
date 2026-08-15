@@ -1,8 +1,8 @@
 \subsection{Evaluation scope}
 
-We reanalyze the submitted experiments to answer two narrower questions: whether
-the implementation agrees with the exact target, and what behavior belongs to
-the memory-centered distribution rather than to Langevin dynamics. Novelty is
+We reanalyze the submitted experiments to answer two questions: whether the
+implementation agrees with the exact base target, and which observations are
+equilibrium properties versus finite-time properties of the sampling dynamics. Novelty is
 one minus cosine similarity to the nearest memory, diversity is mean pairwise
 cosine distance, and energy is the model's own Hopfield energy. These are
 descriptive geometric diagnostics. Noise can increase novelty and diversity,
@@ -88,8 +88,10 @@ Gaussian-perturbation baseline was not matched: it used the one-step innovation
 scale $\sqrt{2\alpha/\beta}$, which is $7.07$ times narrower than the target
 component scale $\beta^{-1/2}$ at $\alpha=0.01$. A $k$NN interpolation followed
 by matched Gaussian noise also gives similar novelty, diversity, and energy.
-These results attribute the endpoints to local perturbation around memories,
-not to additional expressiveness created by a Langevin trajectory.
+These results establish that the base-target endpoints are local perturbations
+around memories and that ULA is sampling the intended law at the reported
+resolution. The Langevin formulation becomes strictly more general once an
+additional energy term is introduced.
 
 For a draw generated from unit memory $\mathbf m_k$, the approximation in
 Eq.~\eqref{eq:novelty-approximation} gives novelty 0.152 at $\beta=2000$ and
@@ -97,6 +99,34 @@ Eq.~\eqref{eq:novelty-approximation} gives novelty 0.152 at $\beta=2000$ and
 explains why novelty increases with component width; it does not establish that
 the wider, visibly noisy samples are higher quality. We therefore remove the
 previous comparisons claiming victory over a VAE or DDPM from these metrics.
+
+The submitted paired endpoint grids are restored in
+Figure~\ref{fig:mnist-baselines}. They remain useful for seeing what the
+finite-time kernels actually produced: both ULA and MALA preserve the seed's
+digit identity while adding a visibly textured perturbation. The figure does
+not by itself diagnose equilibrium mixing or establish superiority to a
+learned image model.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.30\textwidth]{figs/Fig_mnist_pairs_warmstart.pdf}%
+\hfill
+\includegraphics[width=0.30\textwidth]{figs/Fig_mnist_pairs_sa.pdf}%
+\hfill
+\includegraphics[width=0.30\textwidth]{figs/Fig_mnist_pairs_mala.pdf}
+
+\small
+\makebox[0.30\textwidth]{\centering (a) Warm-start memories}%
+\hfill
+\makebox[0.30\textwidth]{\centering (b) ULA endpoints}%
+\hfill
+\makebox[0.30\textwidth]{\centering (c) MALA endpoints}
+\caption{Paired MNIST digit-3 grids at $\beta=2000$. Cell $(i,j)$ in all three
+panels shares the same warm-start and seed. The visual similarity of ULA and
+MALA endpoints is a finite-protocol observation; acceptance rate and visual
+agreement alone do not establish mixing or absence of ULA bias.}
+\label{fig:mnist-baselines}
+\end{figure}
 
 \subsection{Protein endpoint reanalysis}
 
@@ -130,15 +160,15 @@ $k$NN interpolation + matched noise & 0.0573 & 3.1728 & 0.8488 & 100\% & 0.532 &
 \end{tabular}
 \end{table}
 
-Exact sampling reproduces the qualitative temperature dependence and the
-headline in-sample statistics without a Langevin chain; the local $k$NN
-baseline performs similarly. At $\beta=8$, perturbations are large relative to
+Exact and Langevin sampling reproduce the same qualitative temperature
+dependence and headline in-sample statistics for the base target; the local
+$k$NN baseline also performs similarly. At $\beta=8$, perturbations are large relative to
 a unit-norm memory. Inverse PCA restores the empirical family mean, and the
 per-position argmax decoder therefore favors consensus residues at conserved
 positions while remaining sensitive to perturbations at variable positions.
 The improved composition statistics at wider component variance belong to this
-mixture-plus-decoder pipeline. They are not evidence that a Langevin trajectory
-learns co-evolutionary constraints. A held-out sequence split or external
+energy-plus-decoder pipeline. They do not by themselves show that the target
+encodes generalizable co-evolutionary constraints. A held-out sequence split or external
 functional measurements are required for a generalization claim.
 
 \subsection{Reinterpretation of masking}
@@ -147,6 +177,33 @@ The submitted Olivetti experiment reported 96.0\% subject recovery after
 masking all memories outside the requested subject, compared with 10.4\%
 without the mask. Equation~\eqref{eq:exact-mixture} makes the mechanism
 explicit: setting off-subject multiplicities to zero restricts the categorical
-support to that subject. The result is a useful memory-subset operation but not
-evidence for a general classifier-free conditional generator, and the same
-masked target can be sampled exactly without a trajectory.
+support to that subject. This is a useful memory-subset operation implemented
+directly inside stochastic attention. For the base tied target it also retains
+an exact mixture representation; more general state-dependent conditioning can
+instead be expressed through $C$ in Eq.~\eqref{eq:constrained-target}.
+
+Figure~\ref{fig:olivetti} restores the paired Olivetti visualization. It is
+retained as an illustration of support restriction and finite-time drift, not
+as evidence that masking creates a new conditional generative model.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.30\textwidth]{figs/Fig_olivetti_stored_v2.pdf}%
+\hfill
+\includegraphics[width=0.30\textwidth]{figs/Fig_olivetti_masked_v2.pdf}%
+\hfill
+\includegraphics[width=0.30\textwidth]{figs/Fig_olivetti_unconditional_v2.pdf}
+
+\small
+\makebox[0.30\textwidth]{\centering (a) Stored memories}%
+\hfill
+\makebox[0.30\textwidth]{\centering (b) Hard-masked ULA}%
+\hfill
+\makebox[0.30\textwidth]{\centering (c) Unconditional ULA}
+\caption{Paired Olivetti endpoints. Each row uses warm starts from one subject.
+Hard masking removes all off-subject mixture components, whereas the
+unconditional finite-time kernel can move among subjects. The reported subject
+recovery is $96.0\%$ with the mask and $10.4\%$ without it; the mechanism is
+explicit support restriction.}
+\label{fig:olivetti}
+\end{figure}

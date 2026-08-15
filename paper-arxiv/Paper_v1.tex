@@ -75,8 +75,7 @@
 \newtheorem{remark}[theorem]{Remark}
 
 % Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
-\title{Modern Hopfield Energy as a Memory-Centered Gaussian Mixture:\\
-Exact Sampling, Attention, and Low-Data Applications}
+\title{Stochastic Attention via Langevin Dynamics on the Modern Hopfield Energy}
 
 
 % The \author macro works with any number of authors. There are two commands
@@ -101,29 +100,27 @@ Exact Sampling, Attention, and Low-Data Applications}
 \maketitle
 
 \begin{abstract}
-The Boltzmann distribution associated with the tied-key/value modern Hopfield
-energy is an explicit finite Gaussian mixture: its component means are the
-stored memories, its isotropic component variance is the inverse temperature,
-and its mixture weights are determined by memory norms and optional
-multiplicities. Consequently, independent equilibrium samples require only a
-categorical draw followed by a Gaussian draw; Langevin dynamics is not needed
-for this base endpoint-sampling problem. We derive the exact density, identify
-softmax attention weights as posterior component responsibilities, and show
-that the familiar attention-minus-state expression is the exact mixture score.
-This interpretation also clarifies that hard memory masks and multiplicity
-biases change mixture support or weights without destroying exact sampling. We
-then reanalyze the experiments previously used to motivate stochastic
-attention. On MNIST, all-component exact samples reproduce the reported
-finite-step Langevin novelty, diversity, and energy statistics at both studied
-temperatures. On a small protein family, exact samples reproduce the same
-qualitative composition and pairwise-statistic behavior after nonlinear
-inverse-PCA decoding; a matched local-neighbor perturbation performs similarly.
-These diagnostics characterize a memory-centered local model, not a general
-open-ended generator, and novelty or diversity alone do not establish sample
-quality. We retain ULA and MALA as optional finite-time dynamics and validate
-them against the exact law on a tractable target. The resulting separation
-between probability model and sampling algorithm gives a simpler and more
-accurate account of what modern Hopfield energy provides in low-data settings.
+We introduce stochastic attention as Langevin sampling driven by the modern
+Hopfield energy: each update combines a softmax attention operation, a
+contractive state term, and thermally calibrated Gaussian noise. Because the
+construction requires only energy gradients, it extends directly to targets of
+the form $\exp\{-\beta[E(\boldsymbol\xi)+\lambda C(\boldsymbol\xi)]\}$, where
+$C$ represents a differentiable constraint, likelihood, or design objective.
+For the unmodified tied-key/value Hopfield energy, we additionally prove that
+the Boltzmann law is an explicit finite isotropic Gaussian mixture centered on
+the stored memories. In this special case, softmax attention weights are
+posterior component responsibilities, attention minus state is the exact score,
+and an ancestral Gaussian-mixture sampler provides independent reference
+draws. Thus Langevin stochastic attention and the exact sampler describe the
+same base target, while the Langevin construction applies beyond the special
+case in which the mixture representation survives. We restore the full ULA and
+MALA algorithms, regularity and convergence results, temperature analysis,
+masking, multi-head formulation, and finite-time trajectory experiments. Exact
+draws reproduce the reported endpoint statistics on MNIST and a small protein
+family and expose warm-start and discretization effects. These results sharpen
+the empirical claims without demoting the sampling method: the Gaussian
+mixture is an exact calibration case, whereas stochastic attention is the
+general energy-based mechanism used by the downstream applications.
 \end{abstract}
 
 
@@ -163,5 +160,6 @@ accurate account of what modern Hopfield energy provides in low-data settings.
 \renewcommand{\thefigure}{S\arabic{figure}}
 \renewcommand{\thetable}{S\arabic{table}}
 \input{sections/appendix.tex}
+\input{sections/appendix-restored.tex}
 
 \end{document}
