@@ -1,54 +1,98 @@
-Let $\mathbf{X}=[\mathbf{m}_1,\ldots,\mathbf{m}_K]\in\mathbb{R}^{d\times K}$
-store $K$ memory vectors. The tied-key/value modern Hopfield retrieval map is
-\begin{equation}
-\mathbf{T}_{\beta,\mathbf r}(\boldsymbol{\xi})
-=\mathbf{X}\,\operatorname{softmax}\!\left(
-\beta\mathbf{X}^{\top}\boldsymbol{\xi}+\log\mathbf r\right),
-\label{eq:hopfield-update}
-\end{equation}
-where $\beta>0$ and $\mathbf r\in\mathbb{R}_{\geq0}^{K}$ contains optional
-component multiplicities. A zero entry is interpreted as a hard mask. With
-equal multiplicities this is the continuous modern Hopfield update of Ramsauer
-et al.~\cite{ramsauerHopfieldNetworksAll2021}. It also has the algebraic form of
-single-query dot-product attention when keys and values are tied. This tied
-construction is narrower than a general transformer head, which may have
-different key and value vectors and an output projection.
+% background.tex -- Methodological foundations
 
-Ignoring additive constants, the associated energy is
+\subsection{Attention, Hopfield energy, and Langevin dynamics}
+
+The construction requires one specific connection between attention and
+associative memory. A transformer computes scaled dot-product attention from
+queries $\mathbf Q$, keys $\mathbf K$, and values $\mathbf V$ as follows:
 \begin{equation}
-E_{\beta,\mathbf r}(\boldsymbol{\xi})
-=\frac12\lVert\boldsymbol{\xi}\rVert_2^2
+\operatorname{Attention}(\mathbf Q,\mathbf K,\mathbf V)
+=\operatorname{softmax}\!\left(
+\frac{\mathbf Q\mathbf K^\top}{\sqrt d}\right)\mathbf V.
+\label{eq:sdp-attention}
+\end{equation}
+The softmax is applied row-wise, so each output row is a deterministic convex
+combination of value vectors. We focus on the tied-key/value case in which the
+state, keys, and values share a common space; a general transformer may instead
+use distinct projections, residual streams, and output maps. The
+associative-memory interpretation begins with the classical Hopfield network
+\cite{hopfieldNeuralNetworksPhysical1982}. For binary states
+$\mathbf s\in\{-1,+1\}^d$, its quadratic energy is:
+\begin{equation}
+E_{\mathrm{classical}}(\mathbf s)
+=-\tfrac12\mathbf s^\top\mathbf W\mathbf s-\mathbf b^\top\mathbf s,
+\qquad
+\mathbf W=\frac1d\sum_{k=1}^K\mathbf m_k\mathbf m_k^\top.
+\label{eq:classical-hopfield}
+\end{equation}
+Coordinate-wise sign updates descend this energy, but its storage capacity is
+linear in the state dimension \cite{amitStoringInfiniteNumbers1985}. Modern
+Hopfield networks replace the quadratic memory interaction with a log-sum-exp
+term \cite{ramsauerHopfieldNetworksAll2021}, giving the continuous energy used
+below.
+
+Let $\mathbf X=[\mathbf m_1,\ldots,\mathbf m_K]\in\mathbb R^{d\times K}$
+store the memory vectors, let $\beta>0$ be the inverse temperature, and let
+$\mathbf r\in\mathbb R_{\geq0}^K$ contain optional component multiplicities
+with $R=\sum_k r_k>0$. We interpret $\log 0=-\infty$, so a zero multiplicity
+acts as a hard mask. The retrieval map, associated modern Hopfield energy, and
+its gradient are:
+\begin{align}
+\mathbf T_{\beta,\mathbf r}(\boldsymbol\xi)
+&=\mathbf X\operatorname{softmax}\!\left(
+\beta\mathbf X^\top\boldsymbol\xi+\log\mathbf r\right),
+\label{eq:hopfield-update}\\
+E_{\beta,\mathbf r}(\boldsymbol\xi)
+&=\frac12\lVert\boldsymbol\xi\rVert_2^2
 -\frac1\beta\log\sum_{k=1}^K
-r_k\exp\!\left(\beta\mathbf m_k^\top\boldsymbol{\xi}\right).
-\label{eq:modern-hopfield-energy}
-\end{equation}
-Its gradient is
-\begin{equation}
-\nabla E_{\beta,\mathbf r}(\boldsymbol{\xi})
-=\boldsymbol{\xi}-\mathbf{T}_{\beta,\mathbf r}(\boldsymbol{\xi}).
+r_k\exp\!\left(\beta\mathbf m_k^\top\boldsymbol\xi\right),
+\label{eq:modern-hopfield-energy}\\
+\nabla E_{\beta,\mathbf r}(\boldsymbol\xi)
+&=\boldsymbol\xi-\mathbf T_{\beta,\mathbf r}(\boldsymbol\xi).
 \label{eq:energy-gradient}
+\end{align}
+Equal multiplicities recover the standard continuous modern Hopfield update.
+For a single query with tied keys and values, the first line has the same
+algebraic form as dot-product attention at the corresponding temperature. The
+last line is the key identity for sampling: the attention output supplies the
+nontrivial part of the energy gradient, while the state supplies the identity
+term. The energy is also confining. If
+$M=\max_k\lVert\mathbf m_k\rVert_2$, the log-sum-exp inequality gives the
+following lower bound:
+\begin{equation}
+E_{\beta,\mathbf r}(\boldsymbol\xi)
+\geq \frac12\lVert\boldsymbol\xi\rVert_2^2
+-M\lVert\boldsymbol\xi\rVert_2-\frac1\beta\log R.
+\label{eq:energy-lower-bound}
 \end{equation}
-Thus the gradient is the identity minus the attention map; it is not the
-attention map itself. Deterministic retrieval applies the map in
-Eq.~\eqref{eq:hopfield-update}, or equivalently takes a unit gradient-descent
-step on Eq.~\eqref{eq:modern-hopfield-energy}.
+The quadratic term dominates as the state norm grows, so the corresponding
+Boltzmann density is normalizable. Proposition~\ref{prop:regularity} states the
+regularity and dissipativity bounds used later, and
+Appendix~\ref{app:proof-regularity} gives the proof.
 
-Given a differentiable, normalizable target
-$p(\mathbf x)\propto\exp[-U(\mathbf x)]$, overdamped Langevin dynamics follows
-\begin{equation}
-d\mathbf x_t=-\nabla U(\mathbf x_t)\,dt+\sqrt{2}\,d\mathbf B_t,
-\end{equation}
-and ULA discretizes this process as
-\begin{equation}
-\mathbf x_{t+1}=\mathbf x_t-\eta\nabla U(\mathbf x_t)
+The Hopfield energy can therefore serve directly as a sampling target. For a
+differentiable, normalizable density proportional to the exponential of a
+negative potential, overdamped Langevin dynamics and its unadjusted discrete
+approximation are:
+\begin{align}
+d\mathbf x_t
+&=-\nabla U(\mathbf x_t)\,dt+\sqrt2\,d\mathbf B_t,
+\label{eq:langevin-sde}\\
+\mathbf x_{t+1}
+&=\mathbf x_t-\eta\nabla U(\mathbf x_t)
 +\sqrt{2\eta}\,\boldsymbol\epsilon_t,
-\qquad \boldsymbol\epsilon_t\sim\mathcal N(\mathbf0,\mathbf I).
+\qquad
+\boldsymbol\epsilon_t\sim\mathcal N(\mathbf0,\mathbf I).
 \label{eq:ula}
-\end{equation}
-ULA is generally biased at finite step size; MALA corrects its
-state-dependent Gaussian proposal with a Metropolis--Hastings ratio
-\cite{robertsTweedieExponentialConvergence1996,durmusNonasymptoticAnalysisUnadjusted2017}.
-This gradient-based formulation is especially useful when $U$ is a sum of
-energies: gradients add even when normalization and independent sampling are
-intractable. We apply that principle to the Hopfield energy next, then derive a
-closed-form sampler for its unmodified tied-key/value special case.
+\end{align}
+Here $\mathbf B_t$ is standard Brownian motion and $\eta>0$ is the integration
+step. Under standard regularity and recurrence conditions, the continuous
+process has the desired stationary density
+\cite{robertsTweedieExponentialConvergence1996}. The finite-step unadjusted
+chain is generally biased, although its error vanishes with the step size under
+suitable assumptions \cite{durmusNonasymptoticAnalysisUnadjusted2017}. A
+Metropolis accept-reject step removes this discretization bias. Together, the
+attention-gradient identity and Langevin construction define stochastic
+attention: the general method samples from a Hopfield energy modified by an
+optional application-specific term, while the unmodified Hopfield target is an
+important special case that also admits exact sampling from a Gaussian mixture.

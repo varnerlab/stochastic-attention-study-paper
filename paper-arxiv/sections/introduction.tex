@@ -1,57 +1,69 @@
-Attention and modern Hopfield retrieval share a familiar computation: a query
-is mapped to a softmax-weighted average of stored vectors
-\cite{vaswaniAttentionAllYou2017,ramsauerHopfieldNetworksAll2021}. Stochastic
-attention turns this deterministic update into an energy-based sampler by
-adding the drift and noise prescribed by Langevin dynamics. The result uses the
-same primitives as attention, requires no learned score network, and produces a
-trajectory whose target is defined directly by the memory energy.
-The construction has since been used for low-data protein sequence generation,
-pattern-multiplicity conditioning, and synthetic coagulation trajectories
-\cite{varnerTrainingFreeProtein2026,varnerConditioningProtein2026,
-varnerSyntheticPatient2026}.
+% introduction.tex -- Introduction
 
-This paper is intended as the theoretical basis for that construction. The
-central object is not one particular endpoint-sampling trick, but a general
-recipe: if attention supplies the gradient of an energy, Langevin dynamics can
-sample from the corresponding Boltzmann law. Moreover, an application-specific
-energy can be added to form
-\begin{equation}
-p_{\beta,\lambda}(\boldsymbol\xi)\propto
-\exp\{-\beta[E(\boldsymbol\xi)+\lambda C(\boldsymbol\xi)]\}.
-\end{equation}
-The additional term may encode an observation, soft physical constraint,
-fitness objective, or another energy expert. This is the regime in which the
-sampling formulation matters most: the composite target generally has no
-closed-form normalizer or direct ancestral sampler, but its gradient remains
-available.
+Attention is a central computational primitive of modern deep learning
+\cite{vaswaniAttentionAllYou2017}. Given a query, it computes a
+softmax-weighted average of stored values, a powerful but deterministic
+operation. The same query and memory produce the same output, so attention
+retrieves but does not by itself define a sampling procedure. Yet sampling from
+a structured memory is useful in many downstream tasks: producing local
+variants of stored prototypes, interpolating among related patterns, or
+exploring states consistent with partial evidence. This need is especially
+clear in low-data settings such as small protein families, rare-event
+catalogues, and specialized image collections. These memory banks may contain
+too few examples to train a reliable score network, but enough examples to
+define a structured energy landscape. We therefore ask whether the attention
+operation itself can supply the drift of a principled sampler over that
+landscape.
 
-The tied-key/value modern Hopfield energy also has a useful special structure.
-Completing the square shows that its unmodified Boltzmann law is a finite
-isotropic Gaussian mixture centered on the stored memories. Softmax attention
-gives the posterior component responsibilities, and attention minus state is
-the exact mixture score. Consequently, the base model admits two complementary
-sampling routes: stochastic attention via Langevin dynamics and exact
-ancestral mixture sampling. They target the same distribution (up to the
-finite-step discretization error of ULA), so the exact sampler provides a rare
-ground-truth calibration for the more general energy-based method.
+Two established ideas suggest such a construction. Modern Hopfield networks
+\cite{ramsauerHopfieldNetworksAll2021}, building on classical associative
+memory \cite{hopfieldNeuralNetworksPhysical1982} and dense associative memories
+\cite{krotovDenseAssociativeMemory2016,krotovLargeAssociativeMemory2021}, show
+that tied-key/value attention is related to descent on a smooth, confining
+energy. Langevin dynamics
+\cite{robertsTweedieExponentialConvergence1996,wellingBayesianLearningStochastic2011,durmusNonasymptoticAnalysisUnadjusted2017}
+turns a differentiable, normalizable energy into a sampler for its Boltzmann
+distribution by adding calibrated noise to the gradient flow. Energy-based
+models \cite{lecunTutorialEnergyBased2006,songHowTrainEnergyBased2021} and
+score-based diffusion methods
+\cite{songGenerativeModelingEstimating2019,songScoreBasedGenerativeModeling2021}
+use related dynamics, but normally represent the score with a learned model.
+The classical retrieval-generation duality, in which Hopfield networks retrieve
+and Boltzmann machines sample
+\cite{ackleyLearningAlgorithmBoltzmann1985}, motivates the corresponding
+continuous construction for the modern Hopfield energy.
 
-This perspective strengthens rather than removes the original construction.
-The Gaussian-mixture identity is restricted to the unmodified tied
-key/value energy with its quadratic state term. Generic constraints, likelihood
-factors, coupled experts, and other energy modifications destroy the finite
-mixture form while leaving ULA or MALA applicable. Even in the base case,
-finite-time trajectories, warm-started conditional exploration, and sequential
-sampling are meaningful algorithmic objects distinct from independent
-equilibrium endpoints.
-
-We make five contributions. First, we derive stochastic attention from
-Langevin dynamics and state the constrained-energy generalization explicitly.
-Second, we give the ULA and MALA algorithms together with regularity and
-convergence results for the Hopfield potential. Third, we derive the exact
-Gaussian-mixture law for the base tied model, identify attention with posterior
-responsibility, and use exact draws to validate the samplers. Fourth, we retain
-the temperature, masking, finite-time trajectory, and scoped multi-head theory
-that downstream applications build upon. Fifth, we reanalyze the MNIST and
-protein experiments to separate properties of the target distribution from
-finite-time sampling effects and to state clearly what the reported geometric
-diagnostics do and do not establish.
+In this study, we develop what we call \emph{stochastic attention}. Applying
+Langevin dynamics to the modern Hopfield energy produces an update with three parts: a
+contraction of the current state, a softmax attention pull toward the stored
+memories, and thermally calibrated Gaussian noise. The resulting trajectory
+uses an analytic score and requires no learned score network or training loop.
+Each step has the same asymptotic cost as tied single-query attention. The
+construction does not apply to every transformer layer without modification:
+the keys and values must occupy a common state space and define the scalar
+energy used by the sampler.
+The unmodified tied-key/value model also has a useful exact representation. Its
+normalized Boltzmann distribution is an isotropic Gaussian mixture centered on
+the memories. The attention weights are posterior component responsibilities,
+and attention minus the current state gives the mixture score. Exact ancestral
+sampling and continuous-time Langevin dynamics therefore describe the same
+base distribution. Exact sampling is the efficient choice when the goal is an
+independent endpoint from this base model, whereas a finite-step Langevin chain
+exposes trajectory, initialization, and discretization effects. More
+importantly, the mixture identity is a special case rather than the definition
+of stochastic attention. Adding a differentiable observation, physical
+penalty, likelihood, or design energy generally removes the direct ancestral
+sampler, while its gradient can still be included in the stochastic-attention
+drift.
+We develop both levels of the construction. We give the complete
+sampling pseudocode, regularity analysis, temperature diagnostics, masking
+operation, finite-time trajectories, and a scoped multi-head extension. We
+derive the exact Gaussian-mixture law for the base target and use independent
+draws to calibrate the Langevin implementation. The responsibility-entropy
+analysis gives a data-dependent description of attention concentration, rather
+than a universal phase or quality threshold. Finally, we evaluate the method on
+synthetic memories, handwritten digits, protein sequences, faces, and
+financial returns. These experiments distinguish properties of the
+memory-centered target from effects of numerical dynamics and decoding. In
+particular, the protein study measures in-sample family statistics and does not
+establish folding, function, or held-out generalization.

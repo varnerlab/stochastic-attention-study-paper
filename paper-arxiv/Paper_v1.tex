@@ -60,10 +60,15 @@
 \usepackage{amsmath,amssymb,amsthm} % math
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage[section]{placeins}
 
-\setcounter{topnumber}{1}        % at most 1 float at the top of each page
-\setcounter{bottomnumber}{1}     % at most 1 float at the bottom of each page
-\renewcommand{\topfraction}{0.5}  % a top float may occupy at most 50% of the page
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.70}
+\renewcommand{\textfraction}{0.10}
+\renewcommand{\floatpagefraction}{0.70}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -100,27 +105,30 @@
 \maketitle
 
 \begin{abstract}
-We introduce stochastic attention as Langevin sampling driven by the modern
-Hopfield energy: each update combines a softmax attention operation, a
-contractive state term, and thermally calibrated Gaussian noise. Because the
-construction requires only energy gradients, it extends directly to targets of
-the form $\exp\{-\beta[E(\boldsymbol\xi)+\lambda C(\boldsymbol\xi)]\}$, where
-$C$ represents a differentiable constraint, likelihood, or design objective.
-For the unmodified tied-key/value Hopfield energy, we additionally prove that
-the Boltzmann law is an explicit finite isotropic Gaussian mixture centered on
-the stored memories. In this special case, softmax attention weights are
-posterior component responsibilities, attention minus state is the exact score,
-and an ancestral Gaussian-mixture sampler provides independent reference
-draws. Thus Langevin stochastic attention and the exact sampler describe the
-same base target, while the Langevin construction applies beyond the special
-case in which the mixture representation survives. We restore the full ULA and
-MALA algorithms, regularity and convergence results, temperature analysis,
-masking, multi-head formulation, and finite-time trajectory experiments. Exact
-draws reproduce the reported endpoint statistics on MNIST and a small protein
-family and expose warm-start and discretization effects. These results sharpen
-the empirical claims without demoting the sampling method: the Gaussian
-mixture is an exact calibration case, whereas stochastic attention is the
-general energy-based mechanism used by the downstream applications.
+Attention retrieves a softmax-weighted average from stored values. We develop
+stochastic attention, which applies Langevin dynamics to the modern Hopfield
+energy so that the same attention operation supplies an analytic sampling
+drift. Each update combines state contraction, a softmax pull toward stored
+memories, and thermally calibrated Gaussian noise. The construction requires no
+learned score network and extends to proper targets that add a weighted,
+differentiable observation, penalty, likelihood, or design energy to the
+Hopfield energy. We also
+derive an exact special case: the unmodified tied-key/value Hopfield Boltzmann
+law is an isotropic Gaussian mixture centered on the memories. Softmax weights
+are its posterior component responsibilities, attention minus state is its
+score, and ancestral sampling gives independent base-target draws. Thus exact
+sampling and continuous-time Langevin dynamics implement the same base law,
+while finite-step unadjusted Langevin dynamics approximates it and applies to
+more general constrained energies. We give the complete sampling algorithms,
+regularity analysis, responsibility-entropy criterion, masking construction,
+finite-time trajectories, and multi-domain experiments. Exact draws were close
+to the reported Langevin endpoint summaries on MNIST and a small protein
+family, showing which observations belonged to the target and decoder rather
+than to one integrator. The protein analysis supported in-sample family
+statistics but not folding, function, or held-out generalization. The result is
+a calibrated theory of stochastic attention in which an analytically tractable
+mixture is the base case and gradient-based sampling is the general
+construction.
 \end{abstract}
 
 
@@ -130,13 +138,11 @@ general energy-based mechanism used by the downstream applications.
 \section{Related Work}
 \input{sections/relatedwork.tex}
 
-\section{Background}
+\section{Methods}
 \input{sections/background.tex}
-
-\section{Method}
 \input{sections/method.tex}
 
-\section{Experiments}
+\section{Results}
 \input{sections/experiments.tex}
 
 \section{Discussion and Conclusion}

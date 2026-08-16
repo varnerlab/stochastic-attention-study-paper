@@ -1,17 +1,13 @@
 % method.tex -- Stochastic Attention via Langevin Dynamics on the Hopfield Energy
 
-The preceding section established that tied-key/value attention is the negative
-gradient term of a modern Hopfield energy, and that Langevin dynamics turns a
-differentiable energy into a sampler. We now combine these facts to define
-stochastic attention. The construction is stated first for a general energy
-tilt; the exact Gaussian-mixture representation of the unmodified Hopfield
-target is then derived as an important special case.
-
 \subsection{Stochastic attention for energy-based targets}
 
 Let $C:\mathbb R^d\rightarrow\mathbb R$ be a differentiable constraint,
 penalty, negative log-likelihood, or other application-specific energy, and let
-$\lambda\geq0$. We define the constrained stochastic-attention target
+$\lambda\geq0$. We assume that the combined energy is bounded below strongly
+enough to define a normalizable density and that its gradient satisfies the
+regularity conditions required by the selected Langevin integrator. The
+constrained stochastic-attention target is defined as follows:
 \begin{equation}
 p_{\beta,\lambda}(\boldsymbol\xi)
 \propto \exp\!\left\{-\beta\left[
@@ -19,12 +15,13 @@ E_{\beta,\mathbf r}(\boldsymbol\xi)+\lambda C(\boldsymbol\xi)
 \right]\right\}.
 \label{eq:constrained-target}
 \end{equation}
-The original stochastic-attention model is the case $\lambda=0$. Applying ULA
+The base stochastic-attention model is the case $\lambda=0$. Applying the
+unadjusted Langevin algorithm
 to the potential $U_{\beta,\lambda}=\beta(E_{\beta,\mathbf r}+\lambda C)$
-with integration step $\eta=\alpha/\beta$ gives
+with integration step $\eta=\alpha/\beta$ gives the update:
 \begin{align}
 \boldsymbol\xi_{t+1}
-={}&\boldsymbol\xi_t-alpha\left[
+={}&\boldsymbol\xi_t-\alpha\left[
 \boldsymbol\xi_t-\mathbf T_{\beta,\mathbf r}(\boldsymbol\xi_t)
 +\lambda\nabla C(\boldsymbol\xi_t)\right]
 +\sqrt{\frac{2\alpha}{\beta}}\,\boldsymbol\epsilon_t,
@@ -43,13 +40,14 @@ energy gradients and therefore remains applicable when the normalizing
 constant and an independent sampler are unavailable. Each base attention step
 costs $\mathcal O(dK)$, plus the cost of evaluating $\nabla C$.
 
-\begin{algorithm}[t]
+\begin{algorithm}[H]
 \caption{Stochastic Attention Sampler (ULA)}
 \label{alg:stochastic-attention}
 \begin{algorithmic}[1]
 \REQUIRE Memories $\mathbf X$, inverse temperature $\beta>0$, multiplicities
-$\mathbf r\geq\mathbf0$, step size $\alpha>0$, iterations $T$, initial state
-$\boldsymbol\xi_0$, differentiable energy $C$, weight $\lambda\geq0$
+$\mathbf r\geq\mathbf0$ with $\sum_k r_k>0$, step size $\alpha>0$, iterations
+$T$, initial state $\boldsymbol\xi_0$, differentiable energy $C$, weight
+$\lambda\geq0$, and a proper target in Eq.~\eqref{eq:constrained-target}
 \FOR{$t=0,\ldots,T-1$}
 \STATE $\mathbf a_t\leftarrow
 \operatorname{softmax}(\beta\mathbf X^\top\boldsymbol\xi_t+\log\mathbf r)$
@@ -63,10 +61,10 @@ $\boldsymbol\xi_0$, differentiable energy $C$, weight $\lambda\geq0$
 \end{algorithmic}
 \end{algorithm}
 
-Algorithm~\ref{alg:stochastic-attention} is intentionally the primary
-algorithm. Setting $C\equiv0$ recovers the submitted sampler exactly. Smooth
-observations, physical penalties, design objectives, and products of energy
-experts can be introduced through $C$. Hard feasible sets require a
+Algorithm~\ref{alg:stochastic-attention} is the general stochastic-attention
+sampler. Setting $C\equiv0$ gives the base sampler. Smooth observations,
+physical penalties, design objectives, and products of energy experts can be
+introduced through $C$. Hard feasible sets require a
 constraint-aware variant such as reflected, projected, or proximal Langevin
 dynamics; Eq.~\eqref{eq:constrained-target} does not by itself justify applying
 an ordinary gradient step to a discontinuous indicator.
@@ -77,19 +75,23 @@ Several familiar regimes are recovered directly from
 Eq.~\eqref{eq:stochastic-attention}. With $\lambda=0$ and the noise suppressed,
 the method is relaxed deterministic attention; setting $\alpha=1$ recovers the
 standard Hopfield retrieval map. As $\beta\rightarrow\infty$, a unique maximum
-logit yields hard nearest-memory attention. At finite $\beta$, the calibrated
-noise produces stochastic attention. For unit-scale deterministic displacement,
-the heuristic ratio of a step-$\alpha$ drift to the root-mean-square norm of
-the $d$-dimensional noise increment is
+logit selects the maximum-inner-product memory. This is also the nearest memory
+when all memories have equal norm. At finite $\beta$, the calibrated noise
+produces stochastic attention. Define the local deterministic direction as
+$\mathbf d(\boldsymbol\xi)=\mathbf T_{\beta,\mathbf r}(\boldsymbol\xi)
+-\boldsymbol\xi-\lambda\nabla C(\boldsymbol\xi)$. The ratio of the drift norm
+to the root-mean-square norm of the $d$-dimensional noise increment is:
 \begin{equation}
-\operatorname{SNR}_{\mathrm{step}}
-:=\frac{\alpha}{\sqrt{2\alpha d/\beta}}
-=\sqrt{\frac{\alpha\beta}{2d}}.
+\operatorname{SNR}_{\mathrm{step}}(\boldsymbol\xi)
+:=\frac{\alpha\lVert\mathbf d(\boldsymbol\xi)\rVert_2}
+{\sqrt{2\alpha d/\beta}}
+=\sqrt{\frac{\alpha\beta}{2d}}
+\lVert\mathbf d(\boldsymbol\xi)\rVert_2.
 \label{eq:snr}
 \end{equation}
-This quantity is a scale diagnostic, not a universal phase boundary; the true
-drift magnitude depends on the state, memory geometry, and any constraint
-gradient.
+The commonly reported factor $\sqrt{\alpha\beta/(2d)}$ assumes a unit-scale
+drift. It is a scale diagnostic, not a state-independent signal-to-noise ratio
+or a universal phase boundary.
 
 The following proposition (proved in
 Appendix~\ref{app:proof-regularity}) makes the regularity of the unmodified
@@ -100,7 +102,7 @@ Hopfield potential explicit.
 Let $\sigma_{\max}=\lVert\mathbf X\rVert_{\mathrm{op}}$ and
 $M=\max_k\lVert\mathbf m_k\rVert_2$. The Hopfield energy has an
 $L$-Lipschitz gradient with
-$L\leq 1+\beta\sigma_{\max}^2/2$ and satisfies
+$L\leq 1+\beta\sigma_{\max}^2/2$ and satisfies the dissipativity bound:
 \begin{equation}
 \langle\nabla E(\boldsymbol\xi),\boldsymbol\xi\rangle
 \geq \tfrac12\lVert\boldsymbol\xi\rVert_2^2-\tfrac12M^2.
@@ -117,27 +119,26 @@ $m$-strongly convex with
 $m=\beta(1-\beta\sigma_{\max}^2/2)$ and has
 $L_U$-Lipschitz gradient with
 $L_U=\beta(1+\beta\sigma_{\max}^2/2)$. For a sufficiently small fixed step,
-ULA contracts geometrically in $W_2$ toward a step-size-dependent invariant
+the ULA iterates contract geometrically in $W_2$ toward a step-size-dependent invariant
 law, with a discretization error that vanishes as $\alpha\rightarrow0$
 \cite{dalalyanTheoreticalGuaranteesApproximate2017,durmusNonasymptoticAnalysisUnadjusted2017}.
 \end{corollary}
 
 Outside this sufficient convex regime, the target can be multimodal and
-inter-basin mixing can be slow. This is a property to be diagnosed, not a
-reason to remove the sampler: warm starts, multiple chains, tempering, and
+inter-basin mixing can be slow. Warm starts, multiple chains, tempering, and
 Metropolis correction address different aspects of finite-time sampling. The
-restored single-chain and temperature experiments in the appendix expose these
-dynamics directly.
+single-chain and temperature experiments in the appendix show how the tested
+finite-time trajectories depended on these choices.
 
-MALA uses the ULA proposal mean
+The Metropolis-adjusted Langevin algorithm uses the following proposal mean:
 \begin{equation}
 \boldsymbol\mu(\boldsymbol\xi)
 =\boldsymbol\xi-\alpha\left[
 \nabla E_{\beta,\mathbf r}(\boldsymbol\xi)
-+\lambda\nabla C(\boldsymbol\xi)\right]
++\lambda\nabla C(\boldsymbol\xi)\right].
 \end{equation}
-and covariance $2\alpha\beta^{-1}\mathbf I$, then accepts a proposal
-$\boldsymbol\xi'$ with probability
+The proposal covariance is $2\alpha\beta^{-1}\mathbf I$. The algorithm accepts
+a proposed state $\boldsymbol\xi'$ with probability:
 \begin{equation}
 \min\!\left\{1,
 \frac{p_{\beta,\lambda}(\boldsymbol\xi')
@@ -146,10 +147,11 @@ q(\boldsymbol\xi\mid\boldsymbol\xi')}
 q(\boldsymbol\xi'\mid\boldsymbol\xi)}\right\}.
 \label{eq:mala-acceptance}
 \end{equation}
-Under the usual irreducibility conditions, this correction preserves the
-desired target at finite step size. It does not guarantee rapid mixing; a high
-acceptance rate can coexist with highly correlated moves. Full MALA pseudocode
-and the proposal-density correction are given in Appendix~\ref{app:mala}.
+The correction preserves the desired target at finite step size. Under the
+usual irreducibility and recurrence conditions, the chain converges to that
+target. A high acceptance rate does not guarantee rapid mixing and can coexist
+with highly correlated moves. Full pseudocode and the proposal-density
+correction are given in Appendix~\ref{app:mala}.
 
 \subsection{Exact Gaussian-mixture special case}
 
@@ -159,7 +161,7 @@ Eq.~\eqref{eq:modern-hopfield-energy}.
 
 \begin{theorem}[Exact Gaussian-mixture representation]
 \label{thm:exact-mixture}
-For $\beta>0$ and at least one positive $r_k$,
+For $\beta>0$ and at least one positive $r_k$, the normalized density is:
 \begin{equation}
 p_{\beta,\mathbf r}(\boldsymbol\xi)
 =\sum_{k=1}^K w_k\,
@@ -172,7 +174,7 @@ w_k=\frac{r_k\exp(\frac\beta2\lVert\mathbf m_k\rVert_2^2)}
 \end{theorem}
 
 \begin{proof}
-Completing the square in the unnormalized density gives
+Completing the square in the unnormalized density gives the expression:
 \begin{align}
 \exp[-\beta E_{\beta,\mathbf r}(\boldsymbol\xi)]
 &=\sum_{k=1}^K r_k
@@ -194,24 +196,26 @@ $h=\beta^{-1/2}$. If memory norms differ, uniform component selection is
 incorrect and the norm factor in Eq.~\eqref{eq:exact-mixture} is required.
 
 Theorem~\ref{thm:exact-mixture} establishes a precise equivalence for the base
-case: continuous-time Langevin dynamics, correctly adjusted MALA, and the exact
-ancestral sampler share the same target distribution. Finite-step ULA
-approximates that target and can be calibrated against exact draws. The exact
-sampler is therefore a valuable reference and a computational shortcut when
-$\lambda=0$; it is not a replacement for the general stochastic-attention
-construction. For a generic nonlinear $C$, the tilted density in
-Eq.~\eqref{eq:constrained-target} is no longer a finite Gaussian mixture, while
-Algorithms~\ref{alg:stochastic-attention} and~\ref{alg:mala} still apply.
+case: continuous-time Langevin dynamics, correctly adjusted MALA, and exact
+ancestral sampling share the same target distribution. Finite-step ULA
+approximates that target and can be calibrated against exact draws. Exact
+ancestral sampling is the efficient method for independent endpoints when
+$\lambda=0$. A generic nonlinear $C$ changes the component conditionals and
+usually removes this direct sampler, while Algorithms~\ref{alg:stochastic-attention}
+and~\ref{alg:mala} continue to use the available constrained score. Constant,
+affine, and some quadratic choices of $C$ retain additional analytic structure
+and should be simplified directly when possible.
 
 \begin{algorithm}[H]
 \caption{Exact sampler for the unmodified tied Hopfield target}
 \label{alg:exact-sampler}
 \begin{algorithmic}[1]
 \REQUIRE Memories $\mathbf X$, inverse temperature $\beta>0$, multiplicities
-$\mathbf r\geq\mathbf0$, number of endpoints $S$
-\STATE $w_k\leftarrow
-r_k\exp(\frac\beta2\lVert\mathbf m_k\rVert_2^2)$ for $k=1,\ldots,K$
-\STATE Normalize $\mathbf w\leftarrow\mathbf w/(\sum_k w_k)$
+$\mathbf r\geq\mathbf0$ with $\sum_k r_k>0$, number of endpoints $S$
+\STATE $\ell_k\leftarrow
+\log r_k+\frac\beta2\lVert\mathbf m_k\rVert_2^2$ for $k=1,\ldots,K$,
+with $\log 0=-\infty$
+\STATE $\mathbf w\leftarrow\operatorname{softmax}(\boldsymbol\ell)$
 \FOR{$s=1,\ldots,S$}
 \STATE $z_s\sim\operatorname{Categorical}(\mathbf w)$
 \STATE $\boldsymbol\epsilon_s\sim\mathcal N(\mathbf0,\mathbf I)$
@@ -225,15 +229,16 @@ r_k\exp(\frac\beta2\lVert\mathbf m_k\rVert_2^2)$ for $k=1,\ldots,K$
 \subsection{Attention as posterior responsibility and score}
 
 Let $Z$ denote the Gaussian component in the base case. Bayes' rule and
-Eq.~\eqref{eq:exact-mixture} give
+Eq.~\eqref{eq:exact-mixture} give its posterior responsibility:
 \begin{equation}
 \Pr(Z=k\mid\boldsymbol\xi)
 =\frac{r_k\exp(\beta\mathbf m_k^\top\boldsymbol\xi)}
 {\sum_j r_j\exp(\beta\mathbf m_j^\top\boldsymbol\xi)}.
 \label{eq:responsibilities}
 \end{equation}
-Thus attention weights are exactly the component responsibilities, the
-attention output is the posterior mean of the component center, and
+Thus attention weights are the component responsibilities and the attention
+output is the posterior mean of the component center. The corresponding score
+is:
 \begin{equation}
 \nabla_{\boldsymbol\xi}\log p_{\beta,\mathbf r}(\boldsymbol\xi)
 =\beta\left[\mathbf T_{\beta,\mathbf r}(\boldsymbol\xi)
@@ -253,7 +258,7 @@ $a_k\propto r_k\exp(\beta e_k)$.
 \begin{proposition}[Fixed-query entropy monotonicity]
 \label{prop:entropy-derivative}
 For equal positive multiplicities, holding $\boldsymbol\xi$ fixed, the
-responsibility entropy $H=-\sum_k a_k\log a_k$ satisfies
+responsibility entropy $H=-\sum_k a_k\log a_k$ satisfies the derivative:
 \begin{equation}
 \frac{dH}{d\beta}=-\beta\operatorname{Var}_{\mathbf a}(e)\leq0.
 \label{eq:entropy-derivative}
@@ -270,31 +275,29 @@ involving $\log r_k$ appears; throughout the entropy sweeps $r_k=1$.
 \end{proof}
 
 For equal multiplicities, entropy decreases monotonically with inverse
-temperature for a fixed query. The point of maximal entropy loss is a
-descriptive crossover of the responsibility vector, not a universal generation
-threshold or a storage-capacity boundary. Figure~\ref{fig:experiments} restores
-the submitted synthetic visualization: panel (a) shows this concentration,
-while panel (b) compares finite ULA runs with a longer ULA reference. The exact
-target experiment in Table~\ref{tab:exact-validation} provides the stronger
+temperature for a fixed query. Let
+$\mu_3=\mathbb E_{\mathbf a}[(e-\mathbb E_{\mathbf a}[e])^3]$ denote the third
+central moment of the logits. The point of maximal entropy loss satisfies the
+following inflection condition:
+\begin{equation}
+\operatorname{Var}_{\mathbf a}(e)\big|_{\beta^*}
+=-\beta^*\mu_3\big|_{\beta^*}.
+\label{eq:entropy-inflection}
+\end{equation}
+For random unit memories, inner products have variance of order $1/d$, so the
+logit spread becomes order one when $\beta$ is of order $\sqrt d$. This scaling
+is an ensemble heuristic, not a universal temperature rule. On a fixed memory
+bank, Eq.~\eqref{eq:entropy-inflection} defines a data-dependent descriptive
+crossover of the responsibility vector. It does not identify a storage-capacity
+boundary or prove a change in sample quality. Fig.~\ref{fig:experiments}
+shows the finite-memory concentration diagnostic and a finite-chain
+implementation check. Table~\ref{tab:exact-validation} supplies the analytic
 equilibrium calibration.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figs/Fig_experiment-combined.pdf}
-\caption{Submitted synthetic diagnostics. \textbf{(a)} Nearest-memory cosine
-similarity and normalized responsibility entropy over inverse temperature for
-$d=64$ and $K=16$. The shaded band is an empirical crossover, not a universal
-generation threshold. \textbf{(b)} Pooled finite ULA energies from eight chains
-and a longer ULA reference for $d=8$, $K=4$, and $\beta=5$. This panel diagnoses
-the submitted implementation; Table~\ref{tab:exact-validation} additionally
-compares against the analytic equilibrium law.}
-\label{fig:experiments}
-\end{figure}
 
 Temperature also has a direct probabilistic interpretation in the base case:
 $\beta^{-1/2}$ is the component standard deviation. For unit-norm memories and
 an exact draw $\boldsymbol\xi=\mathbf m_k+\boldsymbol\epsilon$, high-dimensional
-norm concentration gives
+norm concentration gives the approximation:
 \begin{equation}
 1-\cos(\boldsymbol\xi,\mathbf m_k)
 \approx 1-\frac{1}{\sqrt{1+d/\beta}}.
@@ -307,7 +310,7 @@ assumes the generating component remains the nearest memory.
 
 For a selected memory subset $\mathcal S$, define
 $b_k=0$ for $k\in\mathcal S$ and $b_k=-\infty$ otherwise. The base masked
-stochastic-attention update is
+stochastic-attention update is:
 \begin{equation}
 \boldsymbol\xi_{t+1}
 =(1-\alpha)\boldsymbol\xi_t

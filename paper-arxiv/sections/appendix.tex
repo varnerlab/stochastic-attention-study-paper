@@ -1,16 +1,32 @@
+\section{Broader Impact}
+\label{app:broader-impact}
+
+Stochastic attention inherits the composition, omissions, and correlations of
+its memory set. Outputs can remain very close to individual memories at high
+$\beta$, and the exact Gaussian-mixture target has full support rather than
+being restricted to the convex hull of the stored patterns. The method
+therefore provides neither a privacy guarantee nor protection against
+memorization, representational bias, or harmful extrapolation. Memory curation,
+privacy assessment, and application-specific output screening remain necessary
+for deployment. Constraint terms can encode desired properties or exclusions,
+but they do not by themselves constitute a safety mechanism. The protein and
+financial experiments in this paper are methodological demonstrations, not
+evidence that the generated outputs are suitable for biological or financial
+decision-making.
+
 \section{Normalization and Score Derivation}
 \label{app:normalization}
 
-For completeness, the common normalization in
-Theorem~\ref{thm:exact-mixture} is
+For completeness, Theorem~\ref{thm:exact-mixture} has the following
+normalizing constant:
 \begin{equation}
 Z_{\beta,\mathbf r}
 =\left(\frac{2\pi}{\beta}\right)^{d/2}
 \sum_{k=1}^K r_k
 \exp\!\left(\frac\beta2\lVert\mathbf m_k\rVert_2^2\right).
 \end{equation}
-With
-$w_k\propto r_k\exp(\beta\lVert\mathbf m_k\rVert_2^2/2)$, the log density is
+With $w_k\propto r_k\exp(\beta\lVert\mathbf m_k\rVert_2^2/2)$, the normalized
+log density is:
 \begin{equation}
 \log p(\boldsymbol\xi)
 =\log\sum_k w_k
@@ -18,7 +34,7 @@ $w_k\propto r_k\exp(\beta\lVert\mathbf m_k\rVert_2^2/2)$, the log density is
 \exp\!\left[-\frac\beta2
 \lVert\boldsymbol\xi-\mathbf m_k\rVert_2^2\right].
 \end{equation}
-Differentiation yields
+Differentiation gives the score:
 \begin{align}
 \nabla\log p(\boldsymbol\xi)
 &=\sum_k \Pr(Z=k\mid\boldsymbol\xi)
@@ -34,7 +50,7 @@ quadratic.
 \section{MALA Correction}
 \label{app:mala}
 
-For proposal variance $\sigma_q^2=2\alpha/\beta$, define
+For proposal variance $\sigma_q^2=2\alpha/\beta$, the proposal density is:
 \begin{equation}
 q(\mathbf y\mid\mathbf x)
 =\mathcal N(\mathbf y;\boldsymbol\mu(\mathbf x),
@@ -76,7 +92,7 @@ temperature $\beta>0$, step size $\alpha>0$, iterations $T$
 \end{algorithmic}
 \end{algorithm}
 
-The log acceptance ratio is
+The log acceptance ratio is:
 \begin{align}
 \log R
 ={}&\log p(\boldsymbol\xi')-\log p(\boldsymbol\xi)\\
@@ -93,7 +109,7 @@ energy and gradient are required.
 \section{Analytic Target Validation Details}
 \label{app:analytic-validation}
 
-The validation memory matrix is
+The validation used the following memory matrix:
 \begin{equation}
 \mathbf X=
 \begin{bmatrix}
@@ -103,15 +119,16 @@ The validation memory matrix is
 \qquad \beta=1.5.
 \end{equation}
 The unequal norms give analytic component weights
-$(0.2411,0.2908,0.4682)$. If
-$\boldsymbol\mu=\sum_k w_k\mathbf m_k$, then
+$(0.2411,0.2908,0.4682)$. With
+$\boldsymbol\mu=\sum_k w_k\mathbf m_k$, the analytic covariance is:
 \begin{equation}
 \operatorname{Cov}(\boldsymbol\xi)
 =\beta^{-1}\mathbf I+
 \sum_k w_k(\mathbf m_k-\boldsymbol\mu)
 (\mathbf m_k-\boldsymbol\mu)^\top.
 \end{equation}
-The exact sampler used 100,000 independent draws. ULA and MALA each used 16
+The exact sampler used 100,000 independent draws. The ULA and MALA diagnostics
+each used 16
 chains of 100,000 steps, 20,000 burn-in steps, and thinning by 20. Chains were
 initialized from exact target draws so the experiment measures finite-step
 behavior rather than an intentionally poor initialization.
@@ -121,7 +138,7 @@ behavior rather than an intentionally poor initialization.
 
 We used the first 100 images returned by the repository's fixed MNIST loader for
 digit 3, transposed and flattened each image to 784 dimensions, and normalized
-each memory to unit $\ell_2$ norm. The submitted ULA protocol used 30 memories
+each memory to unit $\ell_2$ norm. The ULA protocol used 30 memories
 sampled without replacement with seed 42, one chain per selected memory,
 $T=5{,}000$, burn-in 2,000, thinning by 100, and five retained endpoints per
 chain. The exact all-component experiment drew 150 independent endpoints from
@@ -130,7 +147,7 @@ experiment with 20 seeds and reports mean $\pm$ standard deviation across
 repetitions.
 
 The initialization-matched exact diagnostic fixes five draws at each of the 30
-submitted warm-start components. It more closely mimics the chain allocation
+warm-start components. It more closely mimics the chain allocation
 but is not an ancestral draw from the stationary all-component law. At
 $\beta=2000$, it gives novelty 0.152 and diversity 0.601; at $\beta=200$, it
 gives novelty 0.550 and diversity 0.888.
@@ -141,7 +158,7 @@ the Hopfield target at $\beta=h^{-2}$. Table~\ref{tab:kde-sweep} shows the direc
 geometric effect of bandwidth. The values come from one set of 150 samples and
 are not quality scores.
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \caption{MNIST Parzen bandwidth sweep. Energy is evaluated at $\beta=200$ for
 all rows solely as a common target diagnostic.}
@@ -181,7 +198,7 @@ per-position argmax. All PCA fitting, distributional references, and HMM
 evaluation use the same 68-sequence family; no held-out split is implied.
 
 The all-component exact sampler chooses among all 68 memories. The
-initialization-matched diagnostic fixes five draws at each of the 30 submitted
+initialization-matched diagnostic fixes five draws at each of the 30
 warm-start components. At $\beta=77$, the matched diagnostic gives AA-KL
 0.1071, Pos-KL 5.6574, and MI correlation 0.7414. At $\beta=8$, it gives AA-KL
 0.0606, Pos-KL 3.3591, and MI correlation 0.8432. Differences between this
@@ -205,23 +222,24 @@ and retrieval boundaries for random ensembles
 not an exact capacity boundary, and the sufficient Hessian bound
 $\beta\lVert\mathbf X\rVert_{\mathrm{op}}^2<2$ is not an exact onset of
 nonconvexity. We do not use either quantity to claim automatic temperature
-selection in the revised paper.
+selection in this study.
 
-\section{Experiments Removed from the Evidentiary Claim}
+\section{Scope of the Auxiliary Experiments}
 \label{app:removed-experiments}
 
-We do not retain the submitted DDPM comparison as evidence: the unit-normalized
-data, forward-noise schedule, and training-compute comparison were not matched
-well enough to support a conclusion about diffusion models. The additional
-image, protein, finance, and multi-head experiments are retained elsewhere in
-the appendix as finite-protocol evidence and scoped demonstrations, but they are
-not used to claim superiority over learned generators.
+The DDPM comparison is reported only as an archived protocol diagnostic: the
+unit-normalized data, forward-noise schedule, architecture, and training compute
+were not matched well enough to support a general conclusion about diffusion
+models. The additional image, protein, finance, and multi-head experiments are
+finite-protocol demonstrations. They do not support a claim of superiority over
+learned generators.
 
 \section{Code and Reproduction}
 \label{app:code}
 
 The repository contains the exact density, analytic weights, posterior
-responsibilities, score, exact sampler, ULA, and MALA in `code/src/Compute.jl`.
+responsibilities, score, exact sampler, ULA, and MALA in
+\texttt{code/src/Compute.jl}.
 The test suite checks unequal norms, multiplicities, score finite differences,
 component frequencies, and reproducibility. The principal commands are:
 \begin{verbatim}
@@ -237,4 +255,5 @@ julia --project=. run_exact_mixture_protein.jl
 \end{verbatim}
 All commands use fixed seeds. The exact MNIST and analytic validation scripts
 run without model training. The protein script uses cached Pfam alignment and
-HMM files when present and requires HMMER for the HMM diagnostic.
+The script uses HMM files when present and requires HMMER for the HMM
+diagnostic.

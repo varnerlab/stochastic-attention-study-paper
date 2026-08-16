@@ -1,62 +1,103 @@
-The central conclusion is that stochastic attention and the exact Gaussian
-mixture occupy different levels of generality. Stochastic attention is the
-energy-based sampling construction: it applies whenever the target energy and
-its gradient can be evaluated. The GMM is an exact identity for the unmodified
-tied-key/value Hopfield target. In that special case, continuous Langevin
-dynamics, MALA, and exact ancestral sampling share the same target, while
-finite-step ULA approximates it. This equivalence gives stochastic attention a
-rare analytic test bed; it does not invalidate or supersede the sampling
-formulation.
+% discussion.tex -- Discussion and Conclusion
 
-The constrained target $E+\lambda C$ makes the distinction operational. A
-differentiable $C$ can express observations, mechanistic penalties, fitness
-criteria, or products of experts without retraining the memory model. Such a
-tilt generally couples or reshapes the Gaussian components and no longer admits
-the base ancestral sampler, but the stochastic-attention and MALA updates only
-require adding $\lambda\nabla C$ to the drift. This provides the direct bridge
-from the present theory to application papers that use stochastic attention as
-a constrained sampler.
+The central result of this study is a unified account of deterministic and
+stochastic attention on the modern Hopfield energy. In the tied-key/value
+model, the attention update supplies the nonlinear term in the exact score, so
+Langevin sampling reuses the attention calculation while adding a restoring
+drift and calibrated noise. For the unmodified energy, completing the square
+also gives an exact Gaussian-mixture representation. Continuous-time Langevin
+dynamics, correctly adjusted Metropolis sampling, and independent ancestral
+sampling therefore target the same base distribution, while finite-step ULA
+approximates it. This identity does not make the stochastic formulation
+redundant. Instead, it identifies a tractable special case, supplies an exact
+reference for validating the dynamics, and separates the distribution being
+sampled from the numerical route used to sample it. The distinction becomes
+essential when an application-specific energy is added, because the exact
+mixture sampler usually disappears while the gradient-based construction
+remains available.
 
-The exact-mixture result also improves the empirical analysis. Exact
-all-component draws reproduce the submitted MNIST endpoint statistics and the
-qualitative protein results, showing that those equilibrium-level effects are
-properties of the memory energy and decoder rather than artifacts of one
-numerical integrator. Conversely, discrepancies among exact draws, warm-started
-ULA, and MALA reveal allocation, mixing, and discretization effects. The two
-sampling routes are therefore useful together: exact draws establish the base
-law, while Langevin trajectories expose finite-time behavior and extend to
-targets for which no exact route exists.
+The exact representation also changed how the experimental evidence should be
+interpreted. For unit-normalized memories, the base distribution is an
+isotropic Parzen estimator with component standard deviation
+$\beta^{-1/2}$; with unequal memory norms, the component probabilities require
+the norm-dependent weights in Theorem~\ref{thm:exact-mixture}. Exact draws
+therefore exposed two misleading comparisons in the original analysis: a
+matched Parzen estimator is the same distribution rather than a competing
+model, and a Gaussian perturbation using the one-step innovation variance is
+too narrow to represent the stationary target. The analytic validation showed
+that exact sampling, ULA, and MALA agreed at small step sizes, while the
+step-size sweep in Fig.~\ref{fig:stepsize-sweep} showed increasing ULA--MALA
+differences and collapsing MALA acceptance at larger steps. Together, these
+results support the implementation and the target identity without treating a
+high acceptance rate or agreement on a few endpoint summaries as proof of
+rapid mixing.
+
+Inverse temperature had two related but distinct effects. It concentrated the
+attention responsibilities and simultaneously reduced the Gaussian width
+around each selected memory. Responsibility entropy therefore described how a
+fixed query allocated mass across a finite memory bank, but its inflection was
+not a universal phase boundary or an automatic choice of sampling temperature.
+The image spectrum in Fig.~\ref{fig:temp-spectrum-digit8} made the second
+effect explicit: decreasing $\beta$ moved endpoints farther from the memories,
+but the corresponding increase in novelty and diversity eventually coincided
+with the loss of recognizable digit structure. Finite trajectories added a
+separate dependence on initialization, integration step, and run length. At
+high $\beta$, the tested chains remained local to their warm starts; at lower
+$\beta$, nearest-memory labels changed more readily. These observations are
+useful for understanding stochastic attention as a transition kernel, but they
+do not give a mixing-time result or show that broader samples are better
+samples.
+
+The application results were consistent with a memory-supported generator
+rather than a model that learned new support. On MNIST, exact and finite-chain
+endpoints were local perturbations of stored digits, and the available geometry
+metrics did not establish perceptual quality. In the PF00076 experiment, the
+memory distribution and PCA decoder reproduced selected in-sample positional
+and pairwise statistics more closely than the tested VAE at similar novelty.
+The protein diagnostics also showed that the decoded samples retained the
+broad positional pattern of the family while shifting toward consensus
+residues (Fig.~\ref{fig:protein}), which explains part of the apparent
+improvement and limits the biological claim. The experiment did not test
+folding, binding, function, or held-out sequences. On Olivetti faces, hard
+masking restricted the categorical support to one subject and sharply reduced
+leakage to other subjects; it did not learn a new conditional image model. The
+financial and multi-head analyses
+remain useful as supplementary diagnostics, but their postprocessing and
+implementation choices prevent broader claims about either domain.
+
+The broader value of gradient-based sampling lies in targets that are not
+covered by the exact mixture theorem. A smooth constraint, observation model,
+mechanistic penalty, or design criterion can be added to the Hopfield energy,
+and its gradient enters the same stochastic-attention update without requiring
+the normalizing constant. This generality comes with a practical rule: exact
+base draws should be used when they solve the stated problem, analytically
+tractable constraints should be simplified directly, and Langevin dynamics
+should be reserved for targets whose added structure prevents independent
+sampling or when the trajectory itself is of interest. Each gradient step
+costs $\mathcal O(dK)$ plus the cost of the constraint gradient, whereas an
+exact base draw requires a component draw and one Gaussian perturbation after
+the weights have been computed. Subsequent protein generation,
+multiplicity-conditioning, and coagulation studies used this same memory
+energy in distinct application settings
+\cite{varnerTrainingFreeProtein2026,varnerConditioningProtein2026,varnerSyntheticPatient2026},
+illustrating why the analytically tractable base case and the more general
+sampling construction should both remain part of the framework.
 
 \paragraph{Limitations.}
-The exact GMM theorem assumes tied keys and values in a common state space, the
-quadratic Hopfield state term, and no generic external tilt. It does not imply
-that an arbitrary pretrained transformer head defines a conservative energy.
-The scoped multi-head construction in Appendix~\ref{app:multihead} uses an
-independent tied energy within each head and treats the output projection as
-deterministic postprocessing; it is not a claim about a joint Boltzmann law for
-arbitrary multi-head attention.
-
-The base model has support around observed memories and should be described as
-memory-supported generation. At low $\beta$, novelty and diversity can increase
-because samples become noisy. The MNIST experiments lack an external realism
-metric, and the protein statistics are computed against the same family used to
-construct the representation. A held-out or experimental functional assay is
-needed before making a protein-design claim. The submitted VAE used a fixed
-latent prior; geometry-aware latent-density baselines remain important. The
-former DDPM comparison used an inadequately justified scale and compute
-protocol and is not retained as evidence of superiority.
-
-Finite-step ULA has discretization bias, while MALA can mix slowly even when its
-acceptance rate is high. Warm-started multi-chain endpoints can reflect the
-chosen initialization allocation rather than stationary component weights.
-Exact base-target draws should therefore accompany ULA/MALA diagnostics whenever
-the GMM identity applies. For constrained targets where it does not, convergence
-must instead be assessed with multiple chains, step-size sensitivity, effective
-sample size, and application-specific validation.
-
-Several extensions follow naturally: constrained stochastic attention with
-smooth biochemical or physical energies, hard-constraint variants using
-reflected or proximal dynamics, coupled multi-head energy models, and annealed
-or tempered transitions for multimodal targets. These are not repairs to a
-defective base method; they are the broader cases for which the sampling
-formulation was designed.
+The exact mixture theorem requires tied keys and values in a common state
+space, the quadratic Hopfield state term, and no generic nonlinear energy tilt;
+it does not imply that an arbitrary pretrained transformer layer defines the
+same scalar energy. The base distribution places isotropic mass around stored
+memories and does not learn support beyond that representation. The unadjusted
+Langevin algorithm has finite-step discretization bias, MALA can mix slowly
+even with high acceptance, and warm-started chains can retain the component allocation imposed at
+initialization. The image analyses lacked an external realism measure, and the
+flattened-vector diffusion diagnostic was not a competitive test of modern
+image diffusion systems. The protein statistics were computed from the same
+small family used to construct the memory and decoder, while the finance study
+used application-specific correction and did not reproduce volatility
+clustering. Most importantly, this paper did not test the constrained
+$E+\lambda C$ formulation with a nontrivial state-dependent constraint.
+Constrained applications therefore require their own convergence diagnostics,
+matched proposal-and-filter baselines, held-out validation, and
+application-specific evidence.

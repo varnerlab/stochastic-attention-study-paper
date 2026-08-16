@@ -1,39 +1,52 @@
+% experiments.tex -- Experiments and reanalysis
+
 \subsection{Evaluation scope}
 
-We reanalyze the submitted experiments to answer two questions: whether the
-implementation agrees with the exact base target, and which observations are
-equilibrium properties versus finite-time properties of the sampling dynamics. Novelty is
-one minus cosine similarity to the nearest memory, diversity is mean pairwise
-cosine distance, and energy is the model's own Hopfield energy. These are
-descriptive geometric diagnostics. Noise can increase novelty and diversity,
-and Hopfield energy is not a neutral cross-model quality metric; none is used
-here as a stand-alone measure of realism or method superiority.
+The experiments addressed three questions. First,
+did the implementation agree with the analytic base target? Second, which
+observations described that target and which depended on finite-time Langevin
+dynamics? Third, what did the image, protein, financial, and masking examples
+show within their measured scope? Novelty was one minus cosine similarity to
+the nearest memory, so a larger value meant that an endpoint lay farther from
+the stored bank. Diversity was the mean pairwise cosine distance, so a larger
+value meant that the endpoint set was more dispersed. Energy was the model's
+own Hopfield energy and was used only as an internal diagnostic. Noise can
+increase novelty and diversity, and energies evaluated under different targets
+are not a common quality scale. We therefore did not interpret any of these
+three quantities as a stand-alone measure of realism or method superiority.
+All-component exact sampling drew the categorical component from every stored
+memory. We also used an initialization-matched diagnostic with five draws from
+each of the 30 memories used to initialize the finite chains. That allocation
+was not the stationary all-component law; it isolated the contribution of the
+warm-start protocol. The code tests also compared the analytic score with
+finite differences and recovered the nonuniform weights induced by unequal
+memory norms.
 
-All-component exact sampling means that the categorical draw ranges over every
-stored memory. We also examined an initialization-matched diagnostic with five
-draws from each of the 30 memories used to initialize the submitted chains.
-That diagnostic is not the stationary all-component law and is reported only
-to identify finite-time warm-start effects. Code tests additionally verify the
-analytic score by finite differences and recover the nonuniform weights induced
-by unequal memory norms.
+\subsection{Exact target and implementation validation}
 
-\subsection{Exact target validation}
-
-We first constructed a two-dimensional, three-component target with deliberately
-unequal memory norms ($\beta=1.5$). Its component weights, mean, and covariance
-are analytic. We compared 100,000 exact draws with pooled ULA and MALA samples
-from 16 chains of 100,000 steps, discarding 20,000 steps and thinning by 20
-(Table~\ref{tab:exact-validation}). Exact independent draws recover the moments
-up to Monte Carlo error. MALA remains close across the tested steps, while ULA
-shows visible covariance bias at $\alpha=0.2$. At $\alpha=0.01$, MALA accepts
-every proposal but has larger covariance error than at $\alpha=0.05$ or $0.2$
-because its small moves mix slowly. This directly demonstrates why acceptance
-rate alone is not an accuracy or convergence diagnostic.
+We first constructed a two-dimensional, three-component target with unequal
+memory norms and inverse temperature $\beta=1.5$. The component weights, mean,
+and covariance were available analytically. We compared 100,000 independent
+exact draws with pooled samples from 16 unadjusted Langevin algorithm (ULA)
+chains and 16 Metropolis-adjusted Langevin algorithm (MALA) chains. Each chain
+ran for 100,000 steps; we discarded 20,000 steps and thinned by 20. Euclidean
+error in the mean and Frobenius error in the covariance measured agreement with
+the analytic moments, with smaller values indicating closer agreement. The
+independent sampler recovered the moments to Monte Carlo precision
+(Table~\ref{tab:exact-validation}). The adjusted chains remained close over the
+tested step sizes. At $\alpha=0.01$, the MALA covariance error was larger
+despite an acceptance rate that rounded to one; this result was consistent with highly
+correlated small moves and showed why acceptance alone was not a convergence
+diagnostic. The ULA covariance error increased at $\alpha=0.20$, revealing
+finite-step bias. Because the chains were initialized from exact target draws,
+this experiment tested the transition kernels and numerical implementation
+rather than recovery from a poor initial state.
 
 \begin{table}[t]
 \centering
-\caption{Validation against an analytic unequal-norm Gaussian mixture. Errors
-are $\ell_2$ error in the mean and Frobenius error in the covariance.}
+\caption{Validation against an analytic unequal-norm Gaussian mixture. The
+reported quantities are Monte Carlo errors in the first two moments, not
+general sample-quality scores.}
 \label{tab:exact-validation}
 \small
 \begin{tabular}{@{}lcccc@{}}
@@ -51,20 +64,147 @@ MALA & 0.20 & 0.0007 & 0.0106 & 0.974 \\
 \end{tabular}
 \end{table}
 
-\subsection{MNIST endpoint reanalysis}
+\FloatBarrier
 
-We retained the submitted memory of $K=100$ $\ell_2$-normalized MNIST digit-3
-images ($d=784$) and the two reported temperatures. Table~\ref{tab:mnist-exact}
-compares the submitted 30-chain ULA endpoints with exact draws from all 100
-components. Exact uncertainty is the standard deviation across 20 independent
-sets of 150 endpoints; the submitted ULA rows are the original point estimates
-and are not assigned comparable repeated-run uncertainty.
+\subsection{Finite-step sensitivity on MNIST}
+
+To test whether the finite-chain conclusions depended on the integration step,
+we compared ULA and MALA on the same $K=100$ digit-3 memory at $\beta=2000$
+at nine values of $\alpha$ between 0.001 and 0.5. The MALA acceptance rate
+exceeded 95\% through $\alpha=0.02$ (Fig.~\ref{fig:stepsize-sweep}a), while the
+absolute ULA--MALA differences in novelty, diversity, and energy remained small
+in that range (Fig.~\ref{fig:stepsize-sweep}b). The differences increased
+through $\alpha=0.05$ and $0.1$, while
+the MALA acceptance rate fell to zero at $\alpha\geq0.2$. These results
+supported the small-step protocol used in the main image experiment and showed
+the expected finite-step sensitivity, but agreement between the two chains did not prove
+that either chain mixed across all memory basins. The numerical values are
+reported in Appendix~\ref{app:additional-experiments}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figs/Fig_stepsize_sweep_ula_vs_mala.pdf}
+\caption{Step-size sensitivity on MNIST digit 3 at $\beta=2000$.
+\textbf{(a)} MALA acceptance as a function of the integration step $\alpha$;
+the dashed line marks 95\% acceptance. \textbf{(b)} Absolute differences
+between the ULA and MALA endpoint summaries. The comparison diagnoses the
+tested finite-time protocol and does not establish global mixing.}
+\label{fig:stepsize-sweep}
+\end{figure}
+
+\FloatBarrier
+
+\subsection{Temperature and trajectory diagnostics}
+
+The synthetic experiments analyzed responsibility
+concentration and finite-time motion. For random unit memories with $d=64$ and
+$K=16$, nearest-memory similarity and normalized responsibility entropy changed
+smoothly over inverse temperature (Fig.~\ref{fig:experiments}a). The observed
+crossover was a finite-memory diagnostic, not a new storage-capacity boundary;
+Appendix~\ref{app:responsibility-concentration} relates it to the asymptotic
+condensation analysis of Lucibello and M\'ezard
+\cite{lucibelloExponentialCapacityDense2024}. The finite ULA and longer-run ULA
+energy distributions were similar in the $d=8$, $K=4$ comparison
+(Fig.~\ref{fig:experiments}b), providing a finite-chain implementation check.
+The analytic experiment in Table~\ref{tab:exact-validation}
+provided the stronger equilibrium reference.
+The temperature sweeps and single-chain experiments addressed a different
+question: how did a finite trajectory move when initialized near a stored
+pattern? At high $\beta$, the tested chains remained near their initial basin;
+at lower $\beta$, their endpoints broadened and the nearest-memory labels
+changed along the trajectory. These observations concerned finite-time kernels
+and initialization, not additional expressiveness of the stationary base law.
+On digit 8, decreasing $\beta$ first produced local textured variants and then
+removed recognizable digit structure (Fig.~\ref{fig:temp-spectrum-digit8}).
+The complete multi-digit, trajectory, and
+load-ratio results are reported in Appendices~\ref{app:additional-experiments}
+and~\ref{app:responsibility-concentration}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figs/Fig_experiment-combined.pdf}
+\caption{Synthetic diagnostics. \textbf{(a)} Nearest-memory cosine
+similarity and normalized responsibility entropy over inverse temperature for
+$d=64$ and $K=16$. The shaded band is an empirical crossover, not a universal
+generation threshold. \textbf{(b)} Pooled finite ULA energies from eight chains
+and a longer ULA reference for $d=8$, $K=4$, and $\beta=5$. This panel diagnoses
+the finite-chain implementation; Table~\ref{tab:exact-validation} additionally
+compares against the analytic equilibrium law.}
+\label{fig:experiments}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_stored.pdf}%
+\hfill
+\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_beta2000.pdf}%
+\hfill
+\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_beta200.pdf}%
+\hfill
+\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_beta50.pdf}%
+\hfill
+\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_beta10.pdf}
+
+\small
+\makebox[0.19\textwidth]{\centering Stored}%
+\hfill
+\makebox[0.19\textwidth]{\centering $\beta{=}2000$}%
+\hfill
+\makebox[0.19\textwidth]{\centering $\beta{=}200$}%
+\hfill
+\makebox[0.19\textwidth]{\centering $\beta{=}50$}%
+\hfill
+\makebox[0.19\textwidth]{\centering $\beta{=}10$}
+\caption{Temperature spectrum for MNIST digit 8. Decreasing $\beta$ increased
+the component width $\beta^{-1/2}$, so endpoints moved farther from the stored
+patterns and eventually lost recognizable digit structure. Greater geometric
+novelty at low $\beta$ was therefore not evidence of greater image quality.}
+\label{fig:temp-spectrum-digit8}
+\end{figure}
+
+\FloatBarrier
+
+\subsection{MNIST memory-neighborhood sampling}
+
+We used the same memory bank of $K=100$ unit-normalized MNIST digit-3 images in
+$d=784$. The finite ULA protocol launched 30 chains from distinct memories,
+ran each chain for 5,000 steps at $\alpha=0.01$, discarded 2,000 steps, and
+retained five thinned endpoints per chain. We compared those endpoints with
+independent exact samples from all 100 mixture components. The exact uncertainty
+is the standard deviation across 20 independent
+sets of 150 endpoints. The ULA entries are the fixed point estimates from the
+finite-chain experiment and do not have comparable repeated-run uncertainty.
+The exact and ULA point estimates were close on these three diagnostics
+(Table~\ref{tab:mnist-exact}). The
+matched Parzen estimator was identical to the exact target by
+Theorem~\ref{thm:exact-mixture}. The narrow Gaussian control in the earlier
+baseline suite used the one-step innovation scale
+$\sqrt{2\alpha/\beta}$ rather than the component scale $\beta^{-1/2}$, making
+its standard deviation $7.07$ times too small at $\alpha=0.01$. Correcting the
+scale removed the apparent distinction between that memory-perturbation model
+and the base target. A local $k$-nearest-neighbor interpolation followed by
+matched noise also produced nearby endpoint statistics. These results showed
+that the base-target endpoints were local memory perturbations. Under matched
+warm starts and random seeds, the paired ULA and MALA endpoints also looked
+similar (Fig.~\ref{fig:mnist-baselines}b,c), but neither this visual agreement
+nor agreement on the endpoint summaries proved equality of the finite ULA law
+with the target distribution. For an exact draw from a unit memory, the approximation
+in Eq.~\eqref{eq:novelty-approximation} predicted novelty 0.152 at $\beta=2000$
+and 0.549 at $\beta=200$, close to the observed values. This calculation
+explained why novelty increased as the component width increased; it did not
+show that visibly noisier samples had higher perceptual quality. The full
+baseline record, including bootstrap, fitted GMM-PCA, variational autoencoder
+(VAE), diffusion, MALA, multi-digit, temperature, and data-scale experiments,
+is reported in Appendix~\ref{app:additional-experiments}. Those comparisons
+document the tested low-data protocols but do not establish general superiority
+over learned image generators.
 
 \begin{table}[t]
 \centering
-\caption{MNIST digit-3 reanalysis. The three quantities are descriptive
-geometry, not a quality leaderboard. Exact rows report mean $\pm$ SD across 20
-independent endpoint sets.}
+\caption{MNIST digit-3 endpoint geometry. Exact rows report mean $\pm$
+standard deviation across 20 independent endpoint sets. Novelty measures
+distance from the nearest memory; diversity measures pairwise spread; energy is
+an internal target diagnostic.}
 \label{tab:mnist-exact}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -72,40 +212,14 @@ independent endpoint sets.}
 Method & Novelty & Diversity & Energy \\
 \midrule
 Bootstrap replay & 0.000 & 0.459 & $-0.500$ \\
-Submitted ULA, $\beta=2000$ & 0.152 & 0.600 & $-0.303$ \\
+Finite ULA, $\beta=2000$ & 0.152 & 0.600 & $-0.303$ \\
 Exact all-$K$, $\beta=2000$ & $0.152\pm0.001$ & $0.602\pm0.009$ & $-0.304\pm0.001$ \\
-Submitted ULA, $\beta=200$ & 0.548 & 0.885 & $1.467$ \\
+Finite ULA, $\beta=200$ & 0.548 & 0.885 & $1.467$ \\
 Exact all-$K$, $\beta=200$ & $0.548\pm0.002$ & $0.887\pm0.003$ & $1.457\pm0.009$ \\
-$k$NN interpolation + matched noise & 0.576 & 0.877 & $1.482$ \\
+$k$NN interpolation and matched noise & 0.576 & 0.877 & $1.482$ \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-The all-component exact law reproduces the submitted ULA statistics within the
-variation observed across exact endpoint sets. The matched Parzen estimator is
-identical by Theorem~\ref{thm:exact-mixture}, and the previously reported
-Gaussian-perturbation baseline was not matched: it used the one-step innovation
-scale $\sqrt{2\alpha/\beta}$, which is $7.07$ times narrower than the target
-component scale $\beta^{-1/2}$ at $\alpha=0.01$. A $k$NN interpolation followed
-by matched Gaussian noise also gives similar novelty, diversity, and energy.
-These results establish that the base-target endpoints are local perturbations
-around memories and that ULA is sampling the intended law at the reported
-resolution. The Langevin formulation becomes strictly more general once an
-additional energy term is introduced.
-
-For a draw generated from unit memory $\mathbf m_k$, the approximation in
-Eq.~\eqref{eq:novelty-approximation} gives novelty 0.152 at $\beta=2000$ and
-0.549 at $\beta=200$, close to the observed 0.152 and 0.548. The agreement
-explains why novelty increases with component width; it does not establish that
-the wider, visibly noisy samples are higher quality. We therefore remove the
-previous comparisons claiming victory over a VAE or DDPM from these metrics.
-
-The submitted paired endpoint grids are restored in
-Figure~\ref{fig:mnist-baselines}. They remain useful for seeing what the
-finite-time kernels actually produced: both ULA and MALA preserve the seed's
-digit identity while adding a visibly textured perturbation. The figure does
-not by itself diagnose equilibrium mixing or establish superiority to a
-learned image model.
 
 \begin{figure}[t]
 \centering
@@ -122,71 +236,113 @@ learned image model.
 \hfill
 \makebox[0.30\textwidth]{\centering (c) MALA endpoints}
 \caption{Paired MNIST digit-3 grids at $\beta=2000$. Cell $(i,j)$ in all three
-panels shares the same warm-start and seed. The visual similarity of ULA and
-MALA endpoints is a finite-protocol observation; acceptance rate and visual
-agreement alone do not establish mixing or absence of ULA bias.}
+panels shares the same warm start and seed. The visual similarity of the ULA
+and MALA endpoints is a finite-protocol observation; it does not establish
+mixing or absence of ULA bias.}
 \label{fig:mnist-baselines}
 \end{figure}
 
-\subsection{Protein endpoint reanalysis}
+\FloatBarrier
 
-The protein experiment uses the same 68 aligned PF00076 sequences, one-hot
-encoding, 59-dimensional PCA representation, inverse-PCA reconstruction, and
-per-position argmax decoder as the submitted study. Table~\ref{tab:protein-exact}
-reports point estimates from a fresh exact-sampling run. Pos-KL compares
-per-position amino-acid frequencies, and MI $r$ is the correlation between
-pairwise mutual-information matrices. Both references are computed from the
-same 68 sequences used to fit PCA and construct the memories; they are
-energy-independent but in-sample. HMM pass rate is also nondiscriminating here,
-because every method passes.
+\subsection{Protein sequence generation}
+
+The protein experiment asked whether a memory-supported distribution could
+produce candidate sequences that differed from 68 stored members of the
+PF00076 RNA-recognition-motif family while preserving measured family
+statistics. We one-hot encoded the aligned sequences, fitted a principal
+component analysis (PCA) representation that retained 95\% of the variance,
+normalized the resulting 59-dimensional memories, and decoded sampled vectors
+with inverse PCA followed by a per-position argmax. The same 68 sequences
+defined the memory bank, the PCA model, and the reference statistics, so this
+was an in-sample distributional analysis rather than a held-out protein-design
+test.
+Six diagnostics characterized the endpoint sequences. Amino-acid KL (AA-KL)
+measures divergence in global amino-acid composition, and positional KL
+(Pos-KL) is the mean divergence of per-position amino-acid frequencies;
+smaller values mean closer agreement with the stored family. Mutual-information
+correlation (MI $r$) compares pairwise mutual-information matrices, with larger
+values indicating closer linear agreement. The hidden Markov model (HMM) column
+is the fraction passing the PF00076 profile threshold. Maximum sequence identity
+(SeqID) is similarity to the closest stored sequence, whereas novelty is the
+pre-decoding PCA-space distance from the nearest memory. The HMM statistic was
+nondiscriminating because every tested method passed. Exact and finite-chain
+sampling showed the same qualitative temperature trend and similar point
+estimates for the base target, and the local-neighbor control was also close at
+$\beta=8$ (Table~\ref{tab:protein-exact}). At that temperature, the perturbation
+norm was large relative to a unit memory. Inverse PCA added the learned family
+mean, and the argmax decoder
+consequently favored consensus residues at conserved positions while retaining
+variation at less-conserved positions. The decoded endpoints were closer to the
+family consensus than the natural family members (Fig.~\ref{fig:protein}a),
+while the nearest-memory identity distributions remained below exact replay
+(Fig.~\ref{fig:protein}b). Thus part of the improved positional agreement
+reflected regression toward the empirical mean rather than recovery of the full
+natural variability. Within this limited scope, the memory-centered
+distribution preserved the measured positional and pairwise statistics better
+than the tested VAE at a similar novelty value. The result did not show that
+Langevin dynamics was necessary, because exact sampling reproduced the
+qualitative finding. It also did not test folding, RNA binding, biological
+function, phylogenetically corrected coevolution, or held-out generalization.
+The full preprocessing, decoder analysis, baseline table, and temperature
+results are given in Appendices~\ref{app:protein-protocol} and
+\ref{app:additional-experiments}.
 
 \begin{table}[t]
 \centering
-\caption{PF00076 endpoint reanalysis ($K=68$, $d=59$). Metrics are in-sample
-distributional diagnostics; no column is a general quality ranking.}
+\caption{PF00076 endpoint analysis ($K=68$, $d=59$). Values are in-sample point
+estimates. No column is a general measure of protein quality or function.}
 \label{tab:protein-exact}
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lrrrrrr@{}}
 \toprule
 Method & AA-KL & Pos-KL & MI $r$ & HMM & SeqID & Novelty \\
 \midrule
 Bootstrap replay & 0.1377 & 7.4766 & 0.6866 & 100\% & 0.633 & 0.000 \\
-Submitted ULA, $\beta=77$ & 0.1068 & 5.6646 & 0.7329 & 100\% & 0.616 & 0.243 \\
+VAE, latent dimension 8 & 0.4160 & 9.9900 & 0.5250 & 100\% & 0.532 & 0.621 \\
+Finite ULA, $\beta=77$ & 0.1068 & 5.6646 & 0.7329 & 100\% & 0.616 & 0.243 \\
 Exact all-$K$, $\beta=77$ & 0.1104 & 5.5301 & 0.7175 & 100\% & 0.597 & 0.250 \\
-Submitted ULA, $\beta=8$ & 0.0597 & 2.9226 & 0.8708 & 100\% & 0.538 & 0.623 \\
+Finite ULA, $\beta=8$ & 0.0597 & 2.9226 & 0.8708 & 100\% & 0.538 & 0.623 \\
 Exact all-$K$, $\beta=8$ & 0.0665 & 3.2442 & 0.8320 & 100\% & 0.521 & 0.637 \\
-$k$NN interpolation + matched noise & 0.0573 & 3.1728 & 0.8488 & 100\% & 0.532 & 0.645 \\
+$k$NN interpolation and matched noise & 0.0573 & 3.1728 & 0.8488 & 100\% & 0.532 & 0.645 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
-Exact and Langevin sampling reproduce the same qualitative temperature
-dependence and headline in-sample statistics for the base target; the local
-$k$NN baseline also performs similarly. At $\beta=8$, perturbations are large relative to
-a unit-norm memory. Inverse PCA restores the empirical family mean, and the
-per-position argmax decoder therefore favors consensus residues at conserved
-positions while remaining sensitive to perturbations at variable positions.
-The improved composition statistics at wider component variance belong to this
-energy-plus-decoder pipeline. They do not by themselves show that the target
-encodes generalizable co-evolutionary constraints. A held-out sequence split or external
-functional measurements are required for a generalization claim.
-
-\subsection{Reinterpretation of masking}
-
-The submitted Olivetti experiment reported 96.0\% subject recovery after
-masking all memories outside the requested subject, compared with 10.4\%
-without the mask. Equation~\eqref{eq:exact-mixture} makes the mechanism
-explicit: setting off-subject multiplicities to zero restricts the categorical
-support to that subject. This is a useful memory-subset operation implemented
-directly inside stochastic attention. For the base tied target it also retains
-an exact mixture representation; more general state-dependent conditioning can
-instead be expressed through $C$ in Eq.~\eqref{eq:constrained-target}.
-
-Figure~\ref{fig:olivetti} restores the paired Olivetti visualization. It is
-retained as an illustration of support restriction and finite-time drift, not
-as evidence that masking creates a new conditional generative model.
-
 \begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figs/Fig_protein_aa_frequencies.pdf}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figs/Fig_protein_sequence_identity.pdf}
+\end{minipage}
+\caption{PF00076 diagnostics. \textbf{(a)} Per-position amino-acid frequencies for
+the stored and ULA-decoded sequences. \textbf{(b)} Nearest-memory sequence-identity
+distributions. The samples reproduced broad in-sample family structure but
+showed stronger consensus at conserved positions. These diagnostics describe
+the memory-plus-PCA-decoder pipeline and do not validate protein function.}
+\label{fig:protein}
+\end{figure}
+
+\FloatBarrier
+
+\subsection{Conditional sampling by memory masking}
+
+We tested the masking operation on 100 Olivetti faces from 10 subjects. The
+unmasked finite-time procedure recovered the requested subject for 10.4\% of
+endpoints, close to the 10\% uniform-subject rate, whereas setting every
+off-subject multiplicity to zero increased recovery to 96.0\%
+(Fig.~\ref{fig:olivetti}b,c). Equation
+\eqref{eq:exact-mixture} clarifies the mechanism: the hard mask removed
+off-subject mixture components. The experiment therefore measured leakage from
+a restricted memory subset; it did not show that the mask learned a new
+conditional image model.
+
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.30\textwidth]{figs/Fig_olivetti_stored_v2.pdf}%
 \hfill
@@ -200,10 +356,30 @@ as evidence that masking creates a new conditional generative model.
 \makebox[0.30\textwidth]{\centering (b) Hard-masked ULA}%
 \hfill
 \makebox[0.30\textwidth]{\centering (c) Unconditional ULA}
-\caption{Paired Olivetti endpoints. Each row uses warm starts from one subject.
-Hard masking removes all off-subject mixture components, whereas the
-unconditional finite-time kernel can move among subjects. The reported subject
-recovery is $96.0\%$ with the mask and $10.4\%$ without it; the mechanism is
-explicit support restriction.}
+\caption{Paired Olivetti endpoints. Each row used warm starts from one subject.
+Hard masking removed all off-subject components, whereas the unconditional
+finite-time kernel could move among subjects. Subject recovery was 96.0\% with
+the mask and 10.4\% without it.}
 \label{fig:olivetti}
 \end{figure}
+
+\FloatBarrier
+
+\subsection{Additional domain and finite-time analyses}
+
+The supplementary material reports the multi-digit MNIST,
+single-chain, protein, financial-return, step-size, Gaussian-control,
+data-scaling, and multi-head experiments. These analyses remain useful for
+understanding the tested finite-time kernels, preprocessing choices, and
+failure modes. The financial study, for example, separated an independent
+endpoint pool with marginal affine correction from a sequential MALA protocol;
+the latter reproduced near-zero return autocorrelation but not volatility
+clustering. The multi-head construction used independent tied-key/value
+energies on specified PCA subspaces and a deterministic output map. Neither
+experiment was used to claim that the base target was a general financial model
+or that an arbitrary transformer head possessed the same scalar energy.
+No experiment in this paper used a nontrivial smooth state-dependent
+$C(\boldsymbol\xi)$. The constrained formulation in
+Eq.~\eqref{eq:constrained-target} is therefore a theoretical extension and a
+foundation for subsequent applications, not an empirical conclusion of the
+present study.

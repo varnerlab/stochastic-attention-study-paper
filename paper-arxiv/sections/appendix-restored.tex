@@ -1,5 +1,4 @@
-% Restored supplementary material from the submitted arXiv version.
-% Numerical results are retained for transparency and reinterpretation.
+% Supplementary theory, experiments, and implementation details.
 
 \section{Regularity of the Hopfield Energy}
 \subsection{Proof of Proposition~\ref{prop:regularity}}\label{app:proof-regularity}
@@ -7,20 +6,21 @@
 We prove the two regularity properties of the modern Hopfield energy $E$ defined in~\eqref{eq:modern-hopfield-energy}. Write $\mathbf{p}(\boldsymbol{\xi})=\operatorname{softmax}(\beta\mathbf{X}^{\top}\boldsymbol{\xi}+\log\mathbf r)\in\mathbb{R}^K$ for the attention weight vector at state $\boldsymbol{\xi}$, restricted to the support where $r_k>0$, and recall the retrieval map $\mathbf{T}(\boldsymbol{\xi})=\mathbf{X}\mathbf{p}(\boldsymbol{\xi})$.
 
 \paragraph{Hessian computation.}
-The gradient is $\nabla E(\boldsymbol{\xi})=\boldsymbol{\xi}-\mathbf{T}(\boldsymbol{\xi})$~\cite{ramsauerHopfieldNetworksAll2021}. To obtain the Hessian we differentiate the retrieval map. Let $\mathbf{z}=\beta\mathbf{X}^{\top}\boldsymbol{\xi}\in\mathbb{R}^K$ denote the pre-softmax logits. The Jacobian of the softmax is the $K\times K$ matrix
+The gradient is $\nabla E(\boldsymbol{\xi})=\boldsymbol{\xi}-\mathbf{T}(\boldsymbol{\xi})$~\cite{ramsauerHopfieldNetworksAll2021}. To obtain the Hessian we differentiate the retrieval map. Let $\mathbf{z}=\beta\mathbf{X}^{\top}\boldsymbol{\xi}\in\mathbb{R}^K$ denote the pre-softmax logits. The softmax has the following $K\times K$ Jacobian:
 \begin{equation}\label{eq:softmax-jacobian}
     \frac{\partial\mathbf{p}}{\partial\mathbf{z}}
     = \operatorname{diag}(\mathbf{p}) - \mathbf{p}\mathbf{p}^{\top}
     =: \mathbf{S}(\mathbf{p}),
 \end{equation}
-which is the covariance matrix of a categorical distribution with probabilities~$\mathbf{p}$. By the chain rule ($\partial\mathbf{z}/\partial\boldsymbol{\xi}=\beta\mathbf{X}^{\top}$):
+This Jacobian is the covariance matrix of a categorical distribution with
+probabilities $\mathbf p$. The chain rule gives the Hessian:
 \begin{equation}\label{eq:hessian}
     \nabla^{2}E(\boldsymbol{\xi})
     = \mathbf{I}_{d} - \beta\,\mathbf{X}\,\mathbf{S}\bigl(\mathbf{p}(\boldsymbol{\xi})\bigr)\,\mathbf{X}^{\top}.
 \end{equation}
 
 \paragraph{Part (i): Lipschitz gradient.}
-The Lipschitz constant of $\nabla E$ equals $\sup_{\boldsymbol{\xi}}\|\nabla^{2}E(\boldsymbol{\xi})\|_{\mathrm{op}}$. Because $\mathbf{S}(\mathbf{p})$ is a covariance matrix it is positive semidefinite, so $\beta\mathbf{X}\mathbf{S}\mathbf{X}^{\top}\succeq\mathbf{0}$. By the triangle inequality for the spectral norm,
+The Lipschitz constant of $\nabla E$ equals $\sup_{\boldsymbol{\xi}}\|\nabla^{2}E(\boldsymbol{\xi})\|_{\mathrm{op}}$. Because $\mathbf{S}(\mathbf{p})$ is a covariance matrix it is positive semidefinite, so $\beta\mathbf{X}\mathbf{S}\mathbf{X}^{\top}\succeq\mathbf{0}$. The triangle inequality for the spectral norm gives:
 \begin{equation}\label{eq:lip-triangle}
     \|\nabla^{2}E(\boldsymbol{\xi})\|_{\mathrm{op}}
     \;\le\; \|\mathbf{I}_{d}\|_{\mathrm{op}}
@@ -29,20 +29,22 @@ The Lipschitz constant of $\nabla E$ equals $\sup_{\boldsymbol{\xi}}\|\nabla^{2}
 \end{equation}
 where the second step uses submultiplicativity of the spectral norm.
 
-It remains to bound $\|\mathbf{S}(\mathbf{p})\|_{\mathrm{op}}$. For any unit vector $\mathbf{v}\in\mathbb{R}^K$,
+It remains to bound $\|\mathbf{S}(\mathbf{p})\|_{\mathrm{op}}$. For any unit vector $\mathbf{v}\in\mathbb{R}^K$, the quadratic form is:
 \begin{align*}
 \mathbf{v}^{\top}\mathbf{S}(\mathbf{p})\mathbf{v}
 = \sum_{i}p_{i}v_{i}^{2} - \Bigl(\sum_{i}p_{i}v_{i}\Bigr)^{\!2}
 = \operatorname{Var}_{\mathbf{p}}(V),
 \end{align*}
-where $V$ is the random variable taking value $v_i$ with probability $p_i$. By Popoviciu's variance inequality, $\operatorname{Var}(V)\le(v_{\max}-v_{\min})^{2}/4$. Under the constraint $\|\mathbf{v}\|_{2}=1$, the difference $v_{\max}-v_{\min}$ satisfies
+Here $V$ is the random variable taking value $v_i$ with probability $p_i$. By Popoviciu's variance inequality, $\operatorname{Var}(V)\le(v_{\max}-v_{\min})^{2}/4$. Under the constraint $\|\mathbf{v}\|_{2}=1$, its range satisfies:
 \begin{align*}
 (v_{\max}-v_{\min})^{2}
 \;\le\; (|v_{\max}|+|v_{\min}|)^{2}
 \;\le\; 2(v_{\max}^{2}+v_{\min}^{2})
 \;\le\; 2\|\mathbf{v}\|_{2}^{2} = 2,
 \end{align*}
-where the second step is the Cauchy--Schwarz (QM-AM) inequality $(a+b)^{2}\le 2(a^{2}+b^{2})$ for $a,b\ge 0$. Therefore
+The second step is the Cauchy--Schwarz inequality
+$(a+b)^{2}\le 2(a^{2}+b^{2})$ for $a,b\ge 0$. Therefore, the softmax
+covariance obeys the bound:
 \begin{equation}\label{eq:softmax-spectral-bound}
     \|\mathbf{S}(\mathbf{p})\|_{\mathrm{op}}
     = \sup_{\|\mathbf{v}\|=1}\operatorname{Var}_{\mathbf{p}}(V)
@@ -50,7 +52,8 @@ where the second step is the Cauchy--Schwarz (QM-AM) inequality $(a+b)^{2}\le 2(
 \end{equation}
 and this bound is tight: equality holds when $K\ge 2$ with $\mathbf{p}=(\tfrac{1}{2},\tfrac{1}{2},0,\dots,0)$ and $\mathbf{v}=(\tfrac{1}{\sqrt{2}},-\tfrac{1}{\sqrt{2}},0,\dots,0)$.
 
-Substituting~\eqref{eq:softmax-spectral-bound} into~\eqref{eq:lip-triangle} yields
+Substituting Eq.~\eqref{eq:softmax-spectral-bound} into
+Eq.~\eqref{eq:lip-triangle} gives the Lipschitz constant:
 \begin{align*}
 \sup_{\boldsymbol{\xi}}\|\nabla^{2}E(\boldsymbol{\xi})\|_{\mathrm{op}}
 \;\le\; 1 + \frac{\beta\,\sigma_{\max}^{2}}{2}
@@ -58,30 +61,31 @@ Substituting~\eqref{eq:softmax-spectral-bound} into~\eqref{eq:lip-triangle} yiel
 \end{align*}
 
 \paragraph{Part (ii): Dissipativity.}
-Expanding the inner product,
+Expanding the inner product gives:
 \begin{align*}
 \langle\nabla E(\boldsymbol{\xi}),\,\boldsymbol{\xi}\rangle
 = \|\boldsymbol{\xi}\|_{2}^{2} - \langle\mathbf{T}(\boldsymbol{\xi}),\,\boldsymbol{\xi}\rangle.
 \end{align*}
-The retrieval map $\mathbf{T}(\boldsymbol{\xi})=\mathbf{X}\mathbf{p}=\sum_{k}p_{k}\mathbf{m}_{k}$ is a convex combination of stored patterns, so by the triangle inequality
+The retrieval map $\mathbf{T}(\boldsymbol{\xi})=\mathbf{X}\mathbf{p}=\sum_{k}p_{k}\mathbf{m}_{k}$ is a convex combination of stored patterns. The triangle inequality gives:
 \begin{align*}
 \|\mathbf{T}(\boldsymbol{\xi})\|_{2}
 = \Bigl\|\sum_{k}p_{k}\mathbf{m}_{k}\Bigr\|_{2}
 \le \sum_{k}p_{k}\|\mathbf{m}_{k}\|_{2}
 \le M,
 \end{align*}
-where $M=\max_{k}\|\mathbf{m}_{k}\|_{2}$ and $\sum_{k}p_{k}=1$. By the Cauchy--Schwarz inequality,
+Here $M=\max_{k}\|\mathbf{m}_{k}\|_{2}$ and $\sum_{k}p_{k}=1$. The
+Cauchy--Schwarz inequality gives:
 \begin{align*}
 |\langle\mathbf{T}(\boldsymbol{\xi}),\,\boldsymbol{\xi}\rangle|
 \le \|\mathbf{T}(\boldsymbol{\xi})\|_{2}\,\|\boldsymbol{\xi}\|_{2}
 \le M\|\boldsymbol{\xi}\|_{2}.
 \end{align*}
-Applying Young's inequality $ab\le\tfrac{a^{2}}{2}+\tfrac{b^{2}}{2}$ with $a=M$ and $b=\|\boldsymbol{\xi}\|_{2}$,
+Applying Young's inequality $ab\le\tfrac{a^{2}}{2}+\tfrac{b^{2}}{2}$ with $a=M$ and $b=\|\boldsymbol{\xi}\|_{2}$ gives:
 \begin{align*}
 M\|\boldsymbol{\xi}\|_{2}
 \;\le\; \frac{M^{2}}{2} + \frac{\|\boldsymbol{\xi}\|_{2}^{2}}{2}.
 \end{align*}
-Hence
+Combining these inequalities establishes dissipativity:
 \begin{align*}
 \langle\nabla E(\boldsymbol{\xi}),\,\boldsymbol{\xi}\rangle
 \;\ge\; \|\boldsymbol{\xi}\|_{2}^{2} - \frac{M^{2}}{2} - \frac{\|\boldsymbol{\xi}\|_{2}^{2}}{2}
@@ -90,12 +94,12 @@ Hence
 which is the dissipativity condition \textbf{(R2)} with constants $a=\tfrac{1}{2}$ and $b=\tfrac{M^{2}}{2}$. \qed
 
 \paragraph{Sufficient convexity condition.}
-Since $\mathbf{S}(\mathbf{p})\succeq\mathbf{0}$, the Hessian~\eqref{eq:hessian} satisfies $\nabla^{2}E\preceq\mathbf{I}$ (the identity provides an upper bound on the eigenvalues). For the lower bound, $\beta\mathbf{X}\mathbf{S}\mathbf{X}^{\top}\preceq\tfrac{\beta\sigma_{\max}^{2}}{2}\mathbf{I}$ by~\eqref{eq:softmax-spectral-bound} and submultiplicativity, so
+Since $\mathbf{S}(\mathbf{p})\succeq\mathbf{0}$, the Hessian~\eqref{eq:hessian} satisfies $\nabla^{2}E\preceq\mathbf{I}$ (the identity provides an upper bound on the eigenvalues). Equation~\eqref{eq:softmax-spectral-bound} and submultiplicativity give the following lower bound:
 \begin{align*}
 \nabla^{2}E(\boldsymbol{\xi})
 \;\succeq\; \Bigl(1-\frac{\beta\sigma_{\max}^{2}}{2}\Bigr)\mathbf{I}.
 \end{align*}
-When $\beta\sigma_{\max}^{2}<2$ the lower bound is strictly positive, so $E$ is strictly convex. The potential $U=\beta E$ is then $m$-strongly convex with $m=\beta(1-\beta\sigma_{\max}^{2}/2)$ and has $L_{U}$-Lipschitz gradient with $L_{U}=\beta(1+\beta\sigma_{\max}^{2}/2)$. The condition number is
+When $\beta\sigma_{\max}^{2}<2$ the lower bound is strictly positive, so $E$ is strictly convex. The potential $U=\beta E$ is then $m$-strongly convex with $m=\beta(1-\beta\sigma_{\max}^{2}/2)$ and has $L_{U}$-Lipschitz gradient with $L_{U}=\beta(1+\beta\sigma_{\max}^{2}/2)$. Its condition number is:
 \begin{align*}
 \kappa = \frac{L_{U}}{m}
 = \frac{1+\beta\sigma_{\max}^{2}/2}{1-\beta\sigma_{\max}^{2}/2},
@@ -106,17 +110,17 @@ not locate the exact onset of nonconvexity or count local minima.
 
 
 
-\section{Additional Submitted Experiments and Diagnostics}
-\label{app:restored-experiments}
+\section{Additional Experiments and Diagnostics}
+\label{app:additional-experiments}
 
-The experiments in this section are retained from the submitted manuscript for
-scientific transparency, qualitative inspection, and reproducibility. Unless an
+The experiments in this section provide qualitative inspection and
+reproducibility details. Unless an
 exact all-component row is shown in the main text, they characterize the
-submitted finite-time, warm-started protocol rather than independent equilibrium
+finite-time, warm-started protocol rather than independent equilibrium
 sampling. Novelty, diversity, and Hopfield energy are descriptive quantities;
-they are not a cross-model quality ranking. Reported standard errors inherit the
-submitted grouping convention and should not be interpreted as repeated-run
-uncertainty.
+they are not a cross-model quality ranking. Reported standard errors group
+endpoints across 30 chains and should not be interpreted as uncertainty across
+independent repetitions of the complete experiment.
 
 \subsection{Synthetic responsibility concentration}
 The load-ratio sweep remains useful as a finite-dimensional visualization of
@@ -129,17 +133,17 @@ capacity boundary or an automatic temperature selector.
 \label{fig:phase-diagram}
 \end{figure}
 
-\subsection{Submitted MNIST baseline record}
-\label{app:submitted-mnist-table}
-Table~\ref{tab:mnist-baselines} preserves the submitted numerical comparison so
-that the revised exact-sampling analysis can be audited against the original
-record. The columns describe endpoint geometry under different procedures.
+\subsection{MNIST baseline record}
+\label{app:mnist-baseline-record}
+Table~\ref{tab:mnist-baselines} reports the finite-time numerical comparison
+alongside the exact-sampling analysis in the main text. The columns describe
+endpoint geometry under different procedures.
 They do not establish that one method is a better image generator.
 \begin{table}[t]
 \centering
-\caption{Submitted MNIST digit-3 endpoint statistics ($K=100$, $d=784$).
+\caption{MNIST digit-3 endpoint statistics ($K=100$, $d=784$).
 Novelty, diversity, and Hopfield energy are descriptive geometry, not a quality
-ranking. Values use the submitted mean $\pm$ SE grouping across 30 chains.
+ranking. Values use the mean $\pm$ SE grouping across 30 chains.
 $^\dagger$Energy is evaluated under the Hopfield target at $\beta=200$.}
 \label{tab:mnist-baselines}
 \small
@@ -160,14 +164,14 @@ ULA ($\beta{=}200$) & $0.548 \pm 0.002$ & $0.885 \pm 0.002$ & $1.467 \pm 0.008^\
 \end{table}
 
 \subsection{Additional MNIST digits and temperature sweep}
-Digits 1 and 8 test whether the submitted endpoint behavior was specific to
-digit 3. The images and tables are retained as descriptive sensitivity analyses.
+Digits 1 and 8 test whether the endpoint behavior was specific to digit 3. The
+images and tables are descriptive sensitivity analyses.
 The broadening with decreasing $\beta$ is predicted directly by the exact
 component width $\beta^{-1/2}$; visual degradation at low $\beta$ is important
 context for interpreting increases in novelty and diversity.
 \begin{table}[ht]
 \centering
-\caption{Quantitative comparison on MNIST digit ``1'' ($K{=}100$, $d{=}784$, $\beta{=}2000$). Same protocol as Table~\ref{tab:mnist-baselines}, including the VAE baseline (latent dim 8, same two-phase training). MALA acceptance rate: 99.2\%. Values are mean $\pm$ SE across 30 chains.}
+\caption{Quantitative comparison on MNIST digit ``1'' ($K{=}100$, $d{=}784$, $\beta{=}2000$). The protocol matches Table~\ref{tab:mnist-baselines}, including the VAE baseline (latent dimension 8, same two-phase training). The MALA acceptance rate was 99.2\%. Values are mean $\pm$ SE across 30 chains.}
 \label{tab:mnist-digit1}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -187,7 +191,7 @@ ULA & $0.153 \pm 0.001$ & $0.591 \pm 0.001$ & $-0.303 \pm 0.001$ \\
 
 \begin{table}[ht]
 \centering
-\caption{Quantitative comparison on MNIST digit ``8'' ($K{=}100$, $d{=}784$, $\beta{=}2000$). Same protocol as Table~\ref{tab:mnist-baselines}, including the VAE baseline (latent dim 8, same two-phase training). MALA acceptance rate: 99.2\%. Values are mean $\pm$ SE across 30 chains.}
+\caption{Quantitative comparison on MNIST digit ``8'' ($K{=}100$, $d{=}784$, $\beta{=}2000$). The protocol matches Table~\ref{tab:mnist-baselines}, including the VAE baseline (latent dimension 8, same two-phase training). The MALA acceptance rate was 99.2\%. Values are mean $\pm$ SE across 30 chains.}
 \label{tab:mnist-digit8}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -227,7 +231,7 @@ ULA & $0.152 \pm 0.001$ & $0.557 \pm 0.001$ & $-0.303 \pm 0.001$ \\
 \makebox[0.19\textwidth]{\centering (d) MALA}%
 \hfill
 \makebox[0.19\textwidth]{\centering (e) ULA}
-\caption{Submitted MNIST digit-1 endpoint grids. The panels permit qualitative
+\caption{MNIST digit-1 endpoint grids. The panels permit qualitative
 inspection of replay, the narrow one-step Gaussian baseline, convex mixing,
 MALA, and ULA. They are not an external image-quality evaluation.}
 \label{fig:mnist-digit1-grids}
@@ -255,7 +259,7 @@ MALA, and ULA. They are not an external image-quality evaluation.}
 \makebox[0.19\textwidth]{\centering (d) MALA}%
 \hfill
 \makebox[0.19\textwidth]{\centering (e) ULA}
-\caption{Submitted MNIST digit-8 endpoint grids under the same finite-time
+\caption{MNIST digit-8 endpoint grids under the same finite-time
 protocol as digit 1. These images show method-specific endpoint geometry but do
 not establish a quality ordering.}
 \label{fig:mnist-digit8-grids}
@@ -263,10 +267,10 @@ not establish a quality ordering.}
 
 \begin{table}[ht]
 \centering
-\caption{Submitted temperature spectrum for digit 8 ($K=100$, $d=784$,
-$\alpha=0.01$, 30 chains). SNR is the per-step update ratio
+\caption{Temperature spectrum for digit 8 ($K=100$, $d=784$,
+$\alpha=0.01$, 30 chains). The per-step SNR is the update ratio
 $\sqrt{\alpha\beta/(2d)}$. It is a heuristic under spherical, unit-norm
-assumptions, not an automatic regime boundary. Values use the submitted
+assumptions, not an automatic regime boundary. Values use the
 mean $\pm$ SE grouping.}
 \label{tab:temp-spectrum-digit8}
 \small
@@ -281,34 +285,6 @@ $\beta$ & SNR & $\mathcal{N}$ & $\bar{\mathcal{D}}$ & $\bar{E}$ & Mean max-$\cos
 \bottomrule
 \end{tabular}
 \end{table}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_stored.pdf}%
-\hfill
-\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_beta2000.pdf}%
-\hfill
-\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_beta200.pdf}%
-\hfill
-\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_beta50.pdf}%
-\hfill
-\includegraphics[width=0.19\textwidth]{figs/Fig_mnist_tempspectrum_digit8_beta10.pdf}
-
-\small
-\makebox[0.19\textwidth]{\centering Stored}%
-\hfill
-\makebox[0.19\textwidth]{\centering $\beta{=}2000$}%
-\hfill
-\makebox[0.19\textwidth]{\centering $\beta{=}200$}%
-\hfill
-\makebox[0.19\textwidth]{\centering $\beta{=}50$}%
-\hfill
-\makebox[0.19\textwidth]{\centering $\beta{=}10$}
-\caption{Temperature spectrum for MNIST digit 8. Decreasing $\beta$ increases
-the exact component width $\beta^{-1/2}$: endpoints broaden away from stored
-patterns and eventually lose recognizable digit structure.}
-\label{fig:temp-spectrum-digit8}
-\end{figure}
 
 \subsection{Single-chain and trajectory diagnostics}
 These experiments isolate finite-time initialization and trajectory behavior.
@@ -373,7 +349,7 @@ model.}
 \small
 \makebox[0.95\textwidth]{\centering $T = 0,\, 1000,\, 5000,\, 10000,\, 25000,\, 50000$\ \ (MNIST, top); $T = 0,\, 100,\, 500,\, 1000,\, 2000,\, 3000$\ \ (Olivetti, bottom)}
 \caption{Chain snapshots without burn-in. Top: a digit-3 ULA trajectory at
-$\beta=50$, shown after the submitted denoise readout; its nearest-memory labels
+$\beta=50$, shown after the denoising readout; its nearest-memory labels
 change across checkpoints. Bottom: an unconditional Olivetti trajectory at
 $\beta_{\mathrm{chain}}=200$ whose readout changes subjects. These examples
 show finite-trajectory basin-label changes, not a quantitative mixing-time
@@ -382,13 +358,14 @@ estimate.}
 \end{figure}
 
 \subsection{Additional PF00076 diagnostics}
-The following submitted table and figures document the full preprocessing and
-decoder behavior. All comparisons use the same 68 sequences for fitting and
-evaluation. They are therefore in-sample distributional diagnostics, and the
-HMM pass rate is saturated across methods.
+The following table and entropy figure document the full preprocessing and
+decoder behavior beyond Figure~\ref{fig:protein} in the main text. All
+comparisons use the same 68 sequences for fitting and evaluation. They are
+therefore in-sample distributional diagnostics, and the profile-HMM pass rate
+is saturated across methods.
 \begin{table}[ht]
 \centering
-\caption{Submitted PF00076 endpoint statistics ($K=68$, $L=71$, $d=59$
+\caption{PF00076 endpoint statistics ($K=68$, $L=71$, $d=59$
 after PCA). SeqID is maximum sequence identity to a stored sequence and KL is
 amino-acid composition divergence. All reference statistics are in-sample;
 $^\dagger$energy is evaluated under the Hopfield target at $\beta=8$.}
@@ -414,32 +391,6 @@ ULA ($\beta{=}8$) & $0.623 \pm 0.006$ & $1.001 \pm 0.006$ & $3.08 \pm 0.06^\dagg
 
 \begin{figure}[ht]
 \centering
-\begin{minipage}[t]{0.48\textwidth}
-\centering
-\IfFileExists{figs/Fig_protein_aa_frequencies.pdf}{%
-  \includegraphics[width=\linewidth]{figs/Fig_protein_aa_frequencies.pdf}%
-}{%
-  \framebox[\linewidth]{\rule{0pt}{4cm}\small [AA frequency heatmap]}%
-}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.48\textwidth}
-\centering
-\IfFileExists{figs/Fig_protein_sequence_identity.pdf}{%
-  \includegraphics[width=\linewidth]{figs/Fig_protein_sequence_identity.pdf}%
-}{%
-  \framebox[\linewidth]{\rule{0pt}{4cm}\small [Sequence identity histogram]}%
-}
-\end{minipage}
-\caption{Submitted PF00076 diagnostics. Left: per-position amino-acid
-frequencies for stored and ULA-decoded sequences. Right: nearest-memory
-sequence-identity distributions. The figures describe the in-sample
-mixture-plus-PCA-decoder pipeline and are not functional validation.}
-\label{fig:protein}
-\end{figure}
-
-\begin{figure}[ht]
-\centering
 \includegraphics[width=0.55\textwidth]{figs/Fig_protein_entropy_curve.pdf}
 \caption{Responsibility entropy $H(\beta)/\log K$ for the PF00076 memory
 ($K=68$, $d=59$). The empirical inflection and the random spherical-memory
@@ -450,7 +401,7 @@ temperature.}
 \end{figure}
 
 \subsection{Financial log-return illustration}
-The finance experiment is retained as an exploratory application of finite-time
+The finance experiment is an exploratory application of finite-time
 stochastic dynamics. Marginal affine correction and warm-started sequential
 sampling are application-specific postprocessing choices, so these results do
 not establish general generative superiority or follow from the exact-mixture
@@ -480,7 +431,7 @@ on a log scale for descriptive comparison.}
 
 \begin{table}[ht]
 \centering
-\caption{Submitted finance summary. Distributional rows use an i.i.d. endpoint
+\caption{Finance summary. Distributional rows use an i.i.d. endpoint
 pool followed by per-ticker affine correction; temporal rows use a separate
 warm-started sequential MALA protocol. These application-specific pipelines
 are not an equilibrium validation or a cross-model quality ranking.}
@@ -512,13 +463,13 @@ SF3: Volatility clustering & Not reproduced ($\beta{=}12$) & N/A \\
 \end{figure}
 
 \subsection{Olivetti masking diagnostics}
-The submitted Olivetti tables quantify memory-subset restriction. Hard masking
+The Olivetti tables quantify memory-subset restriction. Hard masking
 sets off-subject component weights to zero, so high subject recovery is expected
 from the restricted support; the experiment remains useful for measuring
 leakage and the geometric effect of soft biases.
 \begin{table}[ht]
 \centering
-\caption{Submitted subject-recovery rate on Olivetti faces ($K=100$,
+\caption{Subject-recovery rate on Olivetti faces ($K=100$,
 $d=4096$, 10 subjects). The hard mask removes all off-subject components;
 unconditional recovery is near the uniform 10-subject rate. The protocols use
 different endpoint allocations as detailed in the text.}
@@ -537,9 +488,9 @@ Hard-masked ULA ($b_{k}{=}-\infty$ off-subject) & $0.960$ \\
 
 \begin{table}[ht]
 \centering
-\caption{Submitted single-$\beta$ masked sweep on Olivetti subject 0, with
+\caption{Single-$\beta$ masked sweep on Olivetti subject 0, with
 20 chains per row. Novelty is median minimum cosine distance to an in-subject
-memory; hit rate uses the submitted nearest-mean rule.}
+memory; hit rate uses the nearest-mean rule.}
 \label{tab:olivetti-betasweep}
 \small
 \begin{tabular}{@{}lcccccc@{}}
@@ -552,7 +503,7 @@ Hit rate & $1.000$ & $1.000$ & $0.950$ & $0.900$ & $0.900$ & $0.900$ \\
 \end{tabular}
 \end{table}
 
-\section{Retained Baseline Method Specifications}\label{app:baseline-methods}
+\section{Baseline Method Specifications}\label{app:baseline-methods}
 % ─────────────────────────────────────────────────────────────────────────────
 
 Complete mathematical specifications for the two learned generative
@@ -585,8 +536,11 @@ Expectation-Maximization~\cite{dempsterMaximumLikelihoodIncomplete1977}:
 Parameters $\{\pi_c,\boldsymbol{\mu}_c,\boldsymbol{\sigma}_c^2\}_{c=1}^{C}$ are estimated
 by EM with K-means$\texttt{++}$ initialization and convergence tolerance $10^{-8}$ on the
 log-likelihood.
-The diagonal-covariance constraint prevents singularity when $K>r$ and is equivalent to
-assuming conditionally independent PCA coordinates within each component.
+The diagonal-covariance constraint reduces the number of covariance parameters
+and assumes conditionally independent PCA coordinates within each component.
+The implementation also floors every fitted coordinate variance at $10^{-6}$;
+this explicit floor, rather than the diagonal form alone, prevents zero-variance
+coordinates from making a component singular.
 
 \paragraph{Sampling.}
 To draw one sample: (i) sample component $c\sim\mathrm{Categorical}(\boldsymbol{\pi})$;
@@ -597,7 +551,7 @@ The 150 evaluation samples are drawn i.i.d.\ under this procedure with a fixed s
 
 \paragraph{Hyperparameters.}
 $r{=}50$ PCA components; $C{=}10$ GMM components; K-means$\texttt{++}$ initialization;
-EM convergence tolerance $10^{-8}$; no regularization beyond the diagonal-covariance constraint.
+EM convergence tolerance $10^{-8}$; coordinate-variance floor $10^{-6}$.
 
 % ── VAE ──────────────────────────────────────────────────────────────────────
 \subsection{Variational Autoencoder}\label{app:vae}
@@ -643,13 +597,16 @@ The KL term has a closed form:
 \end{equation}
 
 \paragraph{Two-phase training protocol.}
-Training directly with the full $\beta$-VAE objective on a small dataset ($K{=}100$)
-causes \emph{posterior collapse}: the encoder ignores the input, the KL term drives every
-latent dimension to $\mathcal{N}(0,1)$, and the decoder learns a constant map.
-We prevented this with a two-phase schedule. The warm-up phase (epochs 1--2{,}000) trained with $\beta_{\mathrm{KL}}{=}0$, i.e.\ a reconstruction-only autoencoder objective, to establish a non-degenerate encoder (one that uses the latent code productively) before any regularization pressure was applied. The fine-tuning phase (epochs 2{,}001--4{,}000) introduced the KL term with $\beta_{\mathrm{KL}}{=}0.0001$ and a linear warmup schedule ($\beta_{\mathrm{KL}}(t) = 0.0001\cdot(t/2000)$ for $t\in[1,2000]$); the small final weight provides light regularization toward the Gaussian prior without overriding the reconstruction signal. The warm-up phase is equivalent to a hard $\beta$-annealing schedule and is standard practice for low-data VAE training~\cite{lucasHowAvoidTrivial2019}.
-On large datasets ($K\gg10^4$), the reconstruction gradient swamps the KL term and posterior
-collapse does not occur; the two-phase protocol is needed here specifically because
-$K{=}100$ makes the per-sample gradients noisy relative to the KL regularization pressure.
+In preliminary runs on this $K=100$ dataset, training directly with the full
+$\beta$-VAE objective produced posterior-collapse symptoms: the encoder used
+little of the latent code and the decoder approached a nearly constant map. We
+therefore used a two-phase schedule. The warm-up phase (epochs 1--2{,}000)
+trained with $\beta_{\mathrm{KL}}=0$, which established a non-degenerate
+reconstruction map before regularization. The fine-tuning phase (epochs
+2{,}001--4{,}000) increased the KL weight linearly from zero to
+$\beta_{\mathrm{KL}}=0.0001$. Annealing the KL weight is a standard response to
+posterior collapse~\cite{lucasHowAvoidTrivial2019}; this experiment does not
+support a general claim about when collapse occurs as dataset size changes.
 
 \paragraph{Optimization and sampling.}
 Optimizer: Adam~\cite{kingmaAdamMethodStochastic2014} with learning rate $10^{-3}$,
@@ -661,29 +618,75 @@ $\mathbf{z}\sim\mathcal{N}(\mathbf{0},\mathbf{I}_8)$ and decoding
 $\hat{\mathbf{x}}=\hat{\mathbf{x}}_\theta(\mathbf{z})$, then renormalizing to unit norm.
 
 \paragraph{Hyperparameter selection.}
-The final configuration (latent dim 8, $\beta_{\mathrm{KL}}{=}0.0001$) was chosen by a
-grid search over latent dimension $\in\{4,8,16,32\}$ and $\beta_{\mathrm{KL}}\in\{0.1,0.01,0.001,0.0001\}$,
-evaluating novelty and diversity on the held-out generation protocol.
+The final configuration (latent dimension 8,
+$\beta_{\mathrm{KL}}=0.0001$) was chosen by a grid search over latent
+dimension $\in\{4,8,16,32\}$ and
+$\beta_{\mathrm{KL}}\in\{0.1,0.01,0.001,0.0001\}$, using novelty and diversity
+computed against the same 100-image reference set. This was not an independent
+held-out validation procedure.
 Latent dimension 8 with $\beta_{\mathrm{KL}}=0.0001$ produced
 $\mathcal{N}=0.214\pm0.005$ and $\bar{\mathcal{D}}=0.441\pm0.008$ under the
-submitted descriptive metrics. Smaller latent dimensions, larger KL weights,
+descriptive metrics. Smaller latent dimensions, larger KL weights,
 and the latent-32 setting with $\beta_{\mathrm{KL}}=0.01$ produced less endpoint
 spread. These observations document hyperparameter sensitivity; they are not a
 quality ranking against the Hopfield target.
 
 % ── DDPM ────────────────────────────────────────────────────────────────────
+\subsection{Denoising diffusion protocol}\label{app:ddpm}
+
+The diffusion diagnostic used a denoising diffusion probabilistic model
+(DDPM)~\cite{hoDenoisingDiffusionProbabilistic2020} on the same flattened,
+unit-normalized MNIST vectors as the other image experiments. Because the input
+was represented as a vector rather than a two-dimensional image, the denoiser
+was an MLP rather than a convolutional U-Net. At step $t$, it concatenated
+$\mathbf x_t\in\mathbb R^{784}$ with a 64-dimensional sinusoidal time
+embedding and passed the result through layers of widths
+$848\to512\to256\to512\to784$, with ReLU activations on the hidden layers.
+The output estimated the added noise.
+
+The forward process used $T=200$ steps and a linear variance schedule from
+$\beta_1=10^{-4}$ to $\beta_T=0.02$. With
+$\bar\alpha_t=\prod_{s=1}^t(1-\beta_s)$, its marginal transition was:
+\begin{equation}
+q(\mathbf x_t\mid\mathbf x_0)
+=\mathcal N\!\left(\sqrt{\bar\alpha_t}\,\mathbf x_0,
+(1-\bar\alpha_t)\mathbf I\right).
+\end{equation}
+Training used Adam with learning rate $10^{-3}$ and full-dataset batches. Each
+update sampled a time for each input, added the corresponding Gaussian noise,
+and minimized the squared error between the added noise and the network output.
+The $K=100$ run used 5,000 epochs.
+
+Sampling began at $\mathbf x_T\sim\mathcal N(\mathbf0,\mathbf I)$ and applied
+the standard reverse update:
+\begin{equation}
+\mathbf x_{t-1}=\frac{1}{\sqrt{\alpha_t}}
+\left(\mathbf x_t-
+\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}
+\widehat{\boldsymbol\epsilon}_{\theta}(\mathbf x_t,t)\right)
++\sqrt{\beta_t}\,\mathbf z,
+\end{equation}
+where $\mathbf z$ was standard Gaussian except at the final step. Outputs were
+normalized to unit $\ell_2$ norm before the geometric diagnostics were
+computed.
+
+Under this particular protocol, the $K=100$ run produced novelty $0.938$,
+diversity $0.991$, and mean nearest-memory cosine $0.062$. These values were
+close to the isotropic-noise diagnostic, and the training loss plateaued near
+$0.855$. The result identifies a failure of this flattened-vector MLP protocol;
+it does not establish a general comparison with diffusion models. A
+convolutional architecture, a representation adapted to images, a tuned noise
+schedule, and matched optimization compute could change the outcome.
 
 
 \section{Finite-Step Sensitivity Analyses}
-Step-size, noise, and MALA comparisons are retained as diagnostics of the
-finite-time transition kernel. High MALA acceptance is reported descriptively
-and is not treated as proof that ULA has mixed or is unbiased. The submitted
-one-step Gaussian perturbation used scale $\sqrt{2\alpha/\beta}$; the exact
-component scale is $\beta^{-1/2}$, as evaluated in the revised main text.
+These finite-step diagnostics do not establish mixing or unbiasedness. The
+Gaussian control used $\sqrt{2\alpha/\beta}$, not the exact component scale
+$\beta^{-1/2}$.
 \begin{table}[ht]
 \centering
-\caption{Submitted step-size sweep on MNIST digit 3 ($K=100$, $d=784$,
-$\beta=2000$). ULA and MALA endpoint summaries are close at small $\alpha$ in
+\caption{Step-size sweep on MNIST digit 3 ($K=100$, $d=784$,
+$\beta=2000$). The ULA and MALA endpoint summaries are close at small $\alpha$ in
 this finite protocol. This agreement and high acceptance do not establish
 mixing or bound ULA bias.}
 \label{tab:stepsize-sweep}
@@ -706,23 +709,12 @@ $\alpha$ & Accept & \multicolumn{2}{c}{Novelty} & \multicolumn{2}{c}{Diversity} 
 \end{tabular}
 \end{table}
 
-\begin{figure}[ht]
-\centering
-\IfFileExists{figs/Fig_stepsize_sweep_ula_vs_mala.pdf}{%
-  \includegraphics[width=0.95\textwidth]{figs/Fig_stepsize_sweep_ula_vs_mala.pdf}%
-}{%
-  \framebox[0.95\textwidth]{\rule{0pt}{4cm}\texttt{[Figure will be generated by run\_stepsize\_sweep.jl]}}%
-}
-\caption{Step-size sweep: ULA vs.\ MALA on MNIST digit ``3'' ($\beta{=}2000$). \textbf{(a)}~MALA acceptance rate vs.\ step size $\alpha$. Acceptance exceeds $95\%$ for $\alpha\leq 0.02$ and collapses to $0\%$ at $\alpha\geq 0.2$. \textbf{(b)}~Absolute difference between ULA and MALA metrics. All three metrics (novelty, diversity, energy) diverge smoothly as $\alpha$ increases through the $[0.05,0.1]$ band.}
-\label{fig:stepsize-sweep}
-\end{figure}
-
 \begin{table}[ht]
 \centering
-\caption{Submitted Gaussian controls on MNIST digit 3 at $\beta=200$.
+\caption{Gaussian controls on MNIST digit 3 at $\beta=200$.
 FD$_{\text{diag}}$ is the diagonal pixel-space Fr\'{e}chet distance to stored
 patterns. The moment-matched controls differ from exact component-conditioned
-Gaussian sampling, which is reported in the revised main text.}
+Gaussian sampling, which is reported in the main text.}
 \label{tab:noise-control}
 \small
 \begin{tabular}{@{}lccccc@{}}
@@ -763,7 +755,7 @@ Gaussian (isotropic)              & 0.943 & 1.000 & $+2.34$ & 0.057 & 3.91 \\
 \makebox[0.19\textwidth]{\centering (d) Gauss (iso)}%
 \hfill
 \makebox[0.19\textwidth]{\centering (e) Max-$\cos$ dist.}
-\caption{Submitted Gaussian-control images. Panels show stored patterns, ULA
+\caption{Gaussian-control images. Panels show stored patterns, ULA
 endpoints at $\beta=200$, a marginal moment-matched Gaussian, an isotropic
 norm-matched Gaussian, and nearest-memory cosine distributions. These controls
 do not condition Gaussian noise on a sampled memory and therefore are not the
@@ -771,9 +763,9 @@ exact Hopfield-mixture baseline.}
 \label{fig:noise-control}
 \end{figure}
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
-\caption{Submitted ULA and MALA endpoint summaries over $\beta$; $\Delta$
+\caption{ULA and MALA endpoint summaries over $\beta$; $\Delta$
 columns report ULA minus MALA. Small differences under this protocol are
 descriptive and do not prove convergence or absence of ULA bias.}
 \label{tab:mala-generation}
@@ -789,8 +781,64 @@ $\beta$ & Accept & $\mathcal{N}_{\text{SA}}$ & $\Delta\mathcal{N}$ & $\bar{\math
 \end{tabular}
 \end{table}
 
-\section{Submitted VAE Data-Scale Sensitivity}
-The following table is retained to document the submitted experiment. Because
+\section{Data-Scale Diagnostic: Stochastic Attention and DDPM}\label{app:scaling}
+
+We also varied the number of digit-3 images over
+$K\in\{100,500,1000,2000,3500\}$. For stochastic attention, the diagnostic
+temperature $\beta^*$ was the point of maximum absolute slope in the empirical
+responsibility-entropy curve over the scanned grid; a second condition used
+$5\beta^*$. This construction gives a reproducible temperature rule for the
+table, but it is not guaranteed to optimize perceptual quality or define a
+phase transition. The DDPM architecture and schedule remained those in
+Appendix~\ref{app:ddpm}; its epoch count decreased from 5,000 at $K=100$ to
+1,000 at $K=3500$ to keep the number of full-batch updates in the same order.
+
+\begin{table}[ht]
+\centering
+\caption{Digit-3 data-scale diagnostic. MaxCos is mean cosine similarity to
+the nearest reference image. Novelty and diversity are geometric spread
+statistics. The table compares the specified protocols, not the best possible
+implementation of either model family.}
+\label{tab:scaling}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}rrccccccccc@{}}
+\toprule
+$K$ & $K/d$ & $\beta^*$ & \multicolumn{3}{c}{ULA ($\beta=\beta^*$)} &
+\multicolumn{3}{c}{ULA ($\beta=5\beta^*$)} & \multicolumn{2}{c}{DDPM} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}\cmidrule(lr){10-11}
+ & & & $\mathcal N$ & $\bar{\mathcal D}$ & MaxCos &
+$\mathcal N$ & $\bar{\mathcal D}$ & MaxCos & MaxCos & Train (s) \\
+\midrule
+100  & 0.13 & 9  & 0.874 & 0.993 & 0.126 & 0.763 & 0.969 & 0.237 & 0.061 & 34 \\
+500  & 0.64 & 13 & 0.851 & 0.991 & 0.149 & 0.722 & 0.955 & 0.278 & 0.073 & 37 \\
+1000 & 1.28 & 15 & 0.839 & 0.989 & 0.161 & 0.697 & 0.949 & 0.303 & 0.078 & 46 \\
+2000 & 2.55 & 18 & 0.827 & 0.987 & 0.173 & 0.673 & 0.940 & 0.327 & 0.086 & 66 \\
+3500 & 4.46 & 18 & 0.825 & 0.987 & 0.175 & 0.673 & 0.944 & 0.327 & 0.090 & 75 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{figs/Fig_scaling_sa_vs_ddpm.pdf}
+\caption{Data-scale diagnostic on MNIST digit 3. The panels show
+nearest-memory cosine, novelty, diversity, and the empirical entropy-slope
+temperature $\beta^*$. The DDPM curve describes the flattened-vector MLP in
+Appendix~\ref{app:ddpm}; it is not a benchmark against modern image diffusion
+systems.}
+\label{fig:scaling}
+\end{figure}
+
+Within these protocols, ULA nearest-memory cosine increased with $K$, whereas
+the DDPM diagnostic remained near the isotropic-noise value over the tested
+range. The comparison is confounded by representation, architecture, noise
+schedule, and compute allocation. It therefore supports the narrower claim
+that the analytic Hopfield score worked without training in this low-data
+setup, not that stochastic attention generally outperforms diffusion.
+
+\section{VAE Data-Scale Sensitivity}
+The following table documents the data-scale experiment. Because
 the evaluation uses nearest-memory geometry and the Hopfield model's own energy,
 it does not establish model-quality superiority.
 \begin{table}[ht]
@@ -826,14 +874,14 @@ subspace. We summarize the construction for completeness.
 Given a memory matrix $\mathbf{X} = [\mathbf{m}_1,\dots,\mathbf{m}_K] \in \mathbb{R}^{d \times K}$, define the column mean $\bar{\mathbf{m}} = \frac{1}{K}\sum_{k=1}^{K}\mathbf{m}_k$ and the centered matrix $\tilde{\mathbf{X}} = \mathbf{X} - \bar{\mathbf{m}}\mathbf{1}_K^\top \in \mathbb{R}^{d \times K}$.
 
 \paragraph{Singular value decomposition.}
-The economy SVD of the centered matrix is
+The centered matrix has the following economy SVD:
 \begin{equation}\label{eq:pca-svd}
     \tilde{\mathbf{X}} = \mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^\top,
 \end{equation}
 where $\mathbf{U} \in \mathbb{R}^{d \times r}$ has orthonormal columns (the \emph{principal directions}), $\boldsymbol{\Sigma} = \operatorname{diag}(\sigma_1,\dots,\sigma_r)$ with $\sigma_1 \ge \sigma_2 \ge \cdots \ge \sigma_r > 0$ (the \emph{singular values}), and $\mathbf{V} \in \mathbb{R}^{K \times r}$ has orthonormal columns. Here $r = \operatorname{rank}(\tilde{\mathbf{X}}) \le \min(d, K)$.
 
 \paragraph{Variance interpretation.}
-The $j$-th principal component of pattern $\mathbf{m}_k$ is $z_{kj} = \mathbf{u}_j^\top(\mathbf{m}_k - \bar{\mathbf{m}})$. The variance of the $j$-th component across the $K$ patterns is $\sigma_j^2 / K$, and the fraction of total variance captured by the first $p$ components is
+The $j$-th principal component of pattern $\mathbf{m}_k$ is $z_{kj} = \mathbf{u}_j^\top(\mathbf{m}_k - \bar{\mathbf{m}})$. The variance of the $j$-th component across the $K$ patterns is $\sigma_j^2 / K$. The first $p$ components capture the following fraction of total variance:
 \begin{equation}\label{eq:pca-variance}
     \rho(p) = \frac{\sum_{j=1}^{p}\sigma_j^2}{\sum_{j=1}^{r}\sigma_j^2}.
 \end{equation}
@@ -860,7 +908,7 @@ $\mathbf P_h\in\mathbb R^{d_h\times d}$ have orthonormal rows, with the row
 spaces of distinct heads mutually orthogonal. The head state is
 $\mathbf z^{(h)}\in\mathbb R^{d_h}$ and its tied projected memories are
 $\mathbf v_k^{(h)}=\mathbf P_h(\mathbf m_k-\bar{\mathbf m})$. Each head has
-energy
+the following energy:
 \begin{equation}
 E_h(\mathbf z)=\frac12\lVert\mathbf z\rVert_2^2
 -\frac1\beta\log\sum_{k=1}^K r_k^{(h)}
@@ -869,7 +917,8 @@ E_h(\mathbf z)=\frac12\lVert\mathbf z\rVert_2^2
 \end{equation}
 Independent Langevin chains target the product density
 $p(\mathbf z^{(1)},\ldots,\mathbf z^{(H)})=\prod_h p_h(\mathbf z^{(h)})$.
-Their concatenated output is mapped back by the specified linear reconstruction
+The following linear reconstruction maps their concatenated output back to the
+original space:
 \begin{equation}
 \widehat{\boldsymbol\xi}
 =\bar{\mathbf m}+\sum_{h=1}^H\mathbf P_h^\top\mathbf z^{(h)}
@@ -906,18 +955,25 @@ and $\lambda=0$ to obtain $\mathbf z_T^{(h)}$
 \end{algorithmic}
 \end{algorithm}
 
-The submitted proof-of-concept used disjoint blocks of PCA directions for the
-$\mathbf P_h$. With $K=100$ digit-3 memories, the first 100 nonzero principal
-directions were partitioned across $H$ heads; for $H=4$, each head received 25
-directions. Table~\ref{tab:multihead} restores the reported sweep. The table is
-descriptive: changing $H$ changes the product model and reconstruction, so it
-is not an apples-to-apples claim that heads improve sampling from one fixed
-target.
+The proof-of-concept implementation used disjoint blocks of left singular
+vectors for the $\mathbf P_h$. With $K=100$ digit-3 memories, the centered
+matrix has rank at most 99. The code nevertheless requested the 100 left
+singular vectors returned by the economy SVD, so the final direction
+corresponded to a zero singular value rather than a nonzero principal
+component. For $H=4$, the 100 returned directions were divided into four blocks
+of 25. In addition, the implementation projected the uncentered memories and
+normalized every projected memory before sampling, then added the mean during
+reconstruction. Those choices differ from the idealized centered construction
+in Algorithm~\ref{alg:multihead}. Table~\ref{tab:multihead} is therefore an
+archived proof-of-concept, not a direct validation of the product target above.
+Changing $H$ also changes the model and reconstruction, so the rows do not show
+that more heads improve sampling from one fixed target.
 
 \begin{table}[H]
 \centering
-\caption{Submitted PCA-partitioned multi-head demonstration at $\beta=200$.
-Metrics are computed against each configuration's own memory set.}
+\caption{PCA-partitioned multi-head proof-of-concept at $\beta=200$. Metrics
+are computed against each configuration's own memory set. The implementation
+differences from Algorithm~\ref{alg:multihead} are described in the text.}
 \label{tab:multihead}
 \small
 \begin{tabular}{@{}llccc@{}}

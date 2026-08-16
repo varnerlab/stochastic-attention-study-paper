@@ -1,39 +1,85 @@
-Modern Hopfield networks connect dense associative memory with dot-product
-attention~\cite{ramsauerHopfieldNetworksAll2021,krotovDenseAssociativeMemory2016}.
-Work on their capacity and temperature-dependent behavior studies retrieval,
-condensation, and random-pattern limits
+% relatedwork.tex -- Related Work
+
+The classical Hopfield network \cite{hopfieldNeuralNetworksPhysical1982}
+stores binary patterns as local minima of a quadratic energy. Retrieval
+proceeds by energy descent, but the storage capacity scales linearly with the
+state dimension \cite{amitStoringInfiniteNumbers1985}. Dense associative
+memories \cite{krotovDenseAssociativeMemory2016,krotovLargeAssociativeMemory2021}
+replace the quadratic interaction with higher-order functions. Modern Hopfield
+networks \cite{ramsauerHopfieldNetworksAll2021} use a log-sum-exp energy with
+exponential storage capacity and connect its retrieval map to dot-product
+attention. Work on random-pattern ensembles and temperature-dependent behavior
+has characterized retrieval, condensation, and capacity boundaries
 \cite{lucibelloExponentialCapacityDense2024,koulischerExploringTemperatureDependent2023}.
-Our result concerns a different but elementary property of the same continuous
-energy: its normalized Boltzmann law is a finite Gaussian mixture. The result
-does not imply that a general transformer head defines this density, because the
-derivation requires tied keys and values in a common state space.
+The older Boltzmann-machine literature
+\cite{ackleyLearningAlgorithmBoltzmann1985} supplies the complementary idea of
+sampling from an associative-memory energy, although it uses Gibbs dynamics on
+binary states rather than Langevin dynamics in a continuous state space. The
+Gaussian-mixture interpretation developed here is also related to established
+probabilistic views of attention. Tsai et al.
+\cite{tsaiTransformerKernel2019} describe attention as a kernel smoother,
+Nguyen et al.
+\cite{nguyenProbabilisticKeys2022} derive attention weights as posterior
+responsibilities under Gaussian keys, and Ota and Karakida
+\cite{otaAttentionBoltzmannMachine2023} study a Boltzmann-machine formulation
+of the attention and Hopfield energy. For equal-norm memories, the exact target
+studied here is a Parzen kernel density estimator with bandwidth
+$h=\beta^{-1/2}$ \cite{parzenEstimationProbability1962}. Kernel-density
+sampling at that bandwidth is therefore the same base probability model, not a
+competing generator. Nearest-neighbor interpolation, matched memory
+perturbation, and fitted Gaussian mixtures remain useful controls because they
+change the component allocation, covariance, or representation.
 
-The probabilistic interpretation is closely related to kernel views of
-attention. Tsai et al.~\cite{tsaiTransformerKernel2019} formulate attention as a
-kernel smoother, while Nguyen et al.~\cite{nguyenProbabilisticKeys2022} model
-attention keys using Gaussian mixtures. In the equal-norm case studied here,
-the exact Hopfield law is also an isotropic Parzen estimator whose bandwidth is
-$h=\beta^{-1/2}$~\cite{parzenEstimationProbability1962}. Thus KDE sampling is
-not an external competitor at the matched bandwidth; it is the same probability
-model. Nearest-neighbor interpolation and perturbation are distinct local-memory
-baselines and are included in our reanalysis.
+Energy-based models define a density through an energy and often estimate its
+parameters using contrastive divergence
+\cite{hintonTrainingProductsExperts2002}, score matching
+\cite{hyvarinen2005estimation}, or noise-contrastive estimation
+\cite{gutmannHyvaerinenNoiseContrastive2010}. Score-based and diffusion models
+learn the score of a sequence of perturbed data distributions
+\cite{songGenerativeModelingEstimating2019,songScoreBasedGenerativeModeling2021,
+hoDenoisingDiffusionProbabilistic2020,sohlDicksteinDeepUnsupervisedLearning2015},
+whereas normalizing flows learn an invertible transformation with a tractable
+Jacobian \cite{rezendeMohamed2015}. Stochastic attention differs in that the
+score of its memory energy is analytic, although this convenience also limits
+the base model to a fixed memory-centered distribution. The Energy Transformer
+\cite{hooverEnergyTransformer2024} embeds Hopfield-like energies in a deeper
+architecture, whereas the present work isolates sampling from the tied
+single-state energy. Deng et al.
+\cite{dengLatentAlignment2018} introduce stochastic attention variables through
+variational inference; their stochasticity and training objective are distinct
+from Langevin sampling on a fixed energy. The unadjusted Langevin algorithm and
+the Metropolis-adjusted Langevin algorithm are standard samplers for targets
+specified through an energy or score
+\cite{robertsTweedieExponentialConvergence1996,durmusNonasymptoticAnalysisUnadjusted2017}.
+Our contribution is their attention-specific construction and the analysis of
+the resulting memory energy. The exact mixture supplies an analytic reference
+for the implementation. When a generic constraint, likelihood, or coupled
+energy is added, independent ancestral sampling usually disappears but the
+gradient-based construction remains available. In the base case, exact
+sampling should be preferred when independent equilibrium endpoints are the
+only objective.
 
-ULA and MALA are standard tools for targets known through an energy or
-score~\cite{robertsTweedieExponentialConvergence1996,durmusNonasymptoticAnalysisUnadjusted2017}.
-Stochastic attention specializes these methods to attention-derived energies.
-The exact mixture form of the unmodified tied Hopfield target provides an
-unusual analytic reference against which its Langevin implementations can be
-checked. Once the energy is composed with a generic constraint or likelihood,
-however, that independent sampler generally disappears while the gradient-based
-construction remains. This is the usual situation for learned energy and score
-models, whose density or normalizer is unavailable
-\cite{lecunTutorialEnergyBased2006,songHowTrainEnergyBased2021,songScoreBasedGenerativeModeling2021}.
-
-Low-data generation also requires comparisons beyond a VAE with a fixed unit
-Gaussian prior~\cite{kingmaWellingAutoEncoding2014}. Geometry-aware VAEs model
-the latent support explicitly in high-dimensional, low-sample settings
-\cite{chadebecGeometryVAE2023}; iterative encode--decode maps expose attractors
-and memorization in trained autoencoders~\cite{fumeroLatentDynamics2026}. These
-are appropriate baselines for a complete low-data study. We distinguish them
-from the exact correction established here and do not claim that the submitted
-VAE comparison settles relative generative quality.
+Low-data generation also requires careful learned baselines. A variational
+autoencoder with a fixed unit-Gaussian prior can place probability mass in
+latent regions that were weakly constrained by a small training set
+\cite{kingmaWellingAutoEncoding2014}. Geometry-aware latent models address this
+problem by modeling latent support explicitly
+\cite{chadebecGeometryVAE2023}, while iterative encode-decode maps can reveal
+attractors and memorization in trained autoencoders
+\cite{fumeroLatentDynamics2026}. The variational-autoencoder and diffusion
+experiments in this paper record the tested low-data protocols, but they do not
+establish general superiority over learned generators. Three subsequent studies
+apply stochastic attention in this regime. The first extends training-free
+generation across eight small protein-family alignments and evaluates sequence,
+structural, language-model, and mutational-tolerance diagnostics
+\cite{varnerTrainingFreeProtein2026}. The second uses Hopfield pattern
+multiplicities to set exact mixture weights for conditional protein generation,
+while separating latent conditioning from losses introduced by projection and
+sequence decoding \cite{varnerConditioningProtein2026}. The third applies
+multiplicity-weighted stochastic attention to a longitudinal coagulation cohort
+of 23 patients, compares Langevin and direct sampling from the same
+distribution, and evaluates the resulting profiles with statistical and
+mechanistic tests \cite{varnerSyntheticPatient2026}. Together, these studies
+use the present paper as the theoretical basis for stochastic attention while
+also showing why exact base sampling and more general gradient-based sampling
+should both remain part of the framework.
