@@ -178,28 +178,16 @@ valid = [!isnan(r.mala_novelty) for r in results]
 Δdiversity = [abs(r.sa_diversity - r.mala_diversity) for r in results[valid]]
 Δenergy    = [abs(r.sa_energy - r.mala_energy) for r in results[valid]]
 
-# Panel (a): MALA acceptance rate
-p1 = plot(αs, accept_rates .* 100,
-    xlabel="Step size α", ylabel="MALA acceptance rate (%)",
-    xscale=:log10, label=nothing, lw=2, marker=:circle, color=:steelblue,
-    title="(a) Acceptance rate", ylims=(-5, 105),
-    size=(400, 300))
-hline!([95], ls=:dash, color=:gray, label="95%")
-
-# Panel (b): |ULA − MALA| metric divergence (only where MALA is not frozen)
-p2 = plot(αs_valid, Δnovelty, label="Novelty", lw=2, marker=:circle,
-    xlabel="Step size α", ylabel="|ULA − MALA|",
-    xscale=:log10, title="(b) ULA–MALA divergence",
-    legend=:topleft, size=(400, 300))
-plot!(αs_valid, Δdiversity, label="Diversity", lw=2, marker=:square)
-plot!(αs_valid, Δenergy, label="Energy", lw=2, marker=:diamond)
-
-p_combined = plot(p1, p2, layout=(1, 2), size=(850, 350), margin=5Plots.mm)
-savefig(p_combined, joinpath(figpath, "Fig_stepsize_sweep_ula_vs_mala.pdf"))
-@info "Saved step-size sweep figure"
-
-# Also save PNG for quick inspection
-savefig(p_combined, joinpath(figpath, "Fig_stepsize_sweep_ula_vs_mala.png"))
-@info "Saved PNG version"
+include(joinpath(@__DIR__, "plot_stepsize_sweep.jl"))
+paths = render_stepsize_sweep_figure(
+    αs,
+    accept_rates,
+    αs_valid,
+    Δnovelty,
+    Δdiversity,
+    Δenergy;
+    output_dir = figpath,
+)
+@info "Saved step-size sweep figure" paths
 
 println("\nDone.")
